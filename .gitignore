@@ -2,7 +2,6 @@
 *.exe
 *.bin
 *.out
-!*.odin
 build/
 
 # Object files and libraries
@@ -16,4 +15,3 @@ build/
 
 # Other
 .DS_Store
-*.wal

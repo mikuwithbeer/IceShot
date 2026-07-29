@@ -17,9 +17,4 @@ typedef int64_t i64;
 typedef float f32;
 typedef double f64;
 
-typedef struct {
-  f64 x;
-  f64 y;
-} Vector2;
-
 #endif // COMMON_H

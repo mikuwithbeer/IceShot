@@ -1,0 +1,188 @@
+#import "capture.h"
+
+#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
+#import <ScreenCaptureKit/ScreenCaptureKit.h>
+
+static bool capture_ready = false;
+
+static SCDisplay *capture_display = NULL;
+static CGFloat capture_factor = 1.0;
+
+static bool image_to_rgba8888(CGImageRef image, void **out_pixels,
+                              u64 *out_length, u64 *out_width, u64 *out_height,
+                              u64 *out_stride);
+
+bool init_capture(void) {
+  __block bool success = true;
+
+  if (capture_ready) {
+    return success;
+  }
+
+  dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+
+  [SCShareableContent
+      getShareableContentWithCompletionHandler:^(
+          SCShareableContent *_Nullable content, NSError *_Nullable error) {
+        if (error || !content || content.displays.count <= 0) {
+          success = false;
+          return;
+        }
+
+        CGDirectDisplayID main_display_id = CGMainDisplayID();
+        SCDisplay *target_display = content.displays.firstObject;
+
+        for (SCDisplay *candidate in content.displays) {
+          if (candidate.displayID == main_display_id) {
+            target_display = candidate;
+            break;
+          }
+        }
+
+        CGFloat scale_factor = 1.0;
+        for (NSScreen *screen in NSScreen.screens) {
+          NSNumber *screen_id = screen.deviceDescription[@"NSScreenNumber"];
+          if (screen_id.unsignedIntValue == target_display.displayID) {
+            scale_factor = screen.backingScaleFactor;
+            break;
+          }
+        }
+
+        capture_display = target_display;
+        capture_factor = scale_factor;
+
+        dispatch_semaphore_signal(semaphore);
+      }];
+
+  dispatch_semaphore_wait(semaphore,
+                          dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC));
+
+  capture_ready = success;
+  return success;
+}
+
+Capture load_capture(Vector2 position, Vector2 size) {
+  Capture capture = {};
+
+  if (!capture_ready) {
+    return capture;
+  }
+
+  dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+
+  __block void *pixels = NULL;
+
+  __block u64 length = 0;
+  __block u64 width = 0;
+  __block u64 height = 0;
+  __block u64 stride = 0;
+
+  SCContentFilter *filter =
+      [[SCContentFilter alloc] initWithDisplay:capture_display
+                              excludingWindows:@[]];
+
+  SCStreamConfiguration *config = [[SCStreamConfiguration alloc] init];
+
+  config.sourceRect = CGRectMake(position.x, position.y, size.x, size.y);
+  config.width = (NSInteger)lround(size.x * capture_factor);
+  config.height = (NSInteger)lround(size.y * capture_factor);
+  config.showsCursor = NO;
+
+  [SCScreenshotManager
+      captureImageWithFilter:filter
+               configuration:config
+           completionHandler:^(CGImageRef image, NSError *error) {
+             if (error || !image) {
+               return;
+             }
+
+             void *temporary_pixels = NULL;
+
+             u64 temporary_length = 0;
+             u64 temporary_width = 0;
+             u64 temporary_height = 0;
+             u64 temporary_stride = 0;
+
+             if (image_to_rgba8888(image, &temporary_pixels, &temporary_length,
+                                   &temporary_width, &temporary_height,
+                                   &temporary_stride)) {
+               pixels = temporary_pixels;
+               length = temporary_length;
+               width = temporary_width;
+               height = temporary_height;
+               stride = temporary_stride;
+             }
+
+             dispatch_semaphore_signal(semaphore);
+           }];
+
+  dispatch_semaphore_wait(semaphore,
+                          dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC));
+
+  capture.data = pixels;
+  capture.length = length;
+  capture.width = width;
+  capture.height = height;
+  capture.stride = stride;
+
+  return capture;
+}
+
+void free_capture(Capture *capture) {
+  if (!capture) {
+    return;
+  }
+
+  if (capture->data) {
+    free(capture->data);
+  }
+
+  capture->data = NULL;
+  capture->length = 0;
+  capture->width = 0;
+  capture->height = 0;
+  capture->stride = 0;
+}
+
+static bool image_to_rgba8888(CGImageRef image, void **out_pixels,
+                              u64 *out_length, u64 *out_width, u64 *out_height,
+                              u64 *out_stride) {
+  const u64 width = CGImageGetWidth(image);
+  const u64 height = CGImageGetHeight(image);
+  const u64 per_pixel = 4;
+  const u64 stride = width * per_pixel;
+  const u64 length = stride * height;
+
+  void *pixels = calloc(1, length);
+  if (!pixels) {
+    return false;
+  }
+
+  CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
+  if (!color_space) {
+    free(pixels);
+    return false;
+  }
+
+  CGContextRef context = CGBitmapContextCreate(
+      pixels, width, height, 8, stride, color_space,
+      kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+  CGColorSpaceRelease(color_space);
+
+  if (!context) {
+    free(pixels);
+    return false;
+  }
+
+  CGContextDrawImage(context, CGRectMake(0, 0, width, height), image);
+  CGContextRelease(context);
+
+  *out_pixels = pixels;
+  *out_length = length;
+  *out_width = width;
+  *out_height = height;
+  *out_stride = stride;
+
+  return true;
+}
