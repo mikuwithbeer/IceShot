@@ -1,0 +1,19 @@
+# Compiled binaries
+*.exe
+*.bin
+*.out
+!*.odin
+build/
+
+# Object files and libraries
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.so
+*.dylib
+
+# Other
+.DS_Store
+*.wal
