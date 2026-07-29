@@ -3,6 +3,9 @@
 
 #include "common.h"
 
+#define CAPTURE_DISPATCH_TIMEOUT                                               \
+  (dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC))
+
 typedef struct {
   void *data;
 
@@ -18,6 +21,8 @@ typedef struct {
 } Vector2;
 
 bool init_capture(void);
+
+Vector2 size_capture(void);
 
 Capture load_capture(Vector2 position, Vector2 size);
 

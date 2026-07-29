@@ -55,11 +55,23 @@ bool init_capture(void) {
         dispatch_semaphore_signal(semaphore);
       }];
 
-  dispatch_semaphore_wait(semaphore,
-                          dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC));
+  dispatch_semaphore_wait(semaphore, CAPTURE_DISPATCH_TIMEOUT);
 
   capture_ready = success;
   return success;
+}
+
+Vector2 size_capture(void) {
+  Vector2 size = {};
+
+  if (!capture_ready) {
+    return size;
+  }
+
+  size.x = capture_display.width;
+  size.y = capture_display.height;
+
+  return size;
 }
 
 Capture load_capture(Vector2 position, Vector2 size) {
@@ -117,8 +129,7 @@ Capture load_capture(Vector2 position, Vector2 size) {
              dispatch_semaphore_signal(semaphore);
            }];
 
-  dispatch_semaphore_wait(semaphore,
-                          dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC));
+  dispatch_semaphore_wait(semaphore, CAPTURE_DISPATCH_TIMEOUT);
 
   capture.data = pixels;
   capture.length = length;
@@ -136,13 +147,8 @@ void free_capture(Capture *capture) {
 
   if (capture->data) {
     free(capture->data);
+    capture->data = NULL;
   }
-
-  capture->data = NULL;
-  capture->length = 0;
-  capture->width = 0;
-  capture->height = 0;
-  capture->stride = 0;
 }
 
 static bool image_to_rgba8888(CGImageRef image, void **out_pixels,
@@ -154,7 +160,7 @@ static bool image_to_rgba8888(CGImageRef image, void **out_pixels,
   const u64 stride = width * per_pixel;
   const u64 length = stride * height;
 
-  void *pixels = calloc(1, length);
+  void *pixels = malloc(length);
   if (!pixels) {
     return false;
   }
