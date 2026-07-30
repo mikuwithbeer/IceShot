@@ -24,7 +24,7 @@ bool init_capture(void);
 
 Vector2 size_capture(void);
 
-Capture load_capture(Vector2 position, Vector2 size);
+bool load_capture(Vector2 position, Vector2 size, Capture *capture);
 
 void free_capture(Capture *capture);
 

@@ -17,13 +17,13 @@ Vector2 :: struct {
 	y: c.double,
 }
 
-foreign import capture "../build/capture.o"
+foreign import _capture "../build/capture.o"
 
 @(default_calling_convention = "c")
-foreign capture {
+foreign _capture {
 	init_capture :: proc() -> c.bool ---
 	size_capture :: proc() -> Vector2 ---
-	load_capture :: proc(position: Vector2, size: Vector2) -> Capture ---
+	load_capture :: proc(position: Vector2, size: Vector2, capture: ^Capture) -> bool ---
 	free_capture :: proc(result: ^Capture) ---
 }
 
@@ -34,15 +34,16 @@ main :: proc() {
 
 	size := size_capture()
 
-	capture := load_capture({size.x / 2 - 250, size.y / 2 - 250}, {500, 500})
-	if capture.data == nil {
+	capture: Capture
+	ok := load_capture({size.x / 2 - 250, size.y / 2 - 250}, {500, 500}, &capture)
+	if !ok {
 		return
 	}
 
 	defer free_capture(&capture)
 
-	stbi.write_jpg(
-		"capture.jpg",
+	stbi.write_png(
+		"capture.png",
 		i32(capture.width),
 		i32(capture.height),
 		4,
@@ -50,5 +51,5 @@ main :: proc() {
 		i32(capture.stride),
 	)
 
-	fmt.println("wrote to capture.jpg")
+	fmt.println("wrote to capture.png")
 }

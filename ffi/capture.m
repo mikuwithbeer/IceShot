@@ -9,9 +9,8 @@ static bool capture_ready = false;
 static SCDisplay *capture_display = NULL;
 static CGFloat capture_factor = 1.0;
 
-static bool image_to_rgba8888(CGImageRef image, void **out_pixels,
-                              u64 *out_length, u64 *out_width, u64 *out_height,
-                              u64 *out_stride);
+static bool image_to_rgba(CGImageRef image, void **out_pixels, u64 *out_length,
+                          u64 *out_width, u64 *out_height, u64 *out_stride);
 
 bool init_capture(void) {
   __block bool success = true;
@@ -27,6 +26,7 @@ bool init_capture(void) {
           SCShareableContent *_Nullable content, NSError *_Nullable error) {
         if (error || !content || content.displays.count <= 0) {
           success = false;
+          dispatch_semaphore_signal(semaphore);
           return;
         }
 
@@ -74,11 +74,9 @@ Vector2 size_capture(void) {
   return size;
 }
 
-Capture load_capture(Vector2 position, Vector2 size) {
-  Capture capture = {};
-
+bool load_capture(Vector2 position, Vector2 size, Capture *capture) {
   if (!capture_ready) {
-    return capture;
+    return false;
   }
 
   dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
@@ -106,6 +104,7 @@ Capture load_capture(Vector2 position, Vector2 size) {
                configuration:config
            completionHandler:^(CGImageRef image, NSError *error) {
              if (error || !image) {
+               dispatch_semaphore_signal(semaphore);
                return;
              }
 
@@ -116,9 +115,9 @@ Capture load_capture(Vector2 position, Vector2 size) {
              u64 temporary_height = 0;
              u64 temporary_stride = 0;
 
-             if (image_to_rgba8888(image, &temporary_pixels, &temporary_length,
-                                   &temporary_width, &temporary_height,
-                                   &temporary_stride)) {
+             if (image_to_rgba(image, &temporary_pixels, &temporary_length,
+                               &temporary_width, &temporary_height,
+                               &temporary_stride)) {
                pixels = temporary_pixels;
                length = temporary_length;
                width = temporary_width;
@@ -129,15 +128,18 @@ Capture load_capture(Vector2 position, Vector2 size) {
              dispatch_semaphore_signal(semaphore);
            }];
 
-  dispatch_semaphore_wait(semaphore, CAPTURE_DISPATCH_TIMEOUT);
+  u64 timeout = dispatch_semaphore_wait(semaphore, CAPTURE_DISPATCH_TIMEOUT);
+  if (timeout != 0) {
+    return false;
+  }
 
-  capture.data = pixels;
-  capture.length = length;
-  capture.width = width;
-  capture.height = height;
-  capture.stride = stride;
+  capture->data = pixels;
+  capture->length = length;
+  capture->width = width;
+  capture->height = height;
+  capture->stride = stride;
 
-  return capture;
+  return true;
 }
 
 void free_capture(Capture *capture) {
@@ -151,9 +153,8 @@ void free_capture(Capture *capture) {
   }
 }
 
-static bool image_to_rgba8888(CGImageRef image, void **out_pixels,
-                              u64 *out_length, u64 *out_width, u64 *out_height,
-                              u64 *out_stride) {
+static bool image_to_rgba(CGImageRef image, void **out_pixels, u64 *out_length,
+                          u64 *out_width, u64 *out_height, u64 *out_stride) {
   const u64 width = CGImageGetWidth(image);
   const u64 height = CGImageGetHeight(image);
   const u64 per_pixel = 4;
@@ -174,6 +175,7 @@ static bool image_to_rgba8888(CGImageRef image, void **out_pixels,
   CGContextRef context = CGBitmapContextCreate(
       pixels, width, height, 8, stride, color_space,
       kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+
   CGColorSpaceRelease(color_space);
 
   if (!context) {
@@ -182,6 +184,7 @@ static bool image_to_rgba8888(CGImageRef image, void **out_pixels,
   }
 
   CGContextDrawImage(context, CGRectMake(0, 0, width, height), image);
+
   CGContextRelease(context);
 
   *out_pixels = pixels;
