@@ -1,7 +1,7 @@
 package main
 
 import "native"
-import raylib "vendor:raylib"
+import "vendor:raylib"
 
 WINDOW_DEFAULT_X :: 800
 WINDOW_DEFAULT_Y :: 600
@@ -91,11 +91,14 @@ main :: proc() {
 			speed := 2000.0 * raylib.GetFrameTime() / camera.zoom
 			if raylib.IsKeyDown(.LEFT) {
 				camera.target.x -= speed
-			} else if raylib.IsKeyDown(.RIGHT) {
+			}
+			if raylib.IsKeyDown(.RIGHT) {
 				camera.target.x += speed
-			} else if raylib.IsKeyDown(.UP) {
+			}
+			if raylib.IsKeyDown(.UP) {
 				camera.target.y -= speed
-			} else if raylib.IsKeyDown(.DOWN) {
+			}
+			if raylib.IsKeyDown(.DOWN) {
 				camera.target.y += speed
 			}
 		}
