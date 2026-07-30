@@ -29,7 +29,7 @@ load_window :: proc(gui: ^Window) -> (ok: bool) {
 		raylib.BeginDrawing()
 		defer raylib.EndDrawing()
 
-		raylib.ClearBackground(raylib.WHITE)
+		raylib.ClearBackground({255, 255, 255, 255})
 
 		load_viewer(&gui.viewer) or_return
 	}
