@@ -21,7 +21,7 @@ all: release
 
 prepare:
 	@mkdir -p $(OUTPUT_PATH)
-	@$(CC) $(FLAGS_PREPARE) $(OBJECT_PATH)/capture.m -o $(OUTPUT_PATH)/capture.o
+	@$(CC) $(FLAGS_PREPARE) $(OBJECT_PATH)/wrapper.m -o $(OUTPUT_PATH)/wrapper.o
 
 debug: prepare
 	@$(ODIN) build $(SOURCE_PATH) -out=$(OUTPUT_NAME) $(FLAGS_DEFAULT) $(FLAGS_DEBUG)

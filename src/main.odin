@@ -17,10 +17,10 @@ Vector2 :: struct {
 	y: c.double,
 }
 
-foreign import _capture "../build/capture.o"
+foreign import _wrapper "../build/wrapper.o"
 
 @(default_calling_convention = "c")
-foreign _capture {
+foreign _wrapper {
 	init_capture :: proc() -> c.bool ---
 	size_capture :: proc() -> Vector2 ---
 	load_capture :: proc(position: Vector2, size: Vector2, capture: ^Capture) -> bool ---

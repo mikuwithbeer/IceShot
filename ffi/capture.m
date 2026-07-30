@@ -1,4 +1,4 @@
-#import "capture.h"
+#include "capture.h"
 
 #import <Cocoa/Cocoa.h>
 #import <Foundation/Foundation.h>
