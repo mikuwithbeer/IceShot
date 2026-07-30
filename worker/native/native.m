@@ -1,16 +1,28 @@
-#include "capture.h"
+#include "native.h"
 
 #import <Cocoa/Cocoa.h>
 #import <Foundation/Foundation.h>
 #import <ScreenCaptureKit/ScreenCaptureKit.h>
+
+// [--------------------------------------------------------------] //
+// > Global Variables                                             < //
+// [--------------------------------------------------------------] //
 
 static bool capture_ready = false;
 
 static SCDisplay *capture_display = NULL;
 static CGFloat capture_factor = 1.0;
 
+// [--------------------------------------------------------------] //
+// > Forward Declarations                                         < //
+// [--------------------------------------------------------------] //
+
 static bool image_to_rgba(CGImageRef image, void **out_pixels, u64 *out_length,
                           u64 *out_width, u64 *out_height, u64 *out_stride);
+
+// [--------------------------------------------------------------] //
+// > Function Implementations                                     < //
+// [--------------------------------------------------------------] //
 
 bool init_capture(void) {
   __block bool success = true;
@@ -55,26 +67,24 @@ bool init_capture(void) {
         dispatch_semaphore_signal(semaphore);
       }];
 
-  dispatch_semaphore_wait(semaphore, CAPTURE_DISPATCH_TIMEOUT);
+  dispatch_semaphore_wait(semaphore, CAPTURE_TIMEOUT);
 
   capture_ready = success;
   return success;
 }
 
-Vector2 size_capture(void) {
-  Vector2 size = {};
-
+bool size_capture(Point2D *point) {
   if (!capture_ready) {
-    return size;
+    return false;
   }
 
-  size.x = capture_display.width;
-  size.y = capture_display.height;
+  point->x = capture_display.width;
+  point->y = capture_display.height;
 
-  return size;
+  return true;
 }
 
-bool load_capture(Vector2 position, Vector2 size, Capture *capture) {
+bool load_capture(Point2D position, Point2D size, Capture *capture) {
   if (!capture_ready) {
     return false;
   }
@@ -128,7 +138,7 @@ bool load_capture(Vector2 position, Vector2 size, Capture *capture) {
              dispatch_semaphore_signal(semaphore);
            }];
 
-  u64 timeout = dispatch_semaphore_wait(semaphore, CAPTURE_DISPATCH_TIMEOUT);
+  u64 timeout = dispatch_semaphore_wait(semaphore, CAPTURE_TIMEOUT);
   if (timeout != 0) {
     return false;
   }
@@ -152,6 +162,10 @@ void free_capture(Capture *capture) {
     capture->data = NULL;
   }
 }
+
+// [--------------------------------------------------------------] //
+// > Internal Functions                                           < //
+// [--------------------------------------------------------------] //
 
 static bool image_to_rgba(CGImageRef image, void **out_pixels, u64 *out_length,
                           u64 *out_width, u64 *out_height, u64 *out_stride) {

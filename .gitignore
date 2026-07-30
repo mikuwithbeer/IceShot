@@ -2,7 +2,7 @@
 *.exe
 *.bin
 *.out
-build/
+output/
 
 # Object files and libraries
 *.o

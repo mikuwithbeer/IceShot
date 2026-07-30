@@ -1,13 +1,13 @@
 CC   = clang
 ODIN = odin
 
-ARGS =
-
-NAME        = IceShot
+ARGS        =
+NAME        = IceShotWorker
 VERSION     = 0.0.0
-SOURCE_PATH = src
-OBJECT_PATH = ffi
-OUTPUT_PATH = build
+
+SOURCE_PATH = source
+NATIVE_PATH = native
+OUTPUT_PATH = output
 OUTPUT_NAME = $(OUTPUT_PATH)/$(NAME)
 
 FLAGS_PREPARE = -c -fobjc-arc
@@ -21,7 +21,7 @@ all: release
 
 prepare:
 	@mkdir -p $(OUTPUT_PATH)
-	@$(CC) $(FLAGS_PREPARE) $(OBJECT_PATH)/wrapper.m -o $(OUTPUT_PATH)/wrapper.o
+	@$(CC) $(FLAGS_PREPARE) $(NATIVE_PATH)/native.m -o $(OUTPUT_PATH)/native.o
 
 debug: prepare
 	@$(ODIN) build $(SOURCE_PATH) -out=$(OUTPUT_NAME) $(FLAGS_DEFAULT) $(FLAGS_DEBUG)
