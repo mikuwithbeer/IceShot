@@ -7,25 +7,22 @@ import "vendor:raylib"
 Viewer :: struct {
 	texture: raylib.Texture2D,
 	camera:  raylib.Camera2D,
-	render:  [2]f32,
-	dpi:     [2]f32,
 	speed:   f32,
+	dpi:     [2]f32,
 }
 
-init_viewer :: proc() -> (view: Viewer, ok: bool) {
+init_viewer :: proc(gui: ^Window) -> (view: Viewer, ok: bool) {
 	act := action.capture_action() or_return
-
 	view.texture = act.texture
-	view.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
 
-	scale := [2]f32{view.render.x / f32(act.width), view.render.y / f32(act.height)}
+	scale := [2]f32{gui.render.x / f32(act.width), gui.render.y / f32(act.height)}
 	zoom := min(scale.x, scale.y)
 	if zoom > 1.0 {
 		zoom = 1.0
 	}
 
 	view.camera = raylib.Camera2D {
-		offset = {view.render.x * 0.5, view.render.y * 0.5},
+		offset = {gui.render.x * 0.5, gui.render.y * 0.5},
 		target = {f32(act.width) * 0.5, f32(act.height) * 0.5},
 		zoom   = zoom,
 	}
@@ -34,11 +31,10 @@ init_viewer :: proc() -> (view: Viewer, ok: bool) {
 	return
 }
 
-load_viewer :: proc(view: ^Viewer) -> (ok: bool) {
-	view.dpi = raylib.GetWindowScaleDPI()
-	view.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
-	view.camera.offset = {view.render.x * 0.5, view.render.y * 0.5}
+load_viewer :: proc(gui: ^Window, view: ^Viewer) -> (ok: bool) {
+	view.camera.offset = {gui.render.x * 0.5, gui.render.y * 0.5}
 	view.speed = 2000.0 * raylib.GetFrameTime() / view.camera.zoom
+	view.dpi = raylib.GetWindowScaleDPI()
 
 	raylib.BeginMode2D(view.camera)
 	defer raylib.EndMode2D()

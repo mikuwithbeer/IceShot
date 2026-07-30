@@ -1,6 +1,7 @@
 package action
 
 import "../native"
+
 import "vendor:raylib"
 
 Capture_Action :: struct {
