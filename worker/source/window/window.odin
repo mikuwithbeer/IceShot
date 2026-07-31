@@ -9,57 +9,50 @@ Window :: struct {
 	viewer: Viewer,
 	header: Header,
 	manage: manage.Manage,
-	cursor: [2]f32,
-	render: [2]f32,
-	inside: bool,
-	_runs:  bool,
-	_font:  raylib.Font,
 }
 
 init_window :: proc() -> (gui: Window, err: action.Action_Error) {
-	raylib.SetConfigFlags({.WINDOW_HIGHDPI, .WINDOW_RESIZABLE})
+	raylib.SetConfigFlags({.WINDOW_HIGHDPI, .WINDOW_RESIZABLE, .VSYNC_HINT})
 	raylib.InitWindow(800, 600, "IceShot")
 	raylib.SetTargetFPS(60)
 
-	gui.cursor = {0, 0}
-	gui.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
-
-	gui.viewer = init_viewer(&gui) or_return
-	gui.header = init_header(&gui) or_return
-
 	handle_style(&gui)
+
+	gui.manage.frame.cursor = {0, 0}
+	gui.manage.frame.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
+
+	gui.viewer = init_viewer(&gui.manage) or_return
+	gui.header = init_header(&gui.manage) or_return
+
 	return
 }
 
 load_window :: proc(gui: ^Window) -> (err: action.Action_Error) {
-	for {
-		gui._runs = !raylib.WindowShouldClose()
-		if !gui._runs {
-			break
-		}
-
-		gui.cursor = raylib.GetMousePosition()
-		gui.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
-
-		gui.inside = gui.cursor.y > gui.header.panel_position.height
+	for !raylib.WindowShouldClose() {
+		gui.manage.frame.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
+		gui.manage.frame.cursor = raylib.GetMousePosition()
+		gui.manage.frame.dpi = raylib.GetWindowScaleDPI()
+		gui.manage.frame.fly = gui.manage.frame.cursor.y > gui.header.panel_position.height
 
 		raylib.BeginDrawing()
 		defer raylib.EndDrawing()
 
 		handle_board(gui)
 
-		load_viewer(&gui.viewer, gui) or_return
-		load_header(&gui.header, gui) or_return
+		load_viewer(&gui.viewer, &gui.manage) or_return
+		load_header(&gui.header, &gui.manage) or_return
 	}
 
 	return
 }
 
 free_window :: proc(gui: ^Window) {
-	free_viewer(&gui.viewer)
-	free_header(&gui.header)
+	raylib.UnloadTexture(gui.manage.frame.shot)
 
-	raylib.UnloadFont(gui._font)
+	raylib.GuiSetFont(raylib.GetFontDefault())
+	raylib.UnloadFont(gui.manage.frame.font)
+
+	raylib.CloseWindow()
 }
 
 @(private = "file")
@@ -68,15 +61,29 @@ handle_board :: proc(gui: ^Window) {
 
 	raylib.ClearBackground({255, 255, 255, 255})
 
-	colors: [2]raylib.Color = {{30, 30, 35, 255}, {40, 40, 45, 255}}
-	pixels: [2]i32 = {i32(gui.render.x) / CELL_SIZE + 1, i32(gui.render.y) / CELL_SIZE + 1}
+	pixels: [2]i32 = {
+		i32(gui.manage.frame.render.x) / CELL_SIZE + 1,
+		i32(gui.manage.frame.render.y) / CELL_SIZE + 1,
+	}
 
 	for x in 0 ..< pixels.x {
 		for y in 0 ..< pixels.y {
 			if (x + y) % 2 == 0 {
-				raylib.DrawRectangle(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE, colors.x)
+				raylib.DrawRectangle(
+					x * CELL_SIZE,
+					y * CELL_SIZE,
+					CELL_SIZE,
+					CELL_SIZE,
+					{30, 30, 35, 255},
+				)
 			} else {
-				raylib.DrawRectangle(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE, colors.y)
+				raylib.DrawRectangle(
+					x * CELL_SIZE,
+					y * CELL_SIZE,
+					CELL_SIZE,
+					CELL_SIZE,
+					{40, 40, 45, 255},
+				)
 			}
 		}
 	}
@@ -110,15 +117,10 @@ handle_style :: proc(gui: ^Window) {
 
 	raylib.GuiSetStyle(.BUTTON, 12, 0x00000001)
 
-	gui._font = raylib.LoadFontFromMemory(
-		".ttf",
-		raw_data(FONT_DATA),
-		i32(len(FONT_DATA)),
-		64,
-		nil,
-		0,
-	)
+	font := raylib.LoadFontFromMemory(".ttf", raw_data(FONT_DATA), i32(len(FONT_DATA)), 64, nil, 0)
 
-	raylib.SetTextureFilter(gui._font.texture, .TRILINEAR)
-	raylib.GuiSetFont(gui._font)
+	raylib.SetTextureFilter(font.texture, .TRILINEAR)
+	raylib.GuiSetFont(font)
+
+	gui.manage.frame.font = font
 }
