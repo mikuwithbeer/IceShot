@@ -11,7 +11,7 @@ Viewer :: struct {
 	dpi:     [2]f32,
 }
 
-init_viewer :: proc(gui: ^Window) -> (view: Viewer, ok: bool) {
+init_viewer :: proc(gui: ^Window) -> (view: Viewer, err: action.Action_Error) {
 	act := action.capture_action() or_return
 	view.texture = act.texture
 
@@ -27,11 +27,10 @@ init_viewer :: proc(gui: ^Window) -> (view: Viewer, ok: bool) {
 		zoom   = zoom,
 	}
 
-	ok = true
 	return
 }
 
-load_viewer :: proc(view: ^Viewer, gui: ^Window) -> (ok: bool) {
+load_viewer :: proc(view: ^Viewer, gui: ^Window) -> (err: action.Action_Error) {
 	view.camera.offset = {gui.render.x * 0.5, gui.render.y * 0.5}
 
 	view.speed = 2000.0 * raylib.GetFrameTime() / view.camera.zoom
@@ -42,10 +41,9 @@ load_viewer :: proc(view: ^Viewer, gui: ^Window) -> (ok: bool) {
 
 	raylib.DrawTexture(view.texture, 0, 0, {255, 255, 255, 255})
 
-	handle_zoom(view, gui) or_return
-	handle_move(view) or_return
+	handle_zoom(view, gui)
+	handle_move(view)
 
-	ok = true
 	return
 }
 
@@ -54,7 +52,7 @@ free_viewer :: proc(view: ^Viewer) {
 }
 
 @(private = "file")
-handle_zoom :: proc(view: ^Viewer, gui: ^Window) -> (ok: bool) {
+handle_zoom :: proc(view: ^Viewer, gui: ^Window) {
 	wheel := raylib.GetMouseWheelMove()
 	if wheel != 0 && gui.inside {
 		absolute := raylib.Vector2{gui.cursor.x * view.dpi.x, gui.cursor.y * view.dpi.y}
@@ -69,13 +67,10 @@ handle_zoom :: proc(view: ^Viewer, gui: ^Window) -> (ok: bool) {
 		view.camera.target.x += before.x - after.x
 		view.camera.target.y += before.y - after.y
 	}
-
-	ok = true
-	return
 }
 
 @(private = "file")
-handle_move :: proc(view: ^Viewer) -> (ok: bool) {
+handle_move :: proc(view: ^Viewer) {
 	if raylib.IsKeyDown(.LEFT) {
 		view.camera.target.x -= view.speed
 	}
@@ -91,7 +86,4 @@ handle_move :: proc(view: ^Viewer) -> (ok: bool) {
 	if raylib.IsKeyDown(.DOWN) {
 		view.camera.target.y += view.speed
 	}
-
-	ok = true
-	return
 }

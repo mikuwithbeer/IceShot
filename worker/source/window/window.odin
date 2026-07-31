@@ -1,5 +1,7 @@
 package window
 
+import "../action"
+
 import "vendor:raylib"
 
 Window :: struct {
@@ -12,7 +14,7 @@ Window :: struct {
 	_font:  raylib.Font,
 }
 
-init_window :: proc() -> (gui: Window, ok: bool) {
+init_window :: proc() -> (gui: Window, err: action.Action_Error) {
 	raylib.SetConfigFlags({.WINDOW_HIGHDPI, .WINDOW_RESIZABLE})
 	raylib.InitWindow(800, 600, "IceShot")
 	raylib.SetTargetFPS(60)
@@ -23,13 +25,11 @@ init_window :: proc() -> (gui: Window, ok: bool) {
 	gui.viewer = init_viewer(&gui) or_return
 	gui.header = init_header(&gui) or_return
 
-	handle_style(&gui) or_return
-
-	ok = true
+	handle_style(&gui)
 	return
 }
 
-load_window :: proc(gui: ^Window) -> (ok: bool) {
+load_window :: proc(gui: ^Window) -> (err: action.Action_Error) {
 	for {
 		gui._runs = !raylib.WindowShouldClose()
 		if !gui._runs {
@@ -44,13 +44,12 @@ load_window :: proc(gui: ^Window) -> (ok: bool) {
 		raylib.BeginDrawing()
 		defer raylib.EndDrawing()
 
-		handle_board(gui) or_return
+		handle_board(gui)
 
 		load_viewer(&gui.viewer, gui) or_return
 		load_header(&gui.header, gui) or_return
 	}
 
-	ok = true
 	return
 }
 
@@ -62,7 +61,7 @@ free_window :: proc(gui: ^Window) {
 }
 
 @(private = "file")
-handle_board :: proc(gui: ^Window) -> (ok: bool) {
+handle_board :: proc(gui: ^Window) {
 	CELL_SIZE :: 8
 
 	raylib.ClearBackground({255, 255, 255, 255})
@@ -79,13 +78,10 @@ handle_board :: proc(gui: ^Window) -> (ok: bool) {
 			}
 		}
 	}
-
-	ok = true
-	return
 }
 
 @(private = "file")
-handle_style :: proc(gui: ^Window) -> (ok: bool) {
+handle_style :: proc(gui: ^Window) {
 	FONT_DATA :: #load("../../assets/fonts/IntelOneMono.ttf")
 
 	raylib.GuiSetStyle(.DEFAULT, 0, 0x2C2C2CFF)
@@ -110,6 +106,8 @@ handle_style :: proc(gui: ^Window) -> (ok: bool) {
 	raylib.GuiSetStyle(.DEFAULT, 17, 0x00000000)
 	raylib.GuiSetStyle(.DEFAULT, 20, 0x00000018)
 
+	raylib.GuiSetStyle(.BUTTON, 12, 0x00000001)
+
 	gui._font = raylib.LoadFontFromMemory(
 		".ttf",
 		raw_data(FONT_DATA),
@@ -121,7 +119,4 @@ handle_style :: proc(gui: ^Window) -> (ok: bool) {
 
 	raylib.SetTextureFilter(gui._font.texture, .TRILINEAR)
 	raylib.GuiSetFont(gui._font)
-
-	ok = true
-	return
 }

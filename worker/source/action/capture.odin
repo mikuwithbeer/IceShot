@@ -10,14 +10,26 @@ Capture_Action :: struct {
 	texture: raylib.Texture2D,
 }
 
-capture_action :: proc() -> (act: Capture_Action, ok: bool) {
-	native.unsafe_init_capture() or_return
+capture_action :: proc() -> (act: Capture_Action, err: Action_Error) {
+	ok := native.unsafe_init_capture()
+	if !ok {
+		err = .Accessibility_Error
+		return
+	}
 
 	size: native.Unsafe_Point2D
-	native.unsafe_size_capture(&size) or_return
+	ok = native.unsafe_size_capture(&size)
+	if !ok {
+		err = .Accessibility_Error
+		return
+	}
 
 	capture: native.Unsafe_Capture
-	native.unsafe_load_capture({0, 0}, size, &capture) or_return
+	ok = native.unsafe_load_capture({0, 0}, size, &capture)
+	if !ok {
+		err = .Out_Of_Memory
+		return
+	}
 
 	defer native.unsafe_free_capture(&capture)
 
@@ -35,6 +47,5 @@ capture_action :: proc() -> (act: Capture_Action, ok: bool) {
 
 	raylib.SetTextureFilter(act.texture, .TRILINEAR)
 
-	ok = true
 	return
 }
