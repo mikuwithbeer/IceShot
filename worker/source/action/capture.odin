@@ -10,25 +10,23 @@ Capture_Action :: struct {
 	texture: raylib.Texture2D,
 }
 
-capture_action :: proc() -> (act: Capture_Action, err: Action_Error) {
+capture_action :: proc() -> (Capture_Action, Action_Error) {
 	ok := native.unsafe_init_capture()
 	if !ok {
-		err = .Accessibility_Error
-		return
+		return {}, .Accessibility_Error
 	}
 
 	size: native.Unsafe_Point2D
 	ok = native.unsafe_size_capture(&size)
 	if !ok {
-		err = .Accessibility_Error
-		return
+		return {}, .Accessibility_Error
+
 	}
 
 	capture: native.Unsafe_Capture
 	ok = native.unsafe_load_capture({0, 0}, size, &capture)
 	if !ok {
-		err = .Out_Of_Memory
-		return
+		return {}, .Out_Of_Memory
 	}
 
 	defer native.unsafe_free_capture(&capture)
@@ -41,11 +39,8 @@ capture_action :: proc() -> (act: Capture_Action, err: Action_Error) {
 		format  = .UNCOMPRESSED_R8G8B8A8,
 	}
 
-	act.width = image.width
-	act.height = image.height
-	act.texture = raylib.LoadTextureFromImage(image)
+	texture := raylib.LoadTextureFromImage(image)
+	raylib.SetTextureFilter(texture, .TRILINEAR)
 
-	raylib.SetTextureFilter(act.texture, .TRILINEAR)
-
-	return
+	return {width = image.width, height = image.height, texture = texture}, .None
 }

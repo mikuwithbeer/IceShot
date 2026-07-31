@@ -43,6 +43,7 @@ load_viewer :: proc(view: ^Viewer, gui: ^Window) -> (err: action.Action_Error) {
 
 	handle_zoom(view, gui)
 	handle_move(view)
+	handle_crop(view, gui)
 
 	return
 }
@@ -86,4 +87,56 @@ handle_move :: proc(view: ^Viewer) {
 	if raylib.IsKeyDown(.DOWN) {
 		view.camera.target.y += view.speed
 	}
+}
+
+@(private = "file")
+handle_crop :: proc(view: ^Viewer, gui: ^Window) -> (err: action.Action_Error) {
+	if !gui.manage.crop.running {
+		return
+	}
+
+	absolute := raylib.Vector2{gui.cursor.x * view.dpi.x, gui.cursor.y * view.dpi.y}
+
+	world := raylib.GetScreenToWorld2D(absolute, view.camera)
+	world.x = raylib.Clamp(world.x, 0.0, f32(view.texture.width))
+	world.y = raylib.Clamp(world.y, 0.0, f32(view.texture.height))
+
+	if gui.inside {
+		if raylib.IsMouseButtonPressed(.LEFT) {
+			gui.manage.crop.dragging = true
+			gui.manage.crop.start = {world.x, world.y}
+			gui.manage.crop.end = {world.x, world.y}
+		}
+	}
+
+	if gui.manage.crop.dragging {
+		if raylib.IsMouseButtonDown(.LEFT) {
+			gui.manage.crop.end = {world.x, world.y}
+		}
+
+		area := raylib.Rectangle {
+			x      = min(gui.manage.crop.start.x, gui.manage.crop.end.x),
+			y      = min(gui.manage.crop.start.y, gui.manage.crop.end.y),
+			width  = abs(gui.manage.crop.start.x - gui.manage.crop.end.x),
+			height = abs(gui.manage.crop.start.y - gui.manage.crop.end.y),
+		}
+
+		if raylib.IsMouseButtonReleased(.LEFT) {
+			gui.manage.crop.dragging = false
+
+			if area.width > 1.0 && area.height > 1.0 {
+				act := action.crop_action(view.texture, area) or_return
+
+				raylib.UnloadTexture(view.texture)
+				view.texture = act.texture
+
+				gui.manage.crop = {}
+			}
+		}
+
+		raylib.DrawRectangleRec(area, {121, 191, 255, 80})
+		raylib.DrawRectangleLinesEx(area, 2.0 / view.camera.zoom, {121, 191, 255, 255})
+	}
+
+	return .None
 }

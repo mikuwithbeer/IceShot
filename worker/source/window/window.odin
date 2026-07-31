@@ -1,12 +1,14 @@
 package window
 
 import "../action"
+import "../manage"
 
 import "vendor:raylib"
 
 Window :: struct {
 	viewer: Viewer,
 	header: Header,
+	manage: manage.Manage,
 	cursor: [2]f32,
 	render: [2]f32,
 	inside: bool,
