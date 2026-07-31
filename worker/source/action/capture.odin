@@ -10,6 +10,7 @@ Capture_Action :: struct {
 	texture: raylib.Texture2D,
 }
 
+@(require_results)
 capture_action :: proc() -> (Capture_Action, Action_Error) {
 	ok := native.unsafe_init_capture()
 	if !ok {

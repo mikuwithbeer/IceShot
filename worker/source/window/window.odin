@@ -3,15 +3,21 @@ package window
 import "../action"
 import "../manage"
 
+import "base:runtime"
+
 import "vendor:raylib"
 
 Window :: struct {
-	viewer: Viewer,
-	header: Header,
-	manage: manage.Manage,
+	viewer:     Viewer,
+	header:     Header,
+	manage:     manage.Manage,
+	_allocator: runtime.Allocator,
 }
 
-init_window :: proc() -> (gui: Window, err: action.Action_Error) {
+@(require_results)
+init_window :: proc(allocator := context.allocator) -> (gui: Window, err: action.Action_Error) {
+	gui._allocator = allocator
+
 	raylib.SetConfigFlags({.WINDOW_HIGHDPI, .WINDOW_RESIZABLE, .VSYNC_HINT})
 	raylib.InitWindow(800, 600, "IceShot")
 	raylib.SetTargetFPS(60)
@@ -21,12 +27,13 @@ init_window :: proc() -> (gui: Window, err: action.Action_Error) {
 	gui.manage.frame.cursor = {0, 0}
 	gui.manage.frame.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
 
-	gui.viewer = init_viewer(&gui.manage) or_return
-	gui.header = init_header(&gui.manage) or_return
+	gui.viewer = init_viewer(&gui.manage, allocator = allocator) or_return
+	gui.header = init_header(&gui.manage, allocator = allocator) or_return
 
 	return
 }
 
+@(require_results)
 load_window :: proc(gui: ^Window) -> (err: action.Action_Error) {
 	for !raylib.WindowShouldClose() {
 		gui.manage.frame.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}

@@ -9,12 +9,13 @@ Action_Error :: enum {
 
 Action :: union {
 	Capture_Action,
+	Crop_Action,
 	Save_Action,
 }
 
-free_action :: proc(action: Action) {
+free_action :: proc(action: Action, allocator := context.allocator) {
 	#partial switch act in action {
 	case Save_Action:
-		delete(act.path)
+		delete(act.path, allocator = allocator)
 	}
 }

@@ -12,6 +12,7 @@ Save_Action :: struct {
 	path: string,
 }
 
+@(require_results)
 save_action :: proc(
 	texture: raylib.Texture2D,
 	allocator := context.allocator,

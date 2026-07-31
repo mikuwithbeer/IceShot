@@ -8,6 +8,7 @@ Crop_Action :: struct {
 	texture: raylib.Texture2D,
 }
 
+@(require_results)
 crop_action :: proc(
 	texture: raylib.Texture2D,
 	area: raylib.Rectangle,

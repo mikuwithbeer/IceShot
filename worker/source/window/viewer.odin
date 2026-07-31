@@ -3,13 +3,25 @@ package window
 import "../action"
 import "../manage"
 
+import "base:runtime"
+
 import "vendor:raylib"
 
 Viewer :: struct {
-	camera: raylib.Camera2D,
+	camera:     raylib.Camera2D,
+	_allocator: runtime.Allocator,
 }
 
-init_viewer :: proc(manager: ^manage.Manage) -> (view: Viewer, err: action.Action_Error) {
+@(require_results)
+init_viewer :: proc(
+	manager: ^manage.Manage,
+	allocator := context.allocator,
+) -> (
+	view: Viewer,
+	err: action.Action_Error,
+) {
+	view._allocator = allocator
+
 	act := action.capture_action() or_return
 	manager.frame.shot = act.texture
 
@@ -32,6 +44,7 @@ init_viewer :: proc(manager: ^manage.Manage) -> (view: Viewer, err: action.Actio
 	return
 }
 
+@(require_results)
 load_viewer :: proc(view: ^Viewer, manager: ^manage.Manage) -> (err: action.Action_Error) {
 	view.camera.offset = {manager.frame.render.x * 0.5, manager.frame.render.y * 0.5}
 
@@ -89,7 +102,7 @@ handle_zoom :: proc(view: ^Viewer, manager: ^manage.Manage) {
 	}
 }
 
-@(private = "file")
+@(private = "file", require_results)
 handle_crop :: proc(view: ^Viewer, manager: ^manage.Manage) -> (err: action.Action_Error) {
 	if !manager.crop.running {
 		return
@@ -108,9 +121,7 @@ handle_crop :: proc(view: ^Viewer, manager: ^manage.Manage) -> (err: action.Acti
 		manager.crop.dragging = true
 		manager.crop.start = {world.x, world.y}
 		manager.crop.end = {world.x, world.y}
-	}
-
-	if manager.crop.dragging {
+	} else if manager.crop.dragging {
 		if raylib.IsMouseButtonDown(.LEFT) {
 			manager.crop.end = {world.x, world.y}
 		}
