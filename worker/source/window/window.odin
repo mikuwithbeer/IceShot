@@ -44,7 +44,7 @@ load_window :: proc(gui: ^Window) -> (ok: bool) {
 		raylib.BeginDrawing()
 		defer raylib.EndDrawing()
 
-		raylib.ClearBackground({255, 255, 255, 255})
+		handle_board(gui) or_return
 
 		load_viewer(&gui.viewer, gui) or_return
 		load_header(&gui.header, gui) or_return
@@ -57,4 +57,27 @@ load_window :: proc(gui: ^Window) -> (ok: bool) {
 free_window :: proc(gui: ^Window) {
 	free_viewer(&gui.viewer)
 	free_header(&gui.header)
+}
+
+@(private = "file")
+handle_board :: proc(gui: ^Window) -> (ok: bool) {
+	CELL_SIZE :: 8
+
+	raylib.ClearBackground({255, 255, 255, 255})
+
+	colors: [2]raylib.Color = {{50, 50, 50, 255}, {40, 40, 40, 255}}
+	pixels: [2]i32 = {i32(gui.render.x) / CELL_SIZE + 1, i32(gui.render.y) / CELL_SIZE + 1}
+
+	for x in 0 ..< pixels.x {
+		for y in 0 ..< pixels.y {
+			if (x + y) % 2 == 0 {
+				raylib.DrawRectangle(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE, colors.x)
+			} else {
+				raylib.DrawRectangle(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE, colors.y)
+			}
+		}
+	}
+
+	ok = true
+	return
 }
