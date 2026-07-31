@@ -1,6 +1,7 @@
 package window
 
 import "../action"
+import "../error"
 import "../manage"
 
 import "base:runtime"
@@ -21,7 +22,7 @@ init_header :: proc(
 	allocator := context.allocator,
 ) -> (
 	head: Header,
-	err: action.Action_Error,
+	err: error.Error,
 ) {
 	head._allocator = allocator
 
@@ -35,7 +36,7 @@ init_header :: proc(
 }
 
 @(require_results)
-load_header :: proc(head: ^Header, manager: ^manage.Manage) -> (err: action.Action_Error) {
+load_header :: proc(head: ^Header, manager: ^manage.Manage) -> (err: error.Error) {
 	head.panel_position = {0, 0, manager.frame.screen.x, 72}
 
 	head.save_position = {manager.frame.screen.x - 40, 32, 32, 32}
@@ -44,8 +45,8 @@ load_header :: proc(head: ^Header, manager: ^manage.Manage) -> (err: action.Acti
 	raylib.GuiPanel(head.panel_position, "IceShot Toolbar")
 
 	if raylib.GuiButton(head.save_position, raylib.GuiIconText(.ICON_FILE_SAVE, "")) {
-		act := action.save_action(manager.frame.shot, head._allocator) or_return
-		action.free_action(act, head._allocator)
+		result := action.save_action(manager.frame.shot, head._allocator) or_return
+		action.free_action_result(result, head._allocator)
 	}
 
 	raylib.GuiToggle(head.cut_position, raylib.GuiIconText(.ICON_CROP, ""), &manager.crop.running)

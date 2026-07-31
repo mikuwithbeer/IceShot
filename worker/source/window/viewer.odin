@@ -1,6 +1,7 @@
 package window
 
 import "../action"
+import "../error"
 import "../manage"
 
 import "base:runtime"
@@ -18,7 +19,7 @@ init_viewer :: proc(
 	allocator := context.allocator,
 ) -> (
 	view: Viewer,
-	err: action.Action_Error,
+	err: error.Error,
 ) {
 	view._allocator = allocator
 
@@ -45,7 +46,7 @@ init_viewer :: proc(
 }
 
 @(require_results)
-load_viewer :: proc(view: ^Viewer, manager: ^manage.Manage) -> (err: action.Action_Error) {
+load_viewer :: proc(view: ^Viewer, manager: ^manage.Manage) -> (err: error.Error) {
 	view.camera.offset = {manager.frame.render.x * 0.5, manager.frame.render.y * 0.5}
 
 	raylib.BeginMode2D(view.camera)
@@ -103,7 +104,7 @@ handle_zoom :: proc(view: ^Viewer, manager: ^manage.Manage) {
 }
 
 @(private = "file", require_results)
-handle_crop :: proc(view: ^Viewer, manager: ^manage.Manage) -> (err: action.Action_Error) {
+handle_crop :: proc(view: ^Viewer, manager: ^manage.Manage) -> (err: error.Error) {
 	if !manager.crop.running {
 		return
 	}
@@ -138,12 +139,7 @@ handle_crop :: proc(view: ^Viewer, manager: ^manage.Manage) -> (err: action.Acti
 
 			if area.width > 1.0 && area.height > 1.0 {
 				act := action.crop_action(manager.frame.shot, area) or_return
-
-				ok := manage.push_history(&manager.history, manager.frame.shot)
-				if !ok {
-					err = .Out_Of_Memory
-					return
-				}
+				manage.push_history(&manager.history, manager.frame.shot) or_return
 
 				manager.frame.shot = act.texture
 				manager.crop = {}

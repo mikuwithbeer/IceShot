@@ -1,6 +1,6 @@
 package window
 
-import "../action"
+import "../error"
 import "../manage"
 
 import "base:runtime"
@@ -15,7 +15,7 @@ Window :: struct {
 }
 
 @(require_results)
-init_window :: proc(allocator := context.allocator) -> (gui: Window, err: action.Action_Error) {
+init_window :: proc(allocator := context.allocator) -> (gui: Window, err: error.Error) {
 	gui._allocator = allocator
 
 	raylib.SetConfigFlags({.WINDOW_HIGHDPI, .WINDOW_RESIZABLE, .VSYNC_HINT})
@@ -24,11 +24,7 @@ init_window :: proc(allocator := context.allocator) -> (gui: Window, err: action
 
 	handle_style(&gui)
 
-	manager, ok := manage.init_manage(allocator = allocator)
-	if !ok {
-		err = .Out_Of_Memory
-		return
-	}
+	manager := manage.init_manage(allocator = allocator) or_return
 
 	manager.frame.screen = {f32(raylib.GetScreenWidth()), f32(raylib.GetScreenHeight())}
 	manager.frame.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
@@ -41,7 +37,7 @@ init_window :: proc(allocator := context.allocator) -> (gui: Window, err: action
 }
 
 @(require_results)
-load_window :: proc(gui: ^Window) -> (err: action.Action_Error) {
+load_window :: proc(gui: ^Window) -> (err: error.Error) {
 	for !raylib.WindowShouldClose() {
 		gui.manage.frame.screen = {f32(raylib.GetScreenWidth()), f32(raylib.GetScreenHeight())}
 		gui.manage.frame.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
