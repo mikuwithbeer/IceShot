@@ -10,8 +10,8 @@ Header :: struct {
 }
 
 init_header :: proc(gui: ^Window) -> (head: Header, ok: bool) {
-	head.panel_position = {0, 0, 0, 48}
-	head.save_position = {8, 32, 72, 32}
+	head.panel_position = {0, 0, 0, 0}
+	head.save_position = {8, 32, 80, 32}
 
 	ok = true
 	return
