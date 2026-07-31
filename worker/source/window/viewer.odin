@@ -31,8 +31,9 @@ init_viewer :: proc(gui: ^Window) -> (view: Viewer, ok: bool) {
 	return
 }
 
-load_viewer :: proc(gui: ^Window, view: ^Viewer) -> (ok: bool) {
+load_viewer :: proc(view: ^Viewer, gui: ^Window) -> (ok: bool) {
 	view.camera.offset = {gui.render.x * 0.5, gui.render.y * 0.5}
+
 	view.speed = 2000.0 * raylib.GetFrameTime() / view.camera.zoom
 	view.dpi = raylib.GetWindowScaleDPI()
 
@@ -41,7 +42,7 @@ load_viewer :: proc(gui: ^Window, view: ^Viewer) -> (ok: bool) {
 
 	raylib.DrawTexture(view.texture, 0, 0, {255, 255, 255, 255})
 
-	handle_zoom(view) or_return
+	handle_zoom(view, gui) or_return
 	handle_move(view) or_return
 
 	ok = true
@@ -53,12 +54,10 @@ free_viewer :: proc(view: ^Viewer) {
 }
 
 @(private = "file")
-handle_zoom :: proc(view: ^Viewer) -> (ok: bool) {
+handle_zoom :: proc(view: ^Viewer, gui: ^Window) -> (ok: bool) {
 	wheel := raylib.GetMouseWheelMove()
-	cursor := raylib.GetMousePosition()
-
-	if wheel != 0 {
-		absolute := raylib.Vector2{cursor.x * view.dpi.x, cursor.y * view.dpi.y}
+	if wheel != 0 && gui.inside {
+		absolute := raylib.Vector2{gui.cursor.x * view.dpi.x, gui.cursor.y * view.dpi.y}
 
 		before := raylib.GetScreenToWorld2D(absolute, view.camera)
 

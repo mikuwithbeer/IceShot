@@ -5,8 +5,10 @@ import "vendor:raylib"
 Window :: struct {
 	viewer: Viewer,
 	header: Header,
+	cursor: [2]f32,
 	render: [2]f32,
 	closed: bool,
+	inside: bool,
 }
 
 init_window :: proc() -> (gui: Window, ok: bool) {
@@ -14,8 +16,11 @@ init_window :: proc() -> (gui: Window, ok: bool) {
 	raylib.InitWindow(800, 600, "IceShot")
 	raylib.SetTargetFPS(60)
 
+	gui.cursor = {0, 0}
 	gui.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
+
 	gui.closed = false
+	gui.inside = false
 
 	gui.viewer = init_viewer(&gui) or_return
 	gui.header = init_header(&gui) or_return
@@ -31,15 +36,18 @@ load_window :: proc(gui: ^Window) -> (ok: bool) {
 			break
 		}
 
+		gui.cursor = raylib.GetMousePosition()
 		gui.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
+
+		gui.inside = gui.cursor.y > gui.header.panel_position.height
 
 		raylib.BeginDrawing()
 		defer raylib.EndDrawing()
 
 		raylib.ClearBackground({255, 255, 255, 255})
 
-		load_viewer(gui, &gui.viewer) or_return
-		load_header(gui, &gui.header) or_return
+		load_viewer(&gui.viewer, gui) or_return
+		load_header(&gui.header, gui) or_return
 	}
 
 	ok = true

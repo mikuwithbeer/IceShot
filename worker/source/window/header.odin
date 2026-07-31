@@ -1,6 +1,7 @@
 package window
 
 import "core:fmt"
+
 import "vendor:raylib"
 
 Header :: struct {
@@ -16,7 +17,7 @@ init_header :: proc(gui: ^Window) -> (head: Header, ok: bool) {
 	return
 }
 
-load_header :: proc(gui: ^Window, head: ^Header) -> (ok: bool) {
+load_header :: proc(head: ^Header, gui: ^Window) -> (ok: bool) {
 	head.panel_position = {0, 0, gui.render.x, 72}
 
 	raylib.GuiPanel(head.panel_position, "IceShot Toolbar")
