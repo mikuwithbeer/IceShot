@@ -7,6 +7,7 @@ Manage_Frame :: struct {
 	dpi:    [2]f32,
 	cursor: [2]f32,
 	render: [2]f32,
+	screen: [2]f32,
 	font:   raylib.Font,
 	shot:   raylib.Texture2D,
 }

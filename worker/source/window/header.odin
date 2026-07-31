@@ -9,8 +9,9 @@ import "vendor:raylib"
 
 Header :: struct {
 	panel_position: raylib.Rectangle,
-	save_position:  raylib.Rectangle,
 	cut_position:   raylib.Rectangle,
+	undo_position:  raylib.Rectangle,
+	save_position:  raylib.Rectangle,
 	_allocator:     runtime.Allocator,
 }
 
@@ -25,15 +26,20 @@ init_header :: proc(
 	head._allocator = allocator
 
 	head.panel_position = {0, 0, 0, 0}
-	head.save_position = {8, 32, 32, 32}
-	head.cut_position = {48, 32, 32, 32}
+	head.cut_position = {8, 32, 32, 32}
+
+	head.undo_position = {0, 0, 32, 32}
+	head.save_position = {0, 0, 32, 32}
 
 	return
 }
 
 @(require_results)
 load_header :: proc(head: ^Header, manager: ^manage.Manage) -> (err: action.Action_Error) {
-	head.panel_position = {0, 0, manager.frame.render.x, 72}
+	head.panel_position = {0, 0, manager.frame.screen.x, 72}
+
+	head.save_position = {manager.frame.screen.x - 40, 32, 32, 32}
+	head.undo_position = {manager.frame.screen.x - 80, 32, 32, 32}
 
 	raylib.GuiPanel(head.panel_position, "IceShot Toolbar")
 
@@ -43,6 +49,17 @@ load_header :: proc(head: ^Header, manager: ^manage.Manage) -> (err: action.Acti
 	}
 
 	raylib.GuiToggle(head.cut_position, raylib.GuiIconText(.ICON_CROP, ""), &manager.crop.running)
+
+	if len(manager.history.shots) == 0 {
+		raylib.GuiSetState(i32(raylib.GuiState.STATE_DISABLED))
+	}
+
+	if raylib.GuiButton(head.undo_position, raylib.GuiIconText(.ICON_UNDO, "")) {
+		texture, _ := manage.pop_history(&manager.history)
+		manager.frame.shot = texture
+	}
+
+	raylib.GuiSetState(i32(raylib.GuiState.STATE_NORMAL))
 
 	return
 }

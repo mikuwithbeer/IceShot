@@ -139,9 +139,13 @@ handle_crop :: proc(view: ^Viewer, manager: ^manage.Manage) -> (err: action.Acti
 			if area.width > 1.0 && area.height > 1.0 {
 				act := action.crop_action(manager.frame.shot, area) or_return
 
-				raylib.UnloadTexture(manager.frame.shot)
-				manager.frame.shot = act.texture
+				ok := manage.push_history(&manager.history, manager.frame.shot)
+				if !ok {
+					err = .Out_Of_Memory
+					return
+				}
 
+				manager.frame.shot = act.texture
 				manager.crop = {}
 			}
 		}

@@ -24,11 +24,18 @@ init_window :: proc(allocator := context.allocator) -> (gui: Window, err: action
 
 	handle_style(&gui)
 
-	gui.manage.frame.cursor = {0, 0}
-	gui.manage.frame.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
+	manager, ok := manage.init_manage(allocator = allocator)
+	if !ok {
+		err = .Out_Of_Memory
+		return
+	}
 
-	gui.viewer = init_viewer(&gui.manage, allocator = allocator) or_return
-	gui.header = init_header(&gui.manage, allocator = allocator) or_return
+	manager.frame.screen = {f32(raylib.GetScreenWidth()), f32(raylib.GetScreenHeight())}
+	manager.frame.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
+
+	gui.viewer = init_viewer(&manager, allocator = allocator) or_return
+	gui.header = init_header(&manager, allocator = allocator) or_return
+	gui.manage = manager
 
 	return
 }
@@ -36,8 +43,10 @@ init_window :: proc(allocator := context.allocator) -> (gui: Window, err: action
 @(require_results)
 load_window :: proc(gui: ^Window) -> (err: action.Action_Error) {
 	for !raylib.WindowShouldClose() {
+		gui.manage.frame.screen = {f32(raylib.GetScreenWidth()), f32(raylib.GetScreenHeight())}
 		gui.manage.frame.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
 		gui.manage.frame.cursor = raylib.GetMousePosition()
+
 		gui.manage.frame.dpi = raylib.GetWindowScaleDPI()
 		gui.manage.frame.fly = gui.manage.frame.cursor.y > gui.header.panel_position.height
 
@@ -54,6 +63,8 @@ load_window :: proc(gui: ^Window) -> (err: action.Action_Error) {
 }
 
 free_window :: proc(gui: ^Window) {
+	manage.free_manage(&gui.manage)
+
 	raylib.UnloadTexture(gui.manage.frame.shot)
 
 	raylib.GuiSetFont(raylib.GetFontDefault())
@@ -114,6 +125,7 @@ handle_style :: proc(gui: ^Window) {
 
 	raylib.GuiSetStyle(.DEFAULT, 9, 0x2C2C2CFF)
 	raylib.GuiSetStyle(.DEFAULT, 10, 0x1C1C1CFF)
+	raylib.GuiSetStyle(.DEFAULT, 11, 0x333333FF)
 
 	raylib.GuiSetStyle(.DEFAULT, 18, 0x2C2C2CFF)
 	raylib.GuiSetStyle(.DEFAULT, 19, 0x1C1C1CFF)
