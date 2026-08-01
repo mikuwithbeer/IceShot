@@ -57,7 +57,7 @@ process_crop_selection :: proc(
 			height = abs(global.crop.start.y - global.crop.end.y),
 		}
 
-		if raylib.IsMouseButtonReleased(.LEFT) {
+		if raylib.IsMouseButtonReleased(.LEFT) && area.width >= 1 && area.height >= 1 {
 			ready = true
 		}
 	}

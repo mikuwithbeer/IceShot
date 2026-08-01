@@ -85,7 +85,7 @@ bool size_capture(Point2D *point) {
 }
 
 bool load_capture(Point2D position, Point2D size, Capture *capture) {
-  if (!capture_ready) {
+  if (!capture_ready || !capture) {
     return false;
   }
 
@@ -159,8 +159,13 @@ void free_capture(Capture *capture) {
 
   if (capture->data) {
     free(capture->data);
-    capture->data = NULL;
   }
+
+  capture->data = NULL;
+  capture->length = 0;
+  capture->width = 0;
+  capture->height = 0;
+  capture->stride = 0;
 }
 
 bool load_paste(const char *content) {

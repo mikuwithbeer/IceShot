@@ -41,7 +41,7 @@ handle_capture :: proc() -> (Capture_Result, error.Error) {
 	}
 
 	texture := raylib.LoadTextureFromImage(image)
-	raylib.SetTextureFilter(texture, .TRILINEAR)
+	raylib.SetTextureFilter(texture, .BILINEAR)
 
 	return {width = image.width, height = image.height, texture = texture}, .None
 }
@@ -55,7 +55,7 @@ handle_crop :: proc(act: Crop) -> (Crop_Result, error.Error) {
 	raylib.ImageCrop(&image, act.area)
 
 	cropped := raylib.LoadTextureFromImage(image)
-	raylib.SetTextureFilter(cropped, .TRILINEAR)
+	raylib.SetTextureFilter(cropped, .BILINEAR)
 
 	return {width = cropped.width, height = cropped.height, texture = cropped}, .None
 }
