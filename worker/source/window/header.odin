@@ -24,40 +24,64 @@ init_header :: proc(
 	err: error.Error,
 ) {
 	head._allocator = allocator
-
-	head.panel_position = {0, 0, 0, 0}
-	head.cut_position = {8, 32, 32, 32}
-
-	head.undo_position = {0, 0, 32, 32}
-	head.save_position = {0, 0, 32, 32}
-
 	return
 }
 
 @(require_results)
 load_header :: proc(head: ^Header, global: ^state.State) -> (err: error.Error) {
+	layout_header(head, global)
+
+	save, undo := draw_header(head, global)
+	process_header_actions(head, global, save, undo) or_return
+
+	return
+}
+
+@(private = "file")
+layout_header :: proc(head: ^Header, global: ^state.State) {
 	head.panel_position = {0, 0, global.frame.screen.x, 72}
 
-	head.save_position = {global.frame.screen.x - 40, 32, 32, 32}
+	head.cut_position = {8, 32, 32, 32}
+
 	head.undo_position = {global.frame.screen.x - 80, 32, 32, 32}
+	head.save_position = {global.frame.screen.x - 40, 32, 32, 32}
+}
 
+@(private = "file")
+draw_header :: proc(head: ^Header, global: ^state.State) -> (save, undo: bool) {
 	raylib.GuiPanel(head.panel_position, "IceShot Toolbar")
-
-	if raylib.GuiButton(head.save_position, raylib.GuiIconText(.ICON_FILE_SAVE, "")) {
-		effect_save(global, head._allocator) or_return
-	}
 
 	raylib.GuiToggle(head.cut_position, raylib.GuiIconText(.ICON_CROP, ""), &global.crop.running)
 
 	if len(global.history.actions) == 0 {
 		raylib.GuiSetState(i32(raylib.GuiState.STATE_DISABLED))
+		undo = raylib.GuiButton(head.undo_position, raylib.GuiIconText(.ICON_UNDO, ""))
+		raylib.GuiSetState(i32(raylib.GuiState.STATE_NORMAL))
+	} else {
+		undo = raylib.GuiButton(head.undo_position, raylib.GuiIconText(.ICON_UNDO, ""))
 	}
 
-	if raylib.GuiButton(head.undo_position, raylib.GuiIconText(.ICON_UNDO, "")) {
-		effect_undo(global) or_return
+	save = raylib.GuiButton(head.save_position, raylib.GuiIconText(.ICON_FILE_SAVE, ""))
+
+	return
+}
+
+@(private = "file")
+process_header_actions :: proc(
+	head: ^Header,
+	global: ^state.State,
+	save: bool,
+	undo: bool,
+) -> (
+	err: error.Error,
+) {
+	if save {
+		process_save(global, head._allocator) or_return
 	}
 
-	raylib.GuiSetState(i32(raylib.GuiState.STATE_NORMAL))
+	if undo {
+		process_undo(global) or_return
+	}
 
 	return
 }

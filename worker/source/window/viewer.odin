@@ -47,25 +47,37 @@ init_viewer :: proc(
 	return
 }
 
-@(require_results)
-load_viewer :: proc(view: ^Viewer, global: ^state.State) -> (err: error.Error) {
+update_viewer :: proc(view: ^Viewer, global: ^state.State) {
 	view.camera.offset = {global.frame.render.x * 0.5, global.frame.render.y * 0.5}
 
+	process_camera_move(view)
+	process_camera_zoom(view, global)
+	process_camera_clamp(view)
+}
+
+@(require_results)
+draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> (err: error.Error) {
 	raylib.BeginMode2D(view.camera)
 	defer raylib.EndMode2D()
 
 	raylib.DrawTexture(global.frame.current, 0, 0, {255, 255, 255, 255})
 
-	handle_move(view)
-	handle_zoom(view, global)
-
-	effect_crop(global, view) or_return
+	process_crop(global, view) or_return
 
 	return
 }
 
+@(private)
+replace_current_texture :: proc(global: ^state.State, texture: raylib.Texture2D) {
+	if global.frame.current.id != global.frame.initial.id {
+		raylib.UnloadTexture(global.frame.current)
+	}
+
+	global.frame.current = texture
+}
+
 @(private = "file")
-handle_move :: proc(view: ^Viewer) {
+process_camera_move :: proc(view: ^Viewer) {
 	speed := 2000.0 * raylib.GetFrameTime() / view.camera.zoom
 
 	if raylib.IsKeyDown(.LEFT) {
@@ -86,22 +98,16 @@ handle_move :: proc(view: ^Viewer) {
 }
 
 @(private = "file")
-handle_zoom :: proc(view: ^Viewer, global: ^state.State) {
+process_camera_zoom :: proc(view: ^Viewer, global: ^state.State) {
 	wheel := raylib.GetMouseWheelMove()
+
 	if wheel != 0 && global.frame.fly {
-		absolute := raylib.Vector2 {
-			global.frame.cursor.x * global.frame.dpi.x,
-			global.frame.cursor.y * global.frame.dpi.y,
-		}
-
-		before := raylib.GetScreenToWorld2D(absolute, view.camera)
-
 		factor := 1.0 + (wheel * 0.1)
-		view.camera.zoom = raylib.Clamp(view.camera.zoom * factor, 0.5, 10.0)
-
-		after := raylib.GetScreenToWorld2D(absolute, view.camera)
-
-		view.camera.target.x += before.x - after.x
-		view.camera.target.y += before.y - after.y
+		view.camera.zoom *= factor
 	}
+}
+
+@(private = "file")
+process_camera_clamp :: proc(view: ^Viewer) {
+	view.camera.zoom = raylib.Clamp(view.camera.zoom, 0.5, 10.0)
 }

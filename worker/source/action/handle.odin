@@ -63,6 +63,7 @@ handle_crop :: proc(act: Crop) -> (Crop_Result, error.Error) {
 @(require_results)
 handle_save :: proc(act: Save, allocator := context.allocator) -> (Save_Result, error.Error) {
 	image := raylib.LoadImageFromTexture(act.texture)
+	defer raylib.UnloadImage(image)
 
 	home := os.get_env_alloc("HOME", allocator = allocator)
 	defer delete(home, allocator = allocator)

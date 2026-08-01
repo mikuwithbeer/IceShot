@@ -1,0 +1,31 @@
+package window
+
+import "../action"
+import "../error"
+import "../state"
+
+@(private, require_results)
+process_undo :: proc(global: ^state.State) -> (err: error.Error) {
+	state.pop_history(&global.history) or_return
+	rebuild_from_history(global) or_return
+
+	return
+}
+
+@(private = "file", require_results)
+rebuild_from_history :: proc(global: ^state.State) -> (err: error.Error) {
+	replace_current_texture(global, global.frame.initial)
+
+	for value in global.history.actions {
+		#partial switch act in value {
+		case action.Crop:
+			act_copy := act
+			act_copy.texture = global.frame.current
+
+			result := action.handle_crop(act_copy) or_return
+			replace_current_texture(global, result.texture)
+		}
+	}
+
+	return
+}
