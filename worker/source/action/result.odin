@@ -10,11 +10,9 @@ Capture_Result :: struct {
 	texture: raylib.Texture2D,
 }
 
-Crop_Result :: struct {
-	width:   i32,
-	height:  i32,
-	texture: raylib.Texture2D,
-}
+Crop_Result :: distinct Capture_Result
+
+Rect_Result :: distinct Capture_Result
 
 Save_Result :: struct {
 	date: time.Time,
@@ -24,6 +22,7 @@ Save_Result :: struct {
 Result :: union {
 	Capture_Result,
 	Crop_Result,
+	Rect_Result,
 	Save_Result,
 }
 

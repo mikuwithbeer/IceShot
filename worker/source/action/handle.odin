@@ -45,7 +45,6 @@ handle_capture :: proc() -> (Capture_Result, error.Error) {
 	return {width = image.width, height = image.height, texture = texture}, .None
 }
 
-
 @(require_results)
 handle_crop :: proc(act: Crop) -> (Crop_Result, error.Error) {
 	image := raylib.LoadImageFromTexture(act.texture)
@@ -53,10 +52,27 @@ handle_crop :: proc(act: Crop) -> (Crop_Result, error.Error) {
 
 	raylib.ImageCrop(&image, act.area)
 
-	cropped := raylib.LoadTextureFromImage(image)
-	raylib.SetTextureFilter(cropped, .BILINEAR)
+	modified := raylib.LoadTextureFromImage(image)
+	raylib.SetTextureFilter(modified, .BILINEAR)
 
-	return {width = cropped.width, height = cropped.height, texture = cropped}, .None
+	return {width = modified.width, height = modified.height, texture = modified}, .None
+}
+
+@(require_results)
+handle_rect :: proc(act: Rect) -> (Rect_Result, error.Error) {
+	image := raylib.LoadImageFromTexture(act.texture)
+	defer raylib.UnloadImage(image)
+
+	if act.empty {
+		raylib.ImageDrawRectangleLines(&image, act.area, 2, act.color)
+	} else {
+		raylib.ImageDrawRectangleRec(&image, act.area, act.color)
+	}
+
+	modified := raylib.LoadTextureFromImage(image)
+	raylib.SetTextureFilter(modified, .BILINEAR)
+
+	return {width = modified.width, height = modified.height, texture = modified}, .None
 }
 
 handle_pick :: proc(act: Pick, allocator := context.allocator) -> error.Error {

@@ -67,7 +67,7 @@ process_crop_selection :: proc(
 
 @(private = "file")
 draw_crop_overlay :: proc(area: raylib.Rectangle, zoom: f32) {
-	raylib.DrawRectangleRec(area, {121, 191, 255, 80})
+	raylib.DrawRectangleRec(area, {121, 191, 255, 55})
 	raylib.DrawRectangleLinesEx(area, 2.0 / zoom, {121, 191, 255, 255})
 }
 

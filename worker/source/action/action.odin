@@ -7,6 +7,12 @@ Crop :: struct {
 	area:    raylib.Rectangle,
 }
 
+Rect :: struct {
+	using _: Crop,
+	empty:   bool,
+	color:   raylib.Color,
+}
+
 Pick :: struct {
 	mode:  i32,
 	color: raylib.Color,
@@ -20,6 +26,7 @@ Save :: distinct Copy
 
 Action :: union {
 	Crop,
+	Rect,
 	Pick,
 	Copy,
 	Save,

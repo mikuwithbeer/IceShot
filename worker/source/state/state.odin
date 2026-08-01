@@ -7,12 +7,19 @@ import "vendor:raylib"
 Tool :: enum {
 	None,
 	Crop,
+	Rect,
 	Pick,
 }
 
 Crop :: struct {
 	dragging:   bool,
 	start, end: [2]f32,
+}
+
+Rect :: struct {
+	using _: Crop,
+	empty:   bool,
+	color:   raylib.Color,
 }
 
 Pick :: struct {
@@ -32,12 +39,13 @@ Frame :: struct {
 }
 
 Process :: struct {
-	crop, pick, undo, copy, save: bool,
+	crop, rect, pick, undo, copy, save: bool,
 }
 
 State :: struct {
 	tool:    Tool,
 	crop:    Crop,
+	rect:    Rect,
 	pick:    Pick,
 	frame:   Frame,
 	process: Process,
