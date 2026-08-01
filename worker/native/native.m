@@ -3,6 +3,7 @@
 #import <Cocoa/Cocoa.h>
 #import <Foundation/Foundation.h>
 #import <ScreenCaptureKit/ScreenCaptureKit.h>
+#import <Vision/Vision.h>
 
 // [--------------------------------------------------------------] //
 // > Global Variables                                             < //
@@ -182,33 +183,104 @@ bool copy_color(const char *content) {
   }
 }
 
-bool copy_image(void *pixels, u64 width, u64 height) {
+bool copy_image(Image image) {
   @autoreleasepool {
     NSBitmapImageRep *representation = [[NSBitmapImageRep alloc]
         initWithBitmapDataPlanes:NULL
-                      pixelsWide:(NSInteger)width
-                      pixelsHigh:(NSInteger)height
+                      pixelsWide:(NSInteger)image.width
+                      pixelsHigh:(NSInteger)image.height
                    bitsPerSample:8
                  samplesPerPixel:4
                         hasAlpha:YES
                         isPlanar:NO
                   colorSpaceName:NSDeviceRGBColorSpace
-                     bytesPerRow:(NSInteger)(width * 4)
+                     bytesPerRow:(NSInteger)(image.width * 4)
                     bitsPerPixel:32];
 
     if (!representation) {
       return false;
     }
 
-    memcpy([representation bitmapData], pixels, width * height * 4);
+    memcpy([representation bitmapData], image.data,
+           image.width * image.height * 4);
 
-    NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(width, height)];
-    [image addRepresentation:representation];
+    NSImage *ns_image =
+        [[NSImage alloc] initWithSize:NSMakeSize(image.width, image.height)];
+    [ns_image addRepresentation:representation];
 
     NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
     [pasteboard clearContents];
 
-    return [pasteboard writeObjects:@[ image ]];
+    return [pasteboard writeObjects:@[ ns_image ]];
+  }
+}
+
+bool copy_ocr(Image image) {
+  @autoreleasepool {
+    NSBitmapImageRep *representation = [[NSBitmapImageRep alloc]
+        initWithBitmapDataPlanes:NULL
+                      pixelsWide:(NSInteger)image.width
+                      pixelsHigh:(NSInteger)image.height
+                   bitsPerSample:8
+                 samplesPerPixel:4
+                        hasAlpha:YES
+                        isPlanar:NO
+                  colorSpaceName:NSDeviceRGBColorSpace
+                     bytesPerRow:(NSInteger)(image.width * 4)
+                    bitsPerPixel:32];
+
+    if (!representation) {
+      return false;
+    }
+
+    memcpy([representation bitmapData], image.data,
+           image.width * image.height * 4);
+
+    CGImageRef cg_image = [representation CGImage];
+    if (!cg_image) {
+      return false;
+    }
+
+    __block NSMutableString *recognized = [NSMutableString string];
+
+    VNImageRequestHandler *request_handler =
+        [[VNImageRequestHandler alloc] initWithCGImage:cg_image options:@{}];
+
+    VNRecognizeTextRequest *request = [[VNRecognizeTextRequest alloc]
+        initWithCompletionHandler:^(VNRequest *request, NSError *error) {
+          if (error) {
+            return;
+          }
+
+          for (VNRecognizedTextObservation *observation in request.results) {
+            VNRecognizedText *top_candidate =
+                [[observation topCandidates:1] firstObject];
+            if (top_candidate) {
+              [recognized appendFormat:@"%@\n", top_candidate.string];
+            }
+          }
+        }];
+
+    request.recognitionLevel = VNRequestTextRecognitionLevelAccurate;
+    request.usesLanguageCorrection = YES;
+
+    NSError *error = nil;
+    if (![request_handler performRequests:@[ request ] error:&error]) {
+      return false;
+    }
+
+    NSString *final = [recognized
+        stringByTrimmingCharactersInSet:[NSCharacterSet
+                                            whitespaceAndNewlineCharacterSet]];
+
+    if (final.length == 0) {
+      return false;
+    }
+
+    NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+    [pasteboard clearContents];
+
+    return [pasteboard setString:final forType:NSPasteboardTypeString];
   }
 }
 

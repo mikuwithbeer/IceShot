@@ -22,6 +22,13 @@ typedef struct {
   u64 stride;
 } Capture;
 
+typedef struct {
+  void *data;
+
+  u64 width;
+  u64 height;
+} Image;
+
 // [--------------------------------------------------------------] //
 // > Function Declarations                                        < //
 // [--------------------------------------------------------------] //
@@ -36,6 +43,8 @@ void free_capture(Capture *capture);
 
 bool copy_color(const char *content);
 
-bool copy_image(void *pixels, u64 width, u64 height);
+bool copy_image(Image image);
+
+bool copy_ocr(Image image);
 
 #endif // NATIVE_H

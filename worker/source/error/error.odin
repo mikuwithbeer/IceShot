@@ -6,4 +6,5 @@ Error :: enum {
 	Not_Permitted,
 	Failed_To_Write,
 	Empty_History,
+	No_Text_Found,
 }

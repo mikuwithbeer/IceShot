@@ -13,7 +13,7 @@ OUTPUT_NAME = $(OUTPUT_PATH)/$(NAME)
 FLAGS_PREPARE = -c -fobjc-arc
 FLAGS_DEBUG   = -debug
 FLAGS_RELEASE = -o:speed
-FLAGS_DEFAULT = -vet -strict-style -extra-linker-flags:"-framework Foundation -framework Cocoa -framework ScreenCaptureKit"
+FLAGS_DEFAULT = -vet -strict-style -extra-linker-flags:"-framework Foundation -framework Cocoa -framework ScreenCaptureKit -framework Vision"
 
 .PHONY: all prepare debug release run clean
 

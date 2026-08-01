@@ -123,11 +123,28 @@ handle_pick :: proc(act: Pick, allocator := context.allocator) -> error.Error {
 }
 
 @(require_results)
+handle_read :: proc(act: Read) -> error.Error {
+	image := raylib.LoadImageFromTexture(act.texture)
+	defer raylib.UnloadImage(image)
+
+	unsafe := native.Unsafe_Image{image.data, uint(image.width), uint(image.height)}
+	ok := native.unsafe_copy_ocr(unsafe)
+
+	if !ok {
+		return .No_Text_Found
+	} else {
+		return .None
+	}
+}
+
+@(require_results)
 handle_copy :: proc(act: Copy) -> error.Error {
 	image := raylib.LoadImageFromTexture(act.texture)
 	defer raylib.UnloadImage(image)
 
-	ok := native.unsafe_copy_image(image.data, uint(image.width), uint(image.height))
+	unsafe := native.Unsafe_Image{image.data, uint(image.width), uint(image.height)}
+	ok := native.unsafe_copy_image(unsafe)
+
 	if !ok {
 		return .Not_Permitted
 	} else {

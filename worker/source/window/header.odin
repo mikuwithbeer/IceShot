@@ -14,6 +14,7 @@ Header :: struct {
 	rect:       raylib.Rectangle,
 	pick:       raylib.Rectangle,
 	undo:       raylib.Rectangle,
+	read:       raylib.Rectangle,
 	copy:       raylib.Rectangle,
 	save:       raylib.Rectangle,
 	pick_type:  raylib.Rectangle,
@@ -52,14 +53,15 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 	head.rect = {48, 32, 32, 32}
 	head.pick = {88, 32, 32, 32}
 
-	head.undo = {global.frame.screen.x - 120, 32, 32, 32}
+	head.undo = {global.frame.screen.x - 160, 32, 32, 32}
+	head.read = {global.frame.screen.x - 120, 32, 32, 32}
 	head.copy = {global.frame.screen.x - 80, 32, 32, 32}
 	head.save = {global.frame.screen.x - 40, 32, 32, 32}
 
-	head.pick_type = {global.frame.screen.x - 240, 32, 72, 32}
-	head.pick_view = {global.frame.screen.x - 160, 32, 32, 32}
+	head.pick_type = {global.frame.screen.x - 280, 32, 72, 32}
+	head.pick_view = {global.frame.screen.x - 200, 32, 32, 32}
 
-	head.rect_type = {global.frame.screen.x - 200, 32, 72, 32}
+	head.rect_type = {global.frame.screen.x - 240, 32, 72, 32}
 }
 
 @(private = "file")
@@ -112,6 +114,8 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 		global.process.undo = raylib.GuiButton(head.undo, raylib.GuiIconText(.ICON_UNDO, ""))
 	}
 
+	global.process.read = raylib.GuiButton(head.read, raylib.GuiIconText(.ICON_ZOOM_BIG, ""))
+
 	global.process.copy = raylib.GuiButton(head.copy, raylib.GuiIconText(.ICON_FILE_COPY, ""))
 
 	global.process.save = raylib.GuiButton(head.save, raylib.GuiIconText(.ICON_FILE_SAVE, ""))
@@ -123,6 +127,8 @@ process_header_actions :: proc(head: ^Header, global: ^state.State) -> error.Err
 		process_undo(global) or_return
 	} else if global.process.copy {
 		process_copy(global) or_return
+	} else if global.process.read {
+		process_read(global) or_return
 	} else if global.process.save {
 		process_save(global, head._allocator) or_return
 	}

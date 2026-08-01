@@ -2,6 +2,11 @@ package native
 
 import "core:c"
 
+Unsafe_Point2D :: struct {
+	x: c.double,
+	y: c.double,
+}
+
 Unsafe_Capture :: struct {
 	data:   rawptr,
 	length: c.size_t,
@@ -10,9 +15,10 @@ Unsafe_Capture :: struct {
 	stride: c.size_t,
 }
 
-Unsafe_Point2D :: struct {
-	x: c.double,
-	y: c.double,
+Unsafe_Image :: struct {
+	data:   rawptr,
+	width:  c.size_t,
+	height: c.size_t,
 }
 
 foreign import _native "../../output/native.o"
@@ -35,5 +41,8 @@ foreign _native {
 	unsafe_copy_color :: proc(content: cstring) -> c.bool ---
 
 	@(link_name = "copy_image")
-	unsafe_copy_image :: proc(pixels: rawptr, width: c.size_t, height: c.size_t) -> c.bool ---
+	unsafe_copy_image :: proc(image: Unsafe_Image) -> c.bool ---
+
+	@(link_name = "copy_ocr")
+	unsafe_copy_ocr :: proc(image: Unsafe_Image) -> c.bool ---
 }

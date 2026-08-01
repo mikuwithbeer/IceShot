@@ -18,9 +18,11 @@ Pick :: struct {
 	color: raylib.Color,
 }
 
-Copy :: struct {
+Read :: struct {
 	texture: raylib.Texture2D,
 }
+
+Copy :: distinct Read
 
 Save :: distinct Copy
 
@@ -28,6 +30,7 @@ Action :: union {
 	Crop,
 	Rect,
 	Pick,
+	Read,
 	Copy,
 	Save,
 }
