@@ -8,7 +8,7 @@ import "vendor:raylib"
 
 @(private, require_results)
 process_crop :: proc(global: ^state.State, view: ^Viewer) -> (err: error.Error) {
-	if !global.crop.running {
+	if global.tool != .Crop {
 		return
 	}
 
@@ -58,8 +58,6 @@ process_crop_selection :: proc(
 		}
 
 		if raylib.IsMouseButtonReleased(.LEFT) {
-			global.crop.dragging = false
-			global.crop.running = false
 			ready = true
 		}
 	}
@@ -75,6 +73,9 @@ draw_crop_overlay :: proc(area: raylib.Rectangle, zoom: f32) {
 
 @(private = "file", require_results)
 apply_crop :: proc(global: ^state.State, area: raylib.Rectangle) -> (err: error.Error) {
+	global.tool = .None
+	global.crop.dragging = false
+
 	act := action.Crop {
 		texture = global.frame.current,
 		area    = area,

@@ -63,6 +63,7 @@ draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> (err: error.Error) {
 	raylib.DrawTexture(global.frame.current, 0, 0, {255, 255, 255, 255})
 
 	process_crop(global, view) or_return
+	process_pick(global, view, allocator = view._allocator) or_return
 
 	return
 }

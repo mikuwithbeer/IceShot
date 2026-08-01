@@ -7,11 +7,16 @@ Crop :: struct {
 	area:    raylib.Rectangle,
 }
 
+Pick :: struct {
+	color: raylib.Color,
+}
+
 Save :: struct {
 	texture: raylib.Texture2D,
 }
 
 Action :: union {
 	Crop,
+	Pick,
 	Save,
 }

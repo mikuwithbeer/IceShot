@@ -163,6 +163,14 @@ void free_capture(Capture *capture) {
   }
 }
 
+bool load_paste(const char *content) {
+  NSString *string = [NSString stringWithUTF8String:content];
+  NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+
+  [pasteboard clearContents];
+  return [pasteboard setString:string forType:NSPasteboardTypeString];
+}
+
 // [--------------------------------------------------------------] //
 // > Internal Functions                                           < //
 // [--------------------------------------------------------------] //

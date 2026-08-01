@@ -4,11 +4,22 @@ import "../error"
 
 import "vendor:raylib"
 
+Tool :: enum {
+	None,
+	Crop,
+	Pick,
+}
+
 Crop :: struct {
-	running:  bool,
 	dragging: bool,
 	start:    [2]f32,
 	end:      [2]f32,
+}
+
+Pick :: struct {
+	point: [2]f32,
+	color: raylib.Color,
+	image: raylib.Image,
 }
 
 Frame :: struct {
@@ -17,16 +28,18 @@ Frame :: struct {
 	cursor:  [2]f32,
 	render:  [2]f32,
 	screen:  [2]f32,
-	font:    raylib.Font,
 	initial: raylib.Texture2D,
 	current: raylib.Texture2D,
 	style:   bool,
 	board:   bool,
 	tiles:   raylib.RenderTexture2D,
+	font:    raylib.Font,
 }
 
 State :: struct {
+	tool:    Tool,
 	crop:    Crop,
+	pick:    Pick,
 	frame:   Frame,
 	history: History,
 }

@@ -30,4 +30,7 @@ foreign _native {
 
 	@(link_name = "free_capture")
 	unsafe_free_capture :: proc(result: ^Unsafe_Capture) ---
+
+	@(link_name = "load_paste")
+	unsafe_load_paste :: proc(content: cstring) -> c.bool ---
 }

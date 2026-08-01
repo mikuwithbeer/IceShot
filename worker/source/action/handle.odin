@@ -60,6 +60,44 @@ handle_crop :: proc(act: Crop) -> (Crop_Result, error.Error) {
 	return {width = cropped.width, height = cropped.height, texture = cropped}, .None
 }
 
+handle_pick :: proc(act: Pick, allocator := context.allocator) -> (Pick_Result, error.Error) {
+	hex: string
+	if act.color.a == 255 {
+		hex = fmt.aprintf(
+			"#%02X%02X%02X",
+			act.color.r,
+			act.color.g,
+			act.color.b,
+			allocator = allocator,
+		)
+	} else {
+		hex = fmt.aprintf(
+			"#%02X%02X%02X%02X",
+			act.color.r,
+			act.color.g,
+			act.color.b,
+			act.color.a,
+			allocator = allocator,
+		)
+	}
+
+	defer delete(hex, allocator = allocator)
+
+	c_hex, err := strings.clone_to_cstring(hex, allocator = allocator)
+	if err != .None {
+		return {}, .Out_Of_Memory
+	}
+
+	defer delete(c_hex, allocator = allocator)
+
+	ok := native.unsafe_load_paste(c_hex)
+	if !ok {
+		return {}, .Not_Permitted
+	}
+
+	return {success = true}, .None
+}
+
 @(require_results)
 handle_save :: proc(act: Save, allocator := context.allocator) -> (Save_Result, error.Error) {
 	image := raylib.LoadImageFromTexture(act.texture)
@@ -84,11 +122,10 @@ handle_save :: proc(act: Save, allocator := context.allocator) -> (Save_Result, 
 		allocator = allocator,
 	)
 
-	null_path := strings.clone_to_cstring(path, allocator = allocator)
+	c_path := strings.clone_to_cstring(path, allocator = allocator)
+	defer delete(c_path, allocator = allocator)
 
-	defer delete(null_path, allocator = allocator)
-
-	ok := raylib.ExportImage(image, null_path)
+	ok := raylib.ExportImage(image, c_path)
 	if !ok {
 		return {}, .Failed_To_Write
 	}

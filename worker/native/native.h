@@ -34,4 +34,6 @@ bool load_capture(Point2D position, Point2D size, Capture *capture);
 
 void free_capture(Capture *capture);
 
+bool load_paste(const char *content);
+
 #endif // NATIVE_H
