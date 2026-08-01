@@ -56,7 +56,7 @@ update_viewer :: proc(view: ^Viewer, global: ^state.State) {
 }
 
 @(require_results)
-draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> (err: error.Error) {
+draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> error.Error {
 	raylib.BeginMode2D(view.camera)
 	defer raylib.EndMode2D()
 
@@ -65,7 +65,7 @@ draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> (err: error.Error) {
 	process_crop(global, view) or_return
 	process_pick(global, view, allocator = view._allocator) or_return
 
-	return
+	return .None
 }
 
 @(private)

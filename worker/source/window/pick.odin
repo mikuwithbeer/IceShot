@@ -11,19 +11,13 @@ process_pick :: proc(
 	global: ^state.State,
 	view: ^Viewer,
 	allocator := context.allocator,
-) -> (
-	err: error.Error,
-) {
-	if global.tool != .Pick {
-		return
+) -> error.Error {
+	if global.tool != .Pick || global.pick.dropping {
+		return .None
 	}
 
 	if global.pick.image.data == nil {
 		global.pick.image = raylib.LoadImageFromTexture(global.frame.current)
-	}
-
-	if global.pick.dropping {
-		return
 	}
 
 	mode, color, ready := process_color_pick(global, view)
@@ -31,7 +25,7 @@ process_pick :: proc(
 		apply_pick(global, mode, color, allocator = allocator) or_return
 	}
 
-	return
+	return .None
 }
 
 @(private = "file", require_results)
@@ -70,9 +64,11 @@ apply_pick :: proc(
 	color: raylib.Color,
 	allocator := context.allocator,
 ) -> error.Error {
-	raylib.UnloadImage(global.pick.image)
+	global.process = {}
 	global.pick = {}
 	global.tool = .None
+
+	raylib.UnloadImage(global.pick.image)
 
 	act := action.Pick {
 		mode  = mode,

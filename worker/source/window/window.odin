@@ -37,20 +37,18 @@ init_window :: proc(allocator := context.allocator) -> (gui: Window, err: error.
 }
 
 @(require_results)
-load_window :: proc(gui: ^Window) -> (err: error.Error) {
+load_window :: proc(gui: ^Window) -> error.Error {
 	for !raylib.WindowShouldClose() {
 		update_frame(gui)
 		draw_frame(gui) or_return
 	}
 
-	return
+	return .None
 }
 
 free_window :: proc(gui: ^Window) {
 	free_frame(gui)
-
 	state.free_state(&gui.state)
-
 	raylib.CloseWindow()
 }
 
@@ -74,7 +72,7 @@ update_frame :: proc(gui: ^Window) {
 }
 
 @(private = "file")
-draw_frame :: proc(gui: ^Window) -> (err: error.Error) {
+draw_frame :: proc(gui: ^Window) -> error.Error {
 	raylib.BeginDrawing()
 	defer raylib.EndDrawing()
 
@@ -83,7 +81,7 @@ draw_frame :: proc(gui: ^Window) -> (err: error.Error) {
 	draw_viewer(&gui.viewer, &gui.state) or_return
 	load_header(&gui.header, &gui.state) or_return
 
-	return
+	return .None
 }
 
 @(private = "file")

@@ -11,9 +11,8 @@ Tool :: enum {
 }
 
 Crop :: struct {
-	dragging: bool,
-	start:    [2]f32,
-	end:      [2]f32,
+	dragging:   bool,
+	start, end: [2]f32,
 }
 
 Pick :: struct {
@@ -25,17 +24,15 @@ Pick :: struct {
 }
 
 Frame :: struct {
-	fly:     bool,
-	dpi:     [2]f32,
-	cursor:  [2]f32,
-	render:  [2]f32,
-	screen:  [2]f32,
-	initial: raylib.Texture2D,
-	current: raylib.Texture2D,
-	style:   bool,
-	board:   bool,
-	tiles:   raylib.RenderTexture2D,
-	font:    raylib.Font,
+	initial, current:            raylib.Texture2D,
+	tiles:                       raylib.RenderTexture2D,
+	font:                        raylib.Font,
+	dpi, cursor, render, screen: [2]f32,
+	fly, style, board:           bool,
+}
+
+Process :: struct {
+	crop, pick, undo, copy, save: bool,
 }
 
 State :: struct {
@@ -43,6 +40,7 @@ State :: struct {
 	crop:    Crop,
 	pick:    Pick,
 	frame:   Frame,
+	process: Process,
 	history: History,
 }
 

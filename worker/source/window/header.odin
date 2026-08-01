@@ -32,13 +32,12 @@ init_header :: proc(
 }
 
 @(require_results)
-load_header :: proc(head: ^Header, global: ^state.State) -> (err: error.Error) {
+load_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 	layout_header(head, global)
+	draw_header(head, global)
+	process_header_actions(head, global) or_return
 
-	crop, pick, undo, copy, save := draw_header(head, global)
-	process_header_actions(head, global, crop, pick, undo, copy, save) or_return
-
-	return
+	return .None
 }
 
 @(private = "file")
@@ -57,16 +56,20 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 }
 
 @(private = "file")
-draw_header :: proc(head: ^Header, global: ^state.State) -> (crop, pick, undo, copy, save: bool) {
+draw_header :: proc(head: ^Header, global: ^state.State) {
 	raylib.GuiPanel(head.panel_position, "IceShot Toolbar")
 
 	switch global.tool {
 	case .None:
 		break
 	case .Crop:
-		crop = true
+		global.process = {
+			crop = true,
+		}
 	case .Pick:
-		pick = true
+		global.process = {
+			pick = true,
+		}
 
 		if raylib.GuiDropdownBox(
 			head.color_type_position,
@@ -80,52 +83,52 @@ draw_header :: proc(head: ^Header, global: ^state.State) -> (crop, pick, undo, c
 		raylib.DrawRectangleRec(head.color_view_position, global.pick.color)
 	}
 
-	raylib.GuiToggle(head.cut_position, raylib.GuiIconText(.ICON_CROP, ""), &crop)
+	raylib.GuiToggle(head.cut_position, raylib.GuiIconText(.ICON_CROP, ""), &global.process.crop)
 
-	raylib.GuiToggle(head.pick_position, raylib.GuiIconText(.ICON_COLOR_PICKER, ""), &pick)
+	raylib.GuiToggle(
+		head.pick_position,
+		raylib.GuiIconText(.ICON_COLOR_PICKER, ""),
+		&global.process.pick,
+	)
 
 	if len(global.history.actions) == 0 {
 		raylib.GuiSetState(i32(raylib.GuiState.STATE_DISABLED))
-		undo = raylib.GuiButton(head.undo_position, raylib.GuiIconText(.ICON_UNDO, ""))
+		global.process.undo = raylib.GuiButton(
+			head.undo_position,
+			raylib.GuiIconText(.ICON_UNDO, ""),
+		)
 		raylib.GuiSetState(i32(raylib.GuiState.STATE_NORMAL))
 	} else {
-		undo = raylib.GuiButton(head.undo_position, raylib.GuiIconText(.ICON_UNDO, ""))
+		global.process.undo = raylib.GuiButton(
+			head.undo_position,
+			raylib.GuiIconText(.ICON_UNDO, ""),
+		)
 	}
 
-	copy = raylib.GuiButton(head.copy_position, raylib.GuiIconText(.ICON_FILE_COPY, ""))
+	global.process.copy = raylib.GuiButton(
+		head.copy_position,
+		raylib.GuiIconText(.ICON_FILE_COPY, ""),
+	)
 
-	save = raylib.GuiButton(head.save_position, raylib.GuiIconText(.ICON_FILE_SAVE, ""))
-
-	return
+	global.process.save = raylib.GuiButton(
+		head.save_position,
+		raylib.GuiIconText(.ICON_FILE_SAVE, ""),
+	)
 }
 
 @(private = "file")
-process_header_actions :: proc(
-	head: ^Header,
-	global: ^state.State,
-	crop, pick, undo, copy, save: bool,
-) -> (
-	err: error.Error,
-) {
-	if crop && global.tool == .None {
+process_header_actions :: proc(head: ^Header, global: ^state.State) -> error.Error {
+	if global.process.crop && global.tool == .None {
 		global.tool = .Crop
-	}
-
-	if pick && global.tool == .None {
+	} else if global.process.pick && global.tool == .None {
 		global.tool = .Pick
-	}
-
-	if undo {
+	} else if global.process.undo {
 		process_undo(global) or_return
-	}
-
-	if copy {
+	} else if global.process.copy {
 		process_copy(global) or_return
-	}
-
-	if save {
+	} else if global.process.save {
 		process_save(global, head._allocator) or_return
 	}
 
-	return
+	return .None
 }

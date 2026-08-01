@@ -5,15 +5,17 @@ import "../error"
 import "../state"
 
 @(private, require_results)
-process_undo :: proc(global: ^state.State) -> (err: error.Error) {
+process_undo :: proc(global: ^state.State) -> error.Error {
+	global.process = {}
+
 	state.pop_history(&global.history) or_return
 	rebuild_from_history(global) or_return
 
-	return
+	return .None
 }
 
 @(private = "file", require_results)
-rebuild_from_history :: proc(global: ^state.State) -> (err: error.Error) {
+rebuild_from_history :: proc(global: ^state.State) -> error.Error {
 	replace_current_texture(global, global.frame.initial)
 
 	for value in global.history.actions {
@@ -27,5 +29,5 @@ rebuild_from_history :: proc(global: ^state.State) -> (err: error.Error) {
 		}
 	}
 
-	return
+	return .None
 }

@@ -7,9 +7,9 @@ import "../state"
 import "vendor:raylib"
 
 @(private, require_results)
-process_crop :: proc(global: ^state.State, view: ^Viewer) -> (err: error.Error) {
+process_crop :: proc(global: ^state.State, view: ^Viewer) -> error.Error {
 	if global.tool != .Crop {
-		return
+		return .None
 	}
 
 	area, ready := process_crop_selection(global, view)
@@ -19,7 +19,7 @@ process_crop :: proc(global: ^state.State, view: ^Viewer) -> (err: error.Error) 
 		draw_crop_overlay(area, view.camera.zoom)
 	}
 
-	return
+	return .None
 }
 
 @(private = "file")
@@ -72,9 +72,10 @@ draw_crop_overlay :: proc(area: raylib.Rectangle, zoom: f32) {
 }
 
 @(private = "file", require_results)
-apply_crop :: proc(global: ^state.State, area: raylib.Rectangle) -> (err: error.Error) {
+apply_crop :: proc(global: ^state.State, area: raylib.Rectangle) -> error.Error {
+	global.process = {}
+	global.crop = {}
 	global.tool = .None
-	global.crop.dragging = false
 
 	act := action.Crop {
 		texture = global.frame.current,
@@ -86,5 +87,5 @@ apply_crop :: proc(global: ^state.State, area: raylib.Rectangle) -> (err: error.
 	replace_current_texture(global, result.texture)
 	state.push_history(&global.history, act) or_return
 
-	return
+	return .None
 }

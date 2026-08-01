@@ -21,7 +21,6 @@ handle_capture :: proc() -> (Capture_Result, error.Error) {
 	ok = native.unsafe_size_capture(&size)
 	if !ok {
 		return {}, .Not_Permitted
-
 	}
 
 	capture: native.Unsafe_Capture
@@ -62,7 +61,6 @@ handle_crop :: proc(act: Crop) -> (Crop_Result, error.Error) {
 
 handle_pick :: proc(act: Pick, allocator := context.allocator) -> error.Error {
 	content: string
-
 	switch act.mode {
 	case 1:
 		content = fmt.aprintf(
@@ -151,7 +149,7 @@ handle_save :: proc(act: Save, allocator := context.allocator) -> (Save_Result, 
 	ok := raylib.ExportImage(image, c_path)
 	if !ok {
 		return {}, .Failed_To_Write
+	} else {
+		return {date = date, path = path}, .None
 	}
-
-	return {date = date, path = path}, .None
 }

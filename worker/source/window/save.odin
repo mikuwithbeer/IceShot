@@ -6,6 +6,8 @@ import "../state"
 
 @(private, require_results)
 process_save :: proc(global: ^state.State, allocator := context.allocator) -> error.Error {
+	global.process = {}
+
 	act := action.Save {
 		texture = global.frame.current,
 	}
