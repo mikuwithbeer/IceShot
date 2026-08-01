@@ -25,52 +25,54 @@ static bool image_to_rgba(CGImageRef image, void **out_pixels, u64 *out_length,
 // [--------------------------------------------------------------] //
 
 bool init_capture(void) {
-  __block bool success = true;
+  @autoreleasepool {
+    __block bool success = true;
 
-  if (capture_ready) {
+    if (capture_ready) {
+      return success;
+    }
+
+    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+
+    [SCShareableContent
+        getShareableContentWithCompletionHandler:^(
+            SCShareableContent *_Nullable content, NSError *_Nullable error) {
+          if (error || !content || content.displays.count <= 0) {
+            success = false;
+            dispatch_semaphore_signal(semaphore);
+            return;
+          }
+
+          CGDirectDisplayID main_display_id = CGMainDisplayID();
+          SCDisplay *target_display = content.displays.firstObject;
+
+          for (SCDisplay *candidate in content.displays) {
+            if (candidate.displayID == main_display_id) {
+              target_display = candidate;
+              break;
+            }
+          }
+
+          CGFloat scale_factor = 1.0;
+          for (NSScreen *screen in NSScreen.screens) {
+            NSNumber *screen_id = screen.deviceDescription[@"NSScreenNumber"];
+            if (screen_id.unsignedIntValue == target_display.displayID) {
+              scale_factor = screen.backingScaleFactor;
+              break;
+            }
+          }
+
+          capture_display = target_display;
+          capture_factor = scale_factor;
+
+          dispatch_semaphore_signal(semaphore);
+        }];
+
+    dispatch_semaphore_wait(semaphore, CAPTURE_TIMEOUT);
+
+    capture_ready = success;
     return success;
   }
-
-  dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-
-  [SCShareableContent
-      getShareableContentWithCompletionHandler:^(
-          SCShareableContent *_Nullable content, NSError *_Nullable error) {
-        if (error || !content || content.displays.count <= 0) {
-          success = false;
-          dispatch_semaphore_signal(semaphore);
-          return;
-        }
-
-        CGDirectDisplayID main_display_id = CGMainDisplayID();
-        SCDisplay *target_display = content.displays.firstObject;
-
-        for (SCDisplay *candidate in content.displays) {
-          if (candidate.displayID == main_display_id) {
-            target_display = candidate;
-            break;
-          }
-        }
-
-        CGFloat scale_factor = 1.0;
-        for (NSScreen *screen in NSScreen.screens) {
-          NSNumber *screen_id = screen.deviceDescription[@"NSScreenNumber"];
-          if (screen_id.unsignedIntValue == target_display.displayID) {
-            scale_factor = screen.backingScaleFactor;
-            break;
-          }
-        }
-
-        capture_display = target_display;
-        capture_factor = scale_factor;
-
-        dispatch_semaphore_signal(semaphore);
-      }];
-
-  dispatch_semaphore_wait(semaphore, CAPTURE_TIMEOUT);
-
-  capture_ready = success;
-  return success;
 }
 
 bool size_capture(Point2D *point) {
@@ -85,71 +87,73 @@ bool size_capture(Point2D *point) {
 }
 
 bool load_capture(Point2D position, Point2D size, Capture *capture) {
-  if (!capture_ready || !capture) {
-    return false;
-  }
+  @autoreleasepool {
+    if (!capture_ready || !capture) {
+      return false;
+    }
 
-  dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
 
-  __block void *pixels = NULL;
+    __block void *pixels = NULL;
 
-  __block u64 length = 0;
-  __block u64 width = 0;
-  __block u64 height = 0;
-  __block u64 stride = 0;
+    __block u64 length = 0;
+    __block u64 width = 0;
+    __block u64 height = 0;
+    __block u64 stride = 0;
 
-  SCContentFilter *filter =
-      [[SCContentFilter alloc] initWithDisplay:capture_display
-                              excludingWindows:@[]];
+    SCContentFilter *filter =
+        [[SCContentFilter alloc] initWithDisplay:capture_display
+                                excludingWindows:@[]];
 
-  SCStreamConfiguration *config = [[SCStreamConfiguration alloc] init];
+    SCStreamConfiguration *config = [[SCStreamConfiguration alloc] init];
 
-  config.sourceRect = CGRectMake(position.x, position.y, size.x, size.y);
-  config.width = (NSInteger)lround(size.x * capture_factor);
-  config.height = (NSInteger)lround(size.y * capture_factor);
-  config.showsCursor = NO;
+    config.sourceRect = CGRectMake(position.x, position.y, size.x, size.y);
+    config.width = (NSInteger)lround(size.x * capture_factor);
+    config.height = (NSInteger)lround(size.y * capture_factor);
+    config.showsCursor = NO;
 
-  [SCScreenshotManager
-      captureImageWithFilter:filter
-               configuration:config
-           completionHandler:^(CGImageRef image, NSError *error) {
-             if (error || !image) {
+    [SCScreenshotManager
+        captureImageWithFilter:filter
+                 configuration:config
+             completionHandler:^(CGImageRef image, NSError *error) {
+               if (error || !image) {
+                 dispatch_semaphore_signal(semaphore);
+                 return;
+               }
+
+               void *temporary_pixels = NULL;
+
+               u64 temporary_length = 0;
+               u64 temporary_width = 0;
+               u64 temporary_height = 0;
+               u64 temporary_stride = 0;
+
+               if (image_to_rgba(image, &temporary_pixels, &temporary_length,
+                                 &temporary_width, &temporary_height,
+                                 &temporary_stride)) {
+                 pixels = temporary_pixels;
+                 length = temporary_length;
+                 width = temporary_width;
+                 height = temporary_height;
+                 stride = temporary_stride;
+               }
+
                dispatch_semaphore_signal(semaphore);
-               return;
-             }
+             }];
 
-             void *temporary_pixels = NULL;
+    u64 timeout = dispatch_semaphore_wait(semaphore, CAPTURE_TIMEOUT);
+    if (timeout != 0) {
+      return false;
+    }
 
-             u64 temporary_length = 0;
-             u64 temporary_width = 0;
-             u64 temporary_height = 0;
-             u64 temporary_stride = 0;
+    capture->data = pixels;
+    capture->length = length;
+    capture->width = width;
+    capture->height = height;
+    capture->stride = stride;
 
-             if (image_to_rgba(image, &temporary_pixels, &temporary_length,
-                               &temporary_width, &temporary_height,
-                               &temporary_stride)) {
-               pixels = temporary_pixels;
-               length = temporary_length;
-               width = temporary_width;
-               height = temporary_height;
-               stride = temporary_stride;
-             }
-
-             dispatch_semaphore_signal(semaphore);
-           }];
-
-  u64 timeout = dispatch_semaphore_wait(semaphore, CAPTURE_TIMEOUT);
-  if (timeout != 0) {
-    return false;
+    return true;
   }
-
-  capture->data = pixels;
-  capture->length = length;
-  capture->width = width;
-  capture->height = height;
-  capture->stride = stride;
-
-  return true;
 }
 
 void free_capture(Capture *capture) {
@@ -168,12 +172,44 @@ void free_capture(Capture *capture) {
   capture->stride = 0;
 }
 
-bool load_paste(const char *content) {
-  NSString *string = [NSString stringWithUTF8String:content];
-  NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+bool copy_color(const char *content) {
+  @autoreleasepool {
+    NSString *string = [NSString stringWithUTF8String:content];
+    NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
 
-  [pasteboard clearContents];
-  return [pasteboard setString:string forType:NSPasteboardTypeString];
+    [pasteboard clearContents];
+    return [pasteboard setString:string forType:NSPasteboardTypeString];
+  }
+}
+
+bool copy_image(void *pixels, u64 width, u64 height) {
+  @autoreleasepool {
+    NSBitmapImageRep *representation = [[NSBitmapImageRep alloc]
+        initWithBitmapDataPlanes:NULL
+                      pixelsWide:(NSInteger)width
+                      pixelsHigh:(NSInteger)height
+                   bitsPerSample:8
+                 samplesPerPixel:4
+                        hasAlpha:YES
+                        isPlanar:NO
+                  colorSpaceName:NSDeviceRGBColorSpace
+                     bytesPerRow:(NSInteger)(width * 4)
+                    bitsPerPixel:32];
+
+    if (!representation) {
+      return false;
+    }
+
+    memcpy([representation bitmapData], pixels, width * height * 4);
+
+    NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(width, height)];
+    [image addRepresentation:representation];
+
+    NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+    [pasteboard clearContents];
+
+    return [pasteboard writeObjects:@[ image ]];
+  }
 }
 
 // [--------------------------------------------------------------] //

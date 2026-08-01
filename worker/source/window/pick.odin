@@ -79,10 +79,6 @@ apply_pick :: proc(
 		color = color,
 	}
 
-	_, err := action.handle_pick(act, allocator = allocator)
-	if err != .None {
-		return err
-	}
-
+	action.handle_pick(act, allocator = allocator) or_return
 	return .None
 }

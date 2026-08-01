@@ -60,7 +60,7 @@ handle_crop :: proc(act: Crop) -> (Crop_Result, error.Error) {
 	return {width = cropped.width, height = cropped.height, texture = cropped}, .None
 }
 
-handle_pick :: proc(act: Pick, allocator := context.allocator) -> (Pick_Result, error.Error) {
+handle_pick :: proc(act: Pick, allocator := context.allocator) -> error.Error {
 	content: string
 
 	switch act.mode {
@@ -95,17 +95,30 @@ handle_pick :: proc(act: Pick, allocator := context.allocator) -> (Pick_Result, 
 
 	c_content, err := strings.clone_to_cstring(content, allocator = allocator)
 	if err != .None {
-		return {}, .Out_Of_Memory
+		return .Out_Of_Memory
 	}
 
 	defer delete(c_content, allocator = allocator)
 
-	ok := native.unsafe_load_paste(c_content)
+	ok := native.unsafe_copy_color(c_content)
 	if !ok {
-		return {}, .Not_Permitted
+		return .Not_Permitted
+	} else {
+		return .None
 	}
+}
 
-	return {success = true}, .None
+@(require_results)
+handle_copy :: proc(act: Copy) -> error.Error {
+	image := raylib.LoadImageFromTexture(act.texture)
+	defer raylib.UnloadImage(image)
+
+	ok := native.unsafe_copy_image(image.data, uint(image.width), uint(image.height))
+	if !ok {
+		return .Not_Permitted
+	} else {
+		return .None
+	}
 }
 
 @(require_results)

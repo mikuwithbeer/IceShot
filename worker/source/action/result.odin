@@ -16,10 +16,6 @@ Crop_Result :: struct {
 	texture: raylib.Texture2D,
 }
 
-Pick_Result :: struct {
-	success: bool,
-}
-
 Save_Result :: struct {
 	date: time.Time,
 	path: string,
@@ -28,7 +24,6 @@ Save_Result :: struct {
 Result :: union {
 	Capture_Result,
 	Crop_Result,
-	Pick_Result,
 	Save_Result,
 }
 

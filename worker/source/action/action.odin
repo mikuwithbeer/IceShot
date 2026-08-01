@@ -12,12 +12,15 @@ Pick :: struct {
 	color: raylib.Color,
 }
 
-Save :: struct {
+Copy :: struct {
 	texture: raylib.Texture2D,
 }
+
+Save :: distinct Copy
 
 Action :: union {
 	Crop,
 	Pick,
+	Copy,
 	Save,
 }

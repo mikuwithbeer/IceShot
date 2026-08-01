@@ -34,6 +34,8 @@ bool load_capture(Point2D position, Point2D size, Capture *capture);
 
 void free_capture(Capture *capture);
 
-bool load_paste(const char *content);
+bool copy_color(const char *content);
+
+bool copy_image(void *pixels, u64 width, u64 height);
 
 #endif // NATIVE_H

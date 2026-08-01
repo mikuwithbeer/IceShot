@@ -12,6 +12,7 @@ Header :: struct {
 	cut_position:        raylib.Rectangle,
 	pick_position:       raylib.Rectangle,
 	undo_position:       raylib.Rectangle,
+	copy_position:       raylib.Rectangle,
 	save_position:       raylib.Rectangle,
 	color_type_position: raylib.Rectangle,
 	color_view_position: raylib.Rectangle,
@@ -34,8 +35,8 @@ init_header :: proc(
 load_header :: proc(head: ^Header, global: ^state.State) -> (err: error.Error) {
 	layout_header(head, global)
 
-	crop, pick, undo, save := draw_header(head, global)
-	process_header_actions(head, global, crop, pick, undo, save) or_return
+	crop, pick, undo, copy, save := draw_header(head, global)
+	process_header_actions(head, global, crop, pick, undo, copy, save) or_return
 
 	return
 }
@@ -47,15 +48,16 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 	head.cut_position = {8, 32, 32, 32}
 	head.pick_position = {48, 32, 32, 32}
 
-	head.undo_position = {global.frame.screen.x - 80, 32, 32, 32}
+	head.undo_position = {global.frame.screen.x - 120, 32, 32, 32}
+	head.copy_position = {global.frame.screen.x - 80, 32, 32, 32}
 	head.save_position = {global.frame.screen.x - 40, 32, 32, 32}
 
-	head.color_type_position = {global.frame.screen.x - 200, 32, 72, 32}
-	head.color_view_position = {global.frame.screen.x - 120, 32, 32, 32}
+	head.color_type_position = {global.frame.screen.x - 240, 32, 72, 32}
+	head.color_view_position = {global.frame.screen.x - 160, 32, 32, 32}
 }
 
 @(private = "file")
-draw_header :: proc(head: ^Header, global: ^state.State) -> (crop, pick, undo, save: bool) {
+draw_header :: proc(head: ^Header, global: ^state.State) -> (crop, pick, undo, copy, save: bool) {
 	raylib.GuiPanel(head.panel_position, "IceShot Toolbar")
 
 	switch global.tool {
@@ -90,6 +92,8 @@ draw_header :: proc(head: ^Header, global: ^state.State) -> (crop, pick, undo, s
 		undo = raylib.GuiButton(head.undo_position, raylib.GuiIconText(.ICON_UNDO, ""))
 	}
 
+	copy = raylib.GuiButton(head.copy_position, raylib.GuiIconText(.ICON_FILE_COPY, ""))
+
 	save = raylib.GuiButton(head.save_position, raylib.GuiIconText(.ICON_FILE_SAVE, ""))
 
 	return
@@ -99,7 +103,7 @@ draw_header :: proc(head: ^Header, global: ^state.State) -> (crop, pick, undo, s
 process_header_actions :: proc(
 	head: ^Header,
 	global: ^state.State,
-	crop, pick, undo, save: bool,
+	crop, pick, undo, copy, save: bool,
 ) -> (
 	err: error.Error,
 ) {
@@ -113,6 +117,10 @@ process_header_actions :: proc(
 
 	if undo {
 		process_undo(global) or_return
+	}
+
+	if copy {
+		process_copy(global) or_return
 	}
 
 	if save {

@@ -5,7 +5,7 @@ import "../error"
 import "../state"
 
 @(private, require_results)
-process_save :: proc(global: ^state.State, allocator := context.allocator) -> (err: error.Error) {
+process_save :: proc(global: ^state.State, allocator := context.allocator) -> error.Error {
 	act := action.Save {
 		texture = global.frame.current,
 	}
@@ -13,5 +13,5 @@ process_save :: proc(global: ^state.State, allocator := context.allocator) -> (e
 	result := action.handle_save(act, allocator) or_return
 	action.free_action_result(result, allocator)
 
-	return
+	return .None
 }

@@ -31,6 +31,9 @@ foreign _native {
 	@(link_name = "free_capture")
 	unsafe_free_capture :: proc(result: ^Unsafe_Capture) ---
 
-	@(link_name = "load_paste")
-	unsafe_load_paste :: proc(content: cstring) -> c.bool ---
+	@(link_name = "copy_color")
+	unsafe_copy_color :: proc(content: cstring) -> c.bool ---
+
+	@(link_name = "copy_image")
+	unsafe_copy_image :: proc(pixels: rawptr, width: c.size_t, height: c.size_t) -> c.bool ---
 }
