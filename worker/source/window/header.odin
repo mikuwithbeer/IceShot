@@ -8,13 +8,14 @@ import "base:runtime"
 import "vendor:raylib"
 
 Header :: struct {
-	panel_position:    raylib.Rectangle,
-	cut_position:      raylib.Rectangle,
-	pick_position:     raylib.Rectangle,
-	undo_position:     raylib.Rectangle,
-	save_position:     raylib.Rectangle,
-	reserved_position: raylib.Rectangle,
-	_allocator:        runtime.Allocator,
+	panel_position:      raylib.Rectangle,
+	cut_position:        raylib.Rectangle,
+	pick_position:       raylib.Rectangle,
+	undo_position:       raylib.Rectangle,
+	save_position:       raylib.Rectangle,
+	color_type_position: raylib.Rectangle,
+	color_view_position: raylib.Rectangle,
+	_allocator:          runtime.Allocator,
 }
 
 @(require_results)
@@ -48,7 +49,9 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 
 	head.undo_position = {global.frame.screen.x - 80, 32, 32, 32}
 	head.save_position = {global.frame.screen.x - 40, 32, 32, 32}
-	head.reserved_position = {global.frame.screen.x - 120, 32, 32, 32}
+
+	head.color_type_position = {global.frame.screen.x - 200, 32, 72, 32}
+	head.color_view_position = {global.frame.screen.x - 120, 32, 32, 32}
 }
 
 @(private = "file")
@@ -62,7 +65,17 @@ draw_header :: proc(head: ^Header, global: ^state.State) -> (crop, pick, undo, s
 		crop = true
 	case .Pick:
 		pick = true
-		raylib.DrawRectangleRec(head.reserved_position, global.pick.color)
+
+		if raylib.GuiDropdownBox(
+			head.color_type_position,
+			"HEX;RGB;RGBA",
+			&global.pick.selected,
+			global.pick.dropping,
+		) {
+			global.pick.dropping = !global.pick.dropping
+		}
+
+		raylib.DrawRectangleRec(head.color_view_position, global.pick.color)
 	}
 
 	raylib.GuiToggle(head.cut_position, raylib.GuiIconText(.ICON_CROP, ""), &crop)

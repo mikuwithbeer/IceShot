@@ -8,6 +8,7 @@ Crop :: struct {
 }
 
 Pick :: struct {
+	mode:  i32,
 	color: raylib.Color,
 }
 

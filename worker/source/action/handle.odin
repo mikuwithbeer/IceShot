@@ -61,36 +61,46 @@ handle_crop :: proc(act: Crop) -> (Crop_Result, error.Error) {
 }
 
 handle_pick :: proc(act: Pick, allocator := context.allocator) -> (Pick_Result, error.Error) {
-	hex: string
-	if act.color.a == 255 {
-		hex = fmt.aprintf(
-			"#%02X%02X%02X",
+	content: string
+
+	switch act.mode {
+	case 1:
+		content = fmt.aprintf(
+			"rgb(%d, %d, %d)",
 			act.color.r,
 			act.color.g,
 			act.color.b,
 			allocator = allocator,
 		)
-	} else {
-		hex = fmt.aprintf(
-			"#%02X%02X%02X%02X",
+	case 2:
+		content = fmt.aprintf(
+			"rgb(%d, %d, %d, %d)",
 			act.color.r,
 			act.color.g,
 			act.color.b,
 			act.color.a,
 			allocator = allocator,
 		)
+	case:
+		content = fmt.aprintf(
+			"#%02X%02X%02X",
+			act.color.r,
+			act.color.g,
+			act.color.b,
+			allocator = allocator,
+		)
 	}
 
-	defer delete(hex, allocator = allocator)
+	defer delete(content, allocator = allocator)
 
-	c_hex, err := strings.clone_to_cstring(hex, allocator = allocator)
+	c_content, err := strings.clone_to_cstring(content, allocator = allocator)
 	if err != .None {
 		return {}, .Out_Of_Memory
 	}
 
-	defer delete(c_hex, allocator = allocator)
+	defer delete(c_content, allocator = allocator)
 
-	ok := native.unsafe_load_paste(c_hex)
+	ok := native.unsafe_load_paste(c_content)
 	if !ok {
 		return {}, .Not_Permitted
 	}

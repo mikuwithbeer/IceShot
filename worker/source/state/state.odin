@@ -17,9 +17,11 @@ Crop :: struct {
 }
 
 Pick :: struct {
-	point: [2]f32,
-	color: raylib.Color,
-	image: raylib.Image,
+	dropping: bool,
+	selected: i32,
+	point:    [2]f32,
+	color:    raylib.Color,
+	image:    raylib.Image,
 }
 
 Frame :: struct {
