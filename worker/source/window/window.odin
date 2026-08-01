@@ -70,7 +70,7 @@ update_frame :: proc(gui: ^Window) {
 	{
 		color_position := raylib.Rectangle{gui.state.frame.screen.x - 120, 80, 120, 120}
 
-		fly_panel := gui.state.frame.cursor.y <= gui.header.panel_position.height
+		fly_panel := gui.state.frame.cursor.y <= gui.header.panel.height
 		fly_color :=
 			(gui.state.tool == .Rect) &&
 			raylib.CheckCollisionPointRec(gui.state.frame.cursor, color_position)
