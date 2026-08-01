@@ -14,7 +14,8 @@ process_crop :: proc(global: ^state.State, view: ^Viewer) -> error.Error {
 
 	area, ready := process_crop_selection(global, view)
 	if ready {
-		apply_crop(global, area) or_return
+		result := apply_crop(global, area) or_return
+		view.camera.target = {f32(result.width) * 0.5, f32(result.height) * 0.5}
 	} else if global.crop.dragging {
 		draw_crop_overlay(area, view.camera.zoom)
 	}
@@ -72,7 +73,13 @@ draw_crop_overlay :: proc(area: raylib.Rectangle, zoom: f32) {
 }
 
 @(private = "file", require_results)
-apply_crop :: proc(global: ^state.State, area: raylib.Rectangle) -> error.Error {
+apply_crop :: proc(
+	global: ^state.State,
+	area: raylib.Rectangle,
+) -> (
+	result: action.Crop_Result,
+	err: error.Error,
+) {
 	global.process = {}
 	global.crop = {}
 	global.tool = .None
@@ -82,10 +89,10 @@ apply_crop :: proc(global: ^state.State, area: raylib.Rectangle) -> error.Error 
 		area    = area,
 	}
 
-	result := action.handle_crop(act) or_return
+	result = action.handle_crop(act) or_return
 
 	replace_current_texture(global, result.texture)
 	state.push_history(&global.history, act) or_return
 
-	return .None
+	return
 }

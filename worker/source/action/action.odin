@@ -24,7 +24,7 @@ Read :: struct {
 
 Copy :: distinct Read
 
-Save :: distinct Copy
+Save :: distinct Read
 
 Action :: union {
 	Crop,
