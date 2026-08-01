@@ -2,7 +2,7 @@ package window
 
 import "../action"
 import "../error"
-import "../manage"
+import "../state"
 
 import "base:runtime"
 
@@ -15,7 +15,7 @@ Viewer :: struct {
 
 @(require_results)
 init_viewer :: proc(
-	manager: ^manage.Manage,
+	global: ^state.State,
 	allocator := context.allocator,
 ) -> (
 	view: Viewer,
@@ -23,12 +23,14 @@ init_viewer :: proc(
 ) {
 	view._allocator = allocator
 
-	act := action.capture_action() or_return
-	manager.frame.shot = act.texture
+	result := action.handle_capture() or_return
+
+	global.frame.initial = result.texture
+	global.frame.current = result.texture
 
 	scale := [2]f32 {
-		manager.frame.render.x / f32(act.width),
-		manager.frame.render.y / f32(act.height),
+		global.frame.render.x / f32(result.width),
+		global.frame.render.y / f32(result.height),
 	}
 
 	zoom := min(scale.x, scale.y)
@@ -37,8 +39,8 @@ init_viewer :: proc(
 	}
 
 	view.camera = raylib.Camera2D {
-		offset = {manager.frame.render.x * 0.5, manager.frame.render.y * 0.5},
-		target = {f32(act.width) * 0.5, f32(act.height) * 0.5},
+		offset = {global.frame.render.x * 0.5, global.frame.render.y * 0.5},
+		target = {f32(result.width) * 0.5, f32(result.height) * 0.5},
 		zoom   = zoom,
 	}
 
@@ -46,17 +48,18 @@ init_viewer :: proc(
 }
 
 @(require_results)
-load_viewer :: proc(view: ^Viewer, manager: ^manage.Manage) -> (err: error.Error) {
-	view.camera.offset = {manager.frame.render.x * 0.5, manager.frame.render.y * 0.5}
+load_viewer :: proc(view: ^Viewer, global: ^state.State) -> (err: error.Error) {
+	view.camera.offset = {global.frame.render.x * 0.5, global.frame.render.y * 0.5}
 
 	raylib.BeginMode2D(view.camera)
 	defer raylib.EndMode2D()
 
-	raylib.DrawTexture(manager.frame.shot, 0, 0, {255, 255, 255, 255})
+	raylib.DrawTexture(global.frame.current, 0, 0, {255, 255, 255, 255})
 
 	handle_move(view)
-	handle_zoom(view, manager)
-	handle_crop(view, manager) or_return
+	handle_zoom(view, global)
+
+	effect_crop(global, view) or_return
 
 	return
 }
@@ -83,12 +86,12 @@ handle_move :: proc(view: ^Viewer) {
 }
 
 @(private = "file")
-handle_zoom :: proc(view: ^Viewer, manager: ^manage.Manage) {
+handle_zoom :: proc(view: ^Viewer, global: ^state.State) {
 	wheel := raylib.GetMouseWheelMove()
-	if wheel != 0 && manager.frame.fly {
+	if wheel != 0 && global.frame.fly {
 		absolute := raylib.Vector2 {
-			manager.frame.cursor.x * manager.frame.dpi.x,
-			manager.frame.cursor.y * manager.frame.dpi.y,
+			global.frame.cursor.x * global.frame.dpi.x,
+			global.frame.cursor.y * global.frame.dpi.y,
 		}
 
 		before := raylib.GetScreenToWorld2D(absolute, view.camera)
@@ -101,54 +104,4 @@ handle_zoom :: proc(view: ^Viewer, manager: ^manage.Manage) {
 		view.camera.target.x += before.x - after.x
 		view.camera.target.y += before.y - after.y
 	}
-}
-
-@(private = "file", require_results)
-handle_crop :: proc(view: ^Viewer, manager: ^manage.Manage) -> (err: error.Error) {
-	if !manager.crop.running {
-		return
-	}
-
-	absolute := raylib.Vector2 {
-		manager.frame.cursor.x * manager.frame.dpi.x,
-		manager.frame.cursor.y * manager.frame.dpi.y,
-	}
-
-	world := raylib.GetScreenToWorld2D(absolute, view.camera)
-	world.x = raylib.Clamp(world.x, 0.0, f32(manager.frame.shot.width))
-	world.y = raylib.Clamp(world.y, 0.0, f32(manager.frame.shot.height))
-
-	if manager.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
-		manager.crop.dragging = true
-		manager.crop.start = {world.x, world.y}
-		manager.crop.end = {world.x, world.y}
-	} else if manager.crop.dragging {
-		if raylib.IsMouseButtonDown(.LEFT) {
-			manager.crop.end = {world.x, world.y}
-		}
-
-		area := raylib.Rectangle {
-			x      = min(manager.crop.start.x, manager.crop.end.x),
-			y      = min(manager.crop.start.y, manager.crop.end.y),
-			width  = abs(manager.crop.start.x - manager.crop.end.x),
-			height = abs(manager.crop.start.y - manager.crop.end.y),
-		}
-
-		if raylib.IsMouseButtonReleased(.LEFT) {
-			manager.crop.dragging = false
-
-			if area.width > 1.0 && area.height > 1.0 {
-				act := action.crop_action(manager.frame.shot, area) or_return
-				manage.push_history(&manager.history, manager.frame.shot) or_return
-
-				manager.frame.shot = act.texture
-				manager.crop = {}
-			}
-		}
-
-		raylib.DrawRectangleRec(area, {121, 191, 255, 80})
-		raylib.DrawRectangleLinesEx(area, 2.0 / view.camera.zoom, {121, 191, 255, 255})
-	}
-
-	return
 }

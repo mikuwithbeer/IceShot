@@ -11,7 +11,7 @@ import "core:time"
 import "vendor:raylib"
 
 @(require_results)
-capture_action :: proc() -> (Capture_Result, error.Error) {
+handle_capture :: proc() -> (Capture_Result, error.Error) {
 	ok := native.unsafe_init_capture()
 	if !ok {
 		return {}, .Not_Permitted
@@ -48,17 +48,11 @@ capture_action :: proc() -> (Capture_Result, error.Error) {
 
 
 @(require_results)
-crop_action :: proc(
-	texture: raylib.Texture2D,
-	area: raylib.Rectangle,
-) -> (
-	Crop_Result,
-	error.Error,
-) {
-	image := raylib.LoadImageFromTexture(texture)
+handle_crop :: proc(act: Crop) -> (Crop_Result, error.Error) {
+	image := raylib.LoadImageFromTexture(act.texture)
 	defer raylib.UnloadImage(image)
 
-	raylib.ImageCrop(&image, area)
+	raylib.ImageCrop(&image, act.area)
 
 	cropped := raylib.LoadTextureFromImage(image)
 	raylib.SetTextureFilter(cropped, .TRILINEAR)
@@ -67,14 +61,8 @@ crop_action :: proc(
 }
 
 @(require_results)
-save_action :: proc(
-	texture: raylib.Texture2D,
-	allocator := context.allocator,
-) -> (
-	Save_Result,
-	error.Error,
-) {
-	image := raylib.LoadImageFromTexture(texture)
+handle_save :: proc(act: Save, allocator := context.allocator) -> (Save_Result, error.Error) {
+	image := raylib.LoadImageFromTexture(act.texture)
 
 	home := os.get_env_alloc("HOME", allocator = allocator)
 	defer delete(home, allocator = allocator)

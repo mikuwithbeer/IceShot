@@ -1,16 +1,16 @@
 package window
 
 import "../error"
-import "../manage"
+import "../state"
 
 import "base:runtime"
 
 import "vendor:raylib"
 
 Window :: struct {
+	state:      state.State,
 	viewer:     Viewer,
 	header:     Header,
-	manage:     manage.Manage,
 	_allocator: runtime.Allocator,
 }
 
@@ -24,14 +24,13 @@ init_window :: proc(allocator := context.allocator) -> (gui: Window, err: error.
 
 	handle_style(&gui)
 
-	manager := manage.init_manage(allocator = allocator) or_return
+	gui.state = state.init_state(allocator = allocator) or_return
 
-	manager.frame.screen = {f32(raylib.GetScreenWidth()), f32(raylib.GetScreenHeight())}
-	manager.frame.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
+	gui.state.frame.screen = {f32(raylib.GetScreenWidth()), f32(raylib.GetScreenHeight())}
+	gui.state.frame.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
 
-	gui.viewer = init_viewer(&manager, allocator = allocator) or_return
-	gui.header = init_header(&manager, allocator = allocator) or_return
-	gui.manage = manager
+	gui.viewer = init_viewer(&gui.state, allocator = allocator) or_return
+	gui.header = init_header(&gui.state, allocator = allocator) or_return
 
 	return
 }
@@ -39,32 +38,33 @@ init_window :: proc(allocator := context.allocator) -> (gui: Window, err: error.
 @(require_results)
 load_window :: proc(gui: ^Window) -> (err: error.Error) {
 	for !raylib.WindowShouldClose() {
-		gui.manage.frame.screen = {f32(raylib.GetScreenWidth()), f32(raylib.GetScreenHeight())}
-		gui.manage.frame.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
-		gui.manage.frame.cursor = raylib.GetMousePosition()
+		gui.state.frame.screen = {f32(raylib.GetScreenWidth()), f32(raylib.GetScreenHeight())}
+		gui.state.frame.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
+		gui.state.frame.cursor = raylib.GetMousePosition()
 
-		gui.manage.frame.dpi = raylib.GetWindowScaleDPI()
-		gui.manage.frame.fly = gui.manage.frame.cursor.y > gui.header.panel_position.height
+		gui.state.frame.dpi = raylib.GetWindowScaleDPI()
+		gui.state.frame.fly = gui.state.frame.cursor.y > gui.header.panel_position.height
 
 		raylib.BeginDrawing()
 		defer raylib.EndDrawing()
 
 		handle_board(gui)
 
-		load_viewer(&gui.viewer, &gui.manage) or_return
-		load_header(&gui.header, &gui.manage) or_return
+		load_viewer(&gui.viewer, &gui.state) or_return
+		load_header(&gui.header, &gui.state) or_return
 	}
 
 	return
 }
 
 free_window :: proc(gui: ^Window) {
-	manage.free_manage(&gui.manage)
+	state.free_state(&gui.state)
 
-	raylib.UnloadTexture(gui.manage.frame.shot)
+	raylib.UnloadTexture(gui.state.frame.initial)
+	raylib.UnloadTexture(gui.state.frame.current)
 
 	raylib.GuiSetFont(raylib.GetFontDefault())
-	raylib.UnloadFont(gui.manage.frame.font)
+	raylib.UnloadFont(gui.state.frame.font)
 
 	raylib.CloseWindow()
 }
@@ -76,8 +76,8 @@ handle_board :: proc(gui: ^Window) {
 	raylib.ClearBackground({255, 255, 255, 255})
 
 	pixels: [2]i32 = {
-		i32(gui.manage.frame.render.x) / CELL_SIZE + 1,
-		i32(gui.manage.frame.render.y) / CELL_SIZE + 1,
+		i32(gui.state.frame.render.x) / CELL_SIZE + 1,
+		i32(gui.state.frame.render.y) / CELL_SIZE + 1,
 	}
 
 	for x in 0 ..< pixels.x {
@@ -137,5 +137,5 @@ handle_style :: proc(gui: ^Window) {
 	raylib.SetTextureFilter(font.texture, .TRILINEAR)
 	raylib.GuiSetFont(font)
 
-	gui.manage.frame.font = font
+	gui.state.frame.font = font
 }

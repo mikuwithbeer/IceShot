@@ -1,8 +1,7 @@
 package window
 
-import "../action"
 import "../error"
-import "../manage"
+import "../state"
 
 import "base:runtime"
 
@@ -18,7 +17,7 @@ Header :: struct {
 
 @(require_results)
 init_header :: proc(
-	manager: ^manage.Manage,
+	global: ^state.State,
 	allocator := context.allocator,
 ) -> (
 	head: Header,
@@ -36,28 +35,26 @@ init_header :: proc(
 }
 
 @(require_results)
-load_header :: proc(head: ^Header, manager: ^manage.Manage) -> (err: error.Error) {
-	head.panel_position = {0, 0, manager.frame.screen.x, 72}
+load_header :: proc(head: ^Header, global: ^state.State) -> (err: error.Error) {
+	head.panel_position = {0, 0, global.frame.screen.x, 72}
 
-	head.save_position = {manager.frame.screen.x - 40, 32, 32, 32}
-	head.undo_position = {manager.frame.screen.x - 80, 32, 32, 32}
+	head.save_position = {global.frame.screen.x - 40, 32, 32, 32}
+	head.undo_position = {global.frame.screen.x - 80, 32, 32, 32}
 
 	raylib.GuiPanel(head.panel_position, "IceShot Toolbar")
 
 	if raylib.GuiButton(head.save_position, raylib.GuiIconText(.ICON_FILE_SAVE, "")) {
-		result := action.save_action(manager.frame.shot, head._allocator) or_return
-		action.free_action_result(result, head._allocator)
+		effect_save(global, head._allocator) or_return
 	}
 
-	raylib.GuiToggle(head.cut_position, raylib.GuiIconText(.ICON_CROP, ""), &manager.crop.running)
+	raylib.GuiToggle(head.cut_position, raylib.GuiIconText(.ICON_CROP, ""), &global.crop.running)
 
-	if len(manager.history.shots) == 0 {
+	if len(global.history.actions) == 0 {
 		raylib.GuiSetState(i32(raylib.GuiState.STATE_DISABLED))
 	}
 
 	if raylib.GuiButton(head.undo_position, raylib.GuiIconText(.ICON_UNDO, "")) {
-		texture, _ := manage.pop_history(&manager.history)
-		manager.frame.shot = texture
+		effect_undo(global) or_return
 	}
 
 	raylib.GuiSetState(i32(raylib.GuiState.STATE_NORMAL))

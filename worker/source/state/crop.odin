@@ -1,6 +1,6 @@
-package manage
+package state
 
-Manage_Crop :: struct {
+Crop :: struct {
 	running:  bool,
 	dragging: bool,
 	start:    [2]f32,
