@@ -50,11 +50,13 @@ State :: struct {
 	frame:   Frame,
 	process: Process,
 	history: History,
+	message: Message,
 }
 
 @(require_results)
 init_state :: proc(allocator := context.allocator) -> (state: State, err: error.Error) {
 	state.history = init_history(allocator = allocator) or_return
+	show_idle_message(&state.message)
 	return
 }
 

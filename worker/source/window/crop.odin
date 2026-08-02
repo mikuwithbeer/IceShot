@@ -94,5 +94,7 @@ apply_crop :: proc(
 	replace_current_texture(global, result.texture)
 	state.push_history(&global.history, act) or_return
 
+	state.show_idle_message(&global.message)
+
 	return
 }

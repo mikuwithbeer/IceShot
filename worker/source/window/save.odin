@@ -15,5 +15,7 @@ process_save :: proc(global: ^state.State, allocator := context.allocator) -> er
 	result := action.handle_save(act, allocator) or_return
 	action.free_action_result(result, allocator)
 
+	state.show_saved_message(&global.message)
+
 	return .None
 }

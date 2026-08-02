@@ -76,5 +76,7 @@ apply_pick :: proc(
 	}
 
 	action.handle_pick(act, allocator = allocator) or_return
+	state.show_copied_message(&global.message)
+
 	return .None
 }

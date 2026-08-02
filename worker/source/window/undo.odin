@@ -11,6 +11,8 @@ process_undo :: proc(global: ^state.State) -> error.Error {
 	state.pop_history(&global.history) or_return
 	rebuild_from_history(global) or_return
 
+	state.show_undo_message(&global.message)
+
 	return .None
 }
 

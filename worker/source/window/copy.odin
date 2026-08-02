@@ -13,5 +13,7 @@ process_copy :: proc(global: ^state.State) -> error.Error {
 	}
 
 	action.handle_copy(act) or_return
+	state.show_copied_message(&global.message)
+
 	return .None
 }

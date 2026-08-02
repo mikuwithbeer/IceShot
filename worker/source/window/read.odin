@@ -12,6 +12,14 @@ process_read :: proc(global: ^state.State) -> error.Error {
 		texture = global.frame.current,
 	}
 
-	action.handle_read(act) or_return
-	return .None
+	err := action.handle_read(act)
+	if err == .No_Text_Found {
+		state.show_ocr_failed_message(&global.message)
+		return .None
+	} else if err == .None {
+		state.show_copied_message(&global.message)
+		return .None
+	} else {
+		return err
+	}
 }

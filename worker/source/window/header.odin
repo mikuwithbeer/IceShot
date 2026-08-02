@@ -2,6 +2,7 @@ package window
 
 import "../error"
 import "../state"
+import "core:time"
 
 import "base:runtime"
 
@@ -66,7 +67,12 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 
 @(private = "file")
 draw_header :: proc(head: ^Header, global: ^state.State) {
-	raylib.GuiPanel(head.panel, "IceShot Toolbar")
+	updated := time.time_add(time.now(), time.Second * -5)
+	if time.to_unix_nanoseconds(updated) > time.to_unix_nanoseconds(global.message.updated) {
+		state.show_idle_message(&global.message)
+	}
+
+	raylib.GuiPanel(head.panel, global.message.content)
 
 	switch global.tool {
 	case .None:
@@ -137,25 +143,31 @@ process_header_actions :: proc(head: ^Header, global: ^state.State) -> error.Err
 	case .None:
 		if global.process.crop {
 			global.tool = .Crop
+			state.show_select_area_message(&global.message)
 		} else if global.process.rect {
 			global.tool = .Rect
+			state.show_select_area_message(&global.message)
 		} else if global.process.pick {
 			global.tool = .Pick
+			state.show_pick_color_message(&global.message)
 		}
 	case .Crop:
 		if !global.process.crop {
 			global.crop = {}
 			global.tool = .None
+			state.show_idle_message(&global.message)
 		}
 	case .Rect:
 		if !global.process.rect {
 			global.rect = {}
 			global.tool = .None
+			state.show_idle_message(&global.message)
 		}
 	case .Pick:
 		if !global.process.pick {
 			global.pick = {}
 			global.tool = .None
+			state.show_idle_message(&global.message)
 		}
 	}
 
