@@ -9,6 +9,7 @@ Tool :: enum {
 	Crop,
 	Rect,
 	Pick,
+	Rule,
 }
 
 Crop :: struct {
@@ -31,6 +32,13 @@ Pick :: struct {
 	pixels:   [^]raylib.Color,
 }
 
+Rule :: struct {
+	bound:  [4]i32,
+	image:  raylib.Image,
+	pixel:  raylib.Color,
+	pixels: [^]raylib.Color,
+}
+
 Frame :: struct {
 	initial, current:            raylib.Texture2D,
 	tiles:                       raylib.RenderTexture2D,
@@ -40,7 +48,7 @@ Frame :: struct {
 }
 
 Process :: struct {
-	crop, rect, pick, rotc, undo, read, copy, save: bool,
+	crop, rect, pick, rotc, rule, undo, read, copy, save: bool,
 }
 
 State :: struct {
@@ -48,6 +56,7 @@ State :: struct {
 	crop:    Crop,
 	rect:    Rect,
 	pick:    Pick,
+	rule:    Rule,
 	frame:   Frame,
 	process: Process,
 	history: History,

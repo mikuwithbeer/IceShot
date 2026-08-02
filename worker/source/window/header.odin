@@ -16,6 +16,7 @@ Header :: struct {
 	rect:       raylib.Rectangle,
 	pick:       raylib.Rectangle,
 	rotc:       raylib.Rectangle,
+	rule:       raylib.Rectangle,
 	undo:       raylib.Rectangle,
 	read:       raylib.Rectangle,
 	copy:       raylib.Rectangle,
@@ -56,6 +57,7 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 	head.rect = {48, 32, 32, 32}
 	head.pick = {88, 32, 32, 32}
 	head.rotc = {128, 32, 32, 32}
+	head.rule = {168, 32, 32, 32}
 
 	head.undo = {global.frame.screen.x - 160, 32, 32, 32}
 	head.read = {global.frame.screen.x - 120, 32, 32, 32}
@@ -111,6 +113,10 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 		}
 
 		raylib.DrawRectangleRec(head.pick_view, global.pick.pixel)
+	case .Rule:
+		global.process = {
+			rule = true,
+		}
 	}
 
 	raylib.GuiToggle(head.crop, raylib.GuiIconText(.ICON_CROP, ""), &global.process.crop)
@@ -120,6 +126,8 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 	raylib.GuiToggle(head.pick, raylib.GuiIconText(.ICON_COLOR_PICKER, ""), &global.process.pick)
 
 	global.process.rotc = raylib.GuiButton(head.rotc, raylib.GuiIconText(.ICON_ROTATE, ""))
+
+	raylib.GuiToggle(head.rule, raylib.GuiIconText(.ICON_TARGET_POINT, ""), &global.process.rule)
 
 	if len(global.history.actions) == 0 {
 		raylib.GuiSetState(i32(raylib.GuiState.STATE_DISABLED))
@@ -186,6 +194,9 @@ process_header_actions :: proc(head: ^Header, global: ^state.State) -> error.Err
 		} else if global.process.pick {
 			global.tool = .Pick
 			state.show_pick_color_message(&global.message)
+		} else if global.process.rule {
+			global.tool = .Rule
+			state.show_pick_color_message(&global.message)
 		}
 	case .Crop:
 		if !global.process.crop {
@@ -202,6 +213,12 @@ process_header_actions :: proc(head: ^Header, global: ^state.State) -> error.Err
 	case .Pick:
 		if !global.process.pick {
 			global.pick = {}
+			global.tool = .None
+			state.show_idle_message(&global.message)
+		}
+	case .Rule:
+		if !global.process.rule {
+			global.rule = {}
 			global.tool = .None
 			state.show_idle_message(&global.message)
 		}

@@ -65,6 +65,7 @@ draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> error.Error {
 	process_crop(global, view) or_return
 	process_rect(global, view) or_return
 	process_pick(global, view, allocator = view._allocator) or_return
+	process_rule(global, view, allocator = view._allocator) or_return
 
 	return .None
 }
@@ -82,19 +83,19 @@ replace_current_texture :: proc(global: ^state.State, texture: raylib.Texture2D)
 process_camera_move :: proc(view: ^Viewer) {
 	speed := 2000.0 * raylib.GetFrameTime() / view.camera.zoom
 
-	if raylib.IsKeyDown(.A) {
+	if raylib.IsKeyDown(.A) || raylib.IsKeyDown(.LEFT) {
 		view.camera.target.x -= speed
 	}
 
-	if raylib.IsKeyDown(.D) {
+	if raylib.IsKeyDown(.D) || raylib.IsKeyDown(.RIGHT) {
 		view.camera.target.x += speed
 	}
 
-	if raylib.IsKeyDown(.W) {
+	if raylib.IsKeyDown(.W) || raylib.IsKeyDown(.UP) {
 		view.camera.target.y -= speed
 	}
 
-	if raylib.IsKeyDown(.S) {
+	if raylib.IsKeyDown(.S) || raylib.IsKeyDown(.DOWN) {
 		view.camera.target.y += speed
 	}
 }

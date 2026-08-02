@@ -136,6 +136,26 @@ handle_rotc :: proc(act: RotC) -> (RotC_Result, error.Error) {
 }
 
 @(require_results)
+handle_rule :: proc(act: Rule, allocator := context.allocator) -> error.Error {
+	content := fmt.aprintf("(%d, %d)", act.horizontal, act.vertical, allocator = allocator)
+	defer delete(content, allocator = allocator)
+
+	c_content, err := strings.clone_to_cstring(content, allocator = allocator)
+	if err != .None {
+		return .Out_Of_Memory
+	}
+
+	defer delete(c_content, allocator = allocator)
+
+	ok := native.unsafe_copy_color(c_content)
+	if !ok {
+		return .Not_Permitted
+	} else {
+		return .None
+	}
+}
+
+@(require_results)
 handle_read :: proc(act: Read) -> error.Error {
 	image := raylib.LoadImageFromTexture(act.texture)
 	defer raylib.UnloadImage(image)

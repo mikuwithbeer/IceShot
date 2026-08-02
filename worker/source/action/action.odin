@@ -22,6 +22,11 @@ RotC :: struct {
 	texture: raylib.Texture2D,
 }
 
+Rule :: struct {
+	horizontal: i32,
+	vertical:   i32,
+}
+
 Read :: distinct RotC
 
 Copy :: distinct RotC
@@ -33,6 +38,7 @@ Action :: union {
 	Rect,
 	Pick,
 	RotC,
+	Rule,
 	Read,
 	Copy,
 	Save,
