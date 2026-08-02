@@ -18,18 +18,21 @@ Pick :: struct {
 	color: raylib.Color,
 }
 
-Read :: struct {
+RotC :: struct {
 	texture: raylib.Texture2D,
 }
 
-Copy :: distinct Read
+Read :: distinct RotC
 
-Save :: distinct Read
+Copy :: distinct RotC
+
+Save :: distinct RotC
 
 Action :: union {
 	Crop,
 	Rect,
 	Pick,
+	RotC,
 	Read,
 	Copy,
 	Save,

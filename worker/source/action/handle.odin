@@ -123,6 +123,19 @@ handle_pick :: proc(act: Pick, allocator := context.allocator) -> error.Error {
 }
 
 @(require_results)
+handle_rotc :: proc(act: RotC) -> (RotC_Result, error.Error) {
+	image := raylib.LoadImageFromTexture(act.texture)
+	defer raylib.UnloadImage(image)
+
+	raylib.ImageRotateCW(&image)
+
+	modified := raylib.LoadTextureFromImage(image)
+	raylib.SetTextureFilter(modified, .BILINEAR)
+
+	return {width = modified.width, height = modified.height, texture = modified}, .None
+}
+
+@(require_results)
 handle_read :: proc(act: Read) -> error.Error {
 	image := raylib.LoadImageFromTexture(act.texture)
 	defer raylib.UnloadImage(image)
@@ -136,6 +149,7 @@ handle_read :: proc(act: Read) -> error.Error {
 		return .None
 	}
 }
+
 
 @(require_results)
 handle_copy :: proc(act: Copy) -> error.Error {

@@ -15,7 +15,7 @@ History :: struct {
 init_history :: proc(allocator := context.allocator) -> (history: History, err: error.Error) {
 	history._allocator = allocator
 
-	actions, allocate_err := make(type_of(history.actions), 0, 64, allocator = allocator)
+	actions, allocate_err := make(type_of(history.actions), 0, 16, allocator = allocator)
 	if allocate_err != .None {
 		err = .Out_Of_Memory
 		return

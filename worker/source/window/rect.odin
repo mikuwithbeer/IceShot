@@ -3,7 +3,6 @@ package window
 import "../action"
 import "../error"
 import "../state"
-//import "core:fmt"
 
 import "vendor:raylib"
 

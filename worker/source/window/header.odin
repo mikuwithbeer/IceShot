@@ -15,6 +15,7 @@ Header :: struct {
 	crop:       raylib.Rectangle,
 	rect:       raylib.Rectangle,
 	pick:       raylib.Rectangle,
+	rotc:       raylib.Rectangle,
 	undo:       raylib.Rectangle,
 	read:       raylib.Rectangle,
 	copy:       raylib.Rectangle,
@@ -54,6 +55,7 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 	head.crop = {8, 32, 32, 32}
 	head.rect = {48, 32, 32, 32}
 	head.pick = {88, 32, 32, 32}
+	head.rotc = {128, 32, 32, 32}
 
 	head.undo = {global.frame.screen.x - 160, 32, 32, 32}
 	head.read = {global.frame.screen.x - 120, 32, 32, 32}
@@ -117,6 +119,8 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 
 	raylib.GuiToggle(head.pick, raylib.GuiIconText(.ICON_COLOR_PICKER, ""), &global.process.pick)
 
+	global.process.rotc = raylib.GuiButton(head.rotc, raylib.GuiIconText(.ICON_ROTATE, ""))
+
 	if len(global.history.actions) == 0 {
 		raylib.GuiSetState(i32(raylib.GuiState.STATE_DISABLED))
 		global.process.undo = raylib.GuiButton(head.undo, raylib.GuiIconText(.ICON_UNDO, ""))
@@ -141,6 +145,8 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 			raylib.DrawTextEx(global.frame.font, "Draw Rectangle", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.pick) {
 			raylib.DrawTextEx(global.frame.font, "Color Picker", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rotc) {
+			raylib.DrawTextEx(global.frame.font, "Rotate Clockwise", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.undo) {
 			raylib.DrawTextEx(global.frame.font, "Undo Action", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.read) {
@@ -157,7 +163,9 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 
 @(private = "file")
 process_header_actions :: proc(head: ^Header, global: ^state.State) -> error.Error {
-	if global.process.undo {
+	if global.process.rotc {
+		process_rotc(global) or_return
+	} else if global.process.undo {
 		process_undo(global) or_return
 	} else if global.process.copy {
 		process_copy(global) or_return

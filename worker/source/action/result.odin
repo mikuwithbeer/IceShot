@@ -14,6 +14,8 @@ Crop_Result :: distinct Capture_Result
 
 Rect_Result :: distinct Capture_Result
 
+RotC_Result :: distinct Capture_Result
+
 Save_Result :: struct {
 	date: time.Time,
 	path: string,
@@ -23,6 +25,7 @@ Result :: union {
 	Capture_Result,
 	Crop_Result,
 	Rect_Result,
+	RotC_Result,
 	Save_Result,
 }
 

@@ -34,6 +34,12 @@ rebuild_from_history :: proc(global: ^state.State) -> error.Error {
 
 			result := action.handle_rect(act_copy) or_return
 			replace_current_texture(global, result.texture)
+		case action.RotC:
+			act_copy := act
+			act_copy.texture = global.frame.current
+
+			result := action.handle_rotc(act_copy) or_return
+			replace_current_texture(global, result.texture)
 		}
 	}
 
