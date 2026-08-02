@@ -82,19 +82,19 @@ replace_current_texture :: proc(global: ^state.State, texture: raylib.Texture2D)
 process_camera_move :: proc(view: ^Viewer) {
 	speed := 2000.0 * raylib.GetFrameTime() / view.camera.zoom
 
-	if raylib.IsKeyDown(.LEFT) {
+	if raylib.IsKeyDown(.A) {
 		view.camera.target.x -= speed
 	}
 
-	if raylib.IsKeyDown(.RIGHT) {
+	if raylib.IsKeyDown(.D) {
 		view.camera.target.x += speed
 	}
 
-	if raylib.IsKeyDown(.UP) {
+	if raylib.IsKeyDown(.W) {
 		view.camera.target.y -= speed
 	}
 
-	if raylib.IsKeyDown(.DOWN) {
+	if raylib.IsKeyDown(.S) {
 		view.camera.target.y += speed
 	}
 }
