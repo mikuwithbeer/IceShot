@@ -110,7 +110,7 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 			global.pick.dropping = !global.pick.dropping
 		}
 
-		raylib.DrawRectangleRec(head.pick_view, global.pick.color)
+		raylib.DrawRectangleRec(head.pick_view, global.pick.pixel)
 	}
 
 	raylib.GuiToggle(head.crop, raylib.GuiIconText(.ICON_CROP, ""), &global.process.crop)

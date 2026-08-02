@@ -26,8 +26,9 @@ Pick :: struct {
 	dropping: bool,
 	selected: i32,
 	point:    [2]f32,
-	color:    raylib.Color,
 	image:    raylib.Image,
+	pixel:    raylib.Color,
+	pixels:   [^]raylib.Color,
 }
 
 Frame :: struct {

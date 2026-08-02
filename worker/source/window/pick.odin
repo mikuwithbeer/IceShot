@@ -18,6 +18,7 @@ process_pick :: proc(
 
 	if global.pick.image.data == nil {
 		global.pick.image = raylib.LoadImageFromTexture(global.frame.current)
+		global.pick.pixels = raylib.LoadImageColors(global.pick.image)
 	}
 
 	mode, color, ready := process_color_pick(global, view)
@@ -46,11 +47,11 @@ process_color_pick :: proc(
 	world.x = raylib.Clamp(world.x, 0.0, f32(global.frame.current.width - 1))
 	world.y = raylib.Clamp(world.y, 0.0, f32(global.frame.current.height - 1))
 
-	global.pick.color = raylib.GetImageColor(global.pick.image, i32(world.x), i32(world.y))
+	global.pick.pixel = global.pick.pixels[i32(world.y) * global.pick.image.width + i32(world.x)]
 
 	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
 		mode = global.pick.selected
-		color = global.pick.color
+		color = global.pick.pixel
 		ready = true
 	}
 
@@ -68,6 +69,7 @@ apply_pick :: proc(
 	global.pick = {}
 	global.tool = .None
 
+	raylib.UnloadImageColors(global.pick.pixels)
 	raylib.UnloadImage(global.pick.image)
 
 	act := action.Pick {
