@@ -68,13 +68,12 @@ update_frame :: proc(gui: ^Window) {
 	gui.state.frame.dpi = raylib.GetWindowScaleDPI()
 
 	{
-		color_position := raylib.Rectangle{gui.state.frame.screen.x - 120, 80, 120, 120}
+		color_picker := raylib.Rectangle{gui.state.frame.screen.x - 120, 80, 120, 120}
 
 		fly_panel := gui.state.frame.cursor.y <= gui.header.panel.height
 		fly_color :=
-			(gui.state.tool == .Rect) &&
-			raylib.CheckCollisionPointRec(gui.state.frame.cursor, color_position)
-
+			gui.state.tool == .Rect &&
+			raylib.CheckCollisionPointRec(gui.state.frame.cursor, color_picker)
 
 		gui.state.frame.fly = !(fly_panel || fly_color)
 	}

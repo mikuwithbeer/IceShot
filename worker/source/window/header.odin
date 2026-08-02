@@ -2,6 +2,7 @@ package window
 
 import "../error"
 import "../state"
+
 import "core:time"
 
 import "base:runtime"
@@ -67,9 +68,13 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 
 @(private = "file")
 draw_header :: proc(head: ^Header, global: ^state.State) {
-	updated := time.time_add(time.now(), time.Second * -5)
-	if time.to_unix_nanoseconds(updated) > time.to_unix_nanoseconds(global.message.updated) {
-		state.show_idle_message(&global.message)
+	{
+		left := time.time_add(time.now(), time.Second * -5)
+		right := global.message.updated
+
+		if time.to_unix_nanoseconds(left) > time.to_unix_nanoseconds(right) {
+			state.show_idle_message(&global.message)
+		}
 	}
 
 	raylib.GuiPanel(head.panel, global.message.content)
@@ -125,6 +130,29 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 	global.process.copy = raylib.GuiButton(head.copy, raylib.GuiIconText(.ICON_FILE_COPY, ""))
 
 	global.process.save = raylib.GuiButton(head.save, raylib.GuiIconText(.ICON_FILE_SAVE, ""))
+
+	{
+		text_point := global.frame.cursor + {8, 8}
+		text_color := raylib.WHITE
+
+		if raylib.CheckCollisionPointRec(global.frame.cursor, head.crop) {
+			raylib.DrawTextEx(global.frame.font, "Crop Image", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rect) {
+			raylib.DrawTextEx(global.frame.font, "Draw Rectangle", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.pick) {
+			raylib.DrawTextEx(global.frame.font, "Color Picker", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.undo) {
+			raylib.DrawTextEx(global.frame.font, "Undo Action", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.read) {
+			raylib.DrawTextEx(global.frame.font, "Copy OCR", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.copy) {
+			text_point.x -= 80
+			raylib.DrawTextEx(global.frame.font, "Copy Image", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.save) {
+			text_point.x -= 80
+			raylib.DrawTextEx(global.frame.font, "Save Image", text_point, 16, 0, text_color)
+		}
+	}
 }
 
 @(private = "file")
