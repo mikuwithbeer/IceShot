@@ -49,7 +49,7 @@ load_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 @(private = "file")
 layout_header :: proc(head: ^Header, global: ^state.State) {
 	head.panel = {0, 0, global.frame.screen.x, 72}
-	head.color = {global.frame.screen.x - 120, 80, 88, 88}
+	head.color = {global.frame.screen.x - 160, 80, 128, 128}
 
 	head.crop = {8, 32, 32, 32}
 	head.rect = {48, 32, 32, 32}

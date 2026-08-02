@@ -68,7 +68,7 @@ update_frame :: proc(gui: ^Window) {
 	gui.state.frame.dpi = raylib.GetWindowScaleDPI()
 
 	{
-		color_picker := raylib.Rectangle{gui.state.frame.screen.x - 120, 80, 120, 120}
+		color_picker := raylib.Rectangle{gui.state.frame.screen.x - 160, 80, 160, 160}
 
 		fly_panel := gui.state.frame.cursor.y <= gui.header.panel.height
 		fly_color :=
