@@ -40,11 +40,11 @@ Rule :: struct {
 }
 
 Frame :: struct {
-	initial, current:            raylib.Texture2D,
-	tiles:                       raylib.RenderTexture2D,
-	font:                        raylib.Font,
-	dpi, cursor, render, screen: [2]f32,
-	fly, style, board:           bool,
+	initial, current:                             raylib.Texture2D,
+	tiles:                                        raylib.RenderTexture2D,
+	font:                                         raylib.Font,
+	dpi, cursor, absolute, render, screen, world: [2]f32,
+	fly, style, board:                            bool,
 }
 
 Process :: struct {

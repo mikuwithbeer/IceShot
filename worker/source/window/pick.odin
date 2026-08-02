@@ -38,16 +38,8 @@ process_color_pick :: proc(
 	color: raylib.Color,
 	ready: bool,
 ) {
-	absolute := raylib.Vector2 {
-		global.frame.cursor.x * global.frame.dpi.x,
-		global.frame.cursor.y * global.frame.dpi.y,
-	}
-
-	world := raylib.GetScreenToWorld2D(absolute, view.camera)
-	world.x = raylib.Clamp(world.x, 0.0, f32(global.frame.current.width - 1))
-	world.y = raylib.Clamp(world.y, 0.0, f32(global.frame.current.height - 1))
-
-	global.pick.pixel = global.pick.pixels[i32(world.y) * global.pick.image.width + i32(world.x)]
+	global.pick.pixel =
+		global.pick.pixels[i32(global.frame.world.y) * global.pick.image.width + i32(global.frame.world.x)]
 
 	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
 		mode = global.pick.selected

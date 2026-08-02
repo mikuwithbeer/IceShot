@@ -25,7 +25,7 @@ process_rule :: proc(
 	if ready {
 		apply_rule(global, horizontal, vertical, allocator = allocator) or_return
 	} else {
-		draw_rule_overlay(global, view)
+		draw_rule_overlay(global, view, view.camera.zoom)
 	}
 
 	return .None
@@ -39,54 +39,39 @@ process_rule_calculation :: proc(
 	horizontal, vertical: i32,
 	ready: bool,
 ) {
-	absolute := raylib.Vector2 {
-		global.frame.cursor.x * global.frame.dpi.x,
-		global.frame.cursor.y * global.frame.dpi.y,
+	position := [2]i32{i32(global.frame.world.x), i32(global.frame.world.y)}
+	global.rule.pixel = global.rule.pixels[position.y * global.rule.image.width + position.x]
+
+	for x := i32(global.frame.world.x); x >= 0; x -= 1 {
+		if global.rule.pixels[position.y * global.rule.image.width + x] != global.rule.pixel {
+			break
+		}
+
+		global.rule.bound[0] = position.x - x
 	}
 
-	world := raylib.GetScreenToWorld2D(absolute, view.camera)
-	world.x = raylib.Clamp(world.x, 0.0, f32(global.frame.current.width - 1))
-	world.y = raylib.Clamp(world.y, 0.0, f32(global.frame.current.height - 1))
-
-	{
-		position := [2]i32{i32(world.x), i32(world.y)}
-		distance := [4]i32{}
-
-		global.rule.pixel = global.rule.pixels[position.y * global.rule.image.width + position.x]
-
-		for x := i32(world.x); x >= 0; x -= 1 {
-			if global.rule.pixels[position.y * global.rule.image.width + x] != global.rule.pixel {
-				break
-			}
-
-			distance[0] = position.x - x
+	for x := i32(global.frame.world.x); x < global.rule.image.width; x += 1 {
+		if global.rule.pixels[position.y * global.rule.image.width + x] != global.rule.pixel {
+			break
 		}
 
-		for x := i32(world.x); x < global.rule.image.width; x += 1 {
-			if global.rule.pixels[position.y * global.rule.image.width + x] != global.rule.pixel {
-				break
-			}
+		global.rule.bound[1] = x - position.x
+	}
 
-			distance[1] = x - position.x
+	for y := i32(global.frame.world.y); y >= 0; y -= 1 {
+		if global.rule.pixels[y * global.rule.image.width + position.x] != global.rule.pixel {
+			break
 		}
 
-		for y := i32(world.y); y >= 0; y -= 1 {
-			if global.rule.pixels[y * global.rule.image.width + position.x] != global.rule.pixel {
-				break
-			}
+		global.rule.bound[2] = position.y - y
+	}
 
-			distance[2] = position.y - y
+	for y := i32(global.frame.world.y); y < global.rule.image.height; y += 1 {
+		if global.rule.pixels[y * global.rule.image.width + position.x] != global.rule.pixel {
+			break
 		}
 
-		for y := i32(world.y); y < global.rule.image.height; y += 1 {
-			if global.rule.pixels[y * global.rule.image.width + position.x] != global.rule.pixel {
-				break
-			}
-
-			distance[3] = y - position.y
-		}
-
-		global.rule.bound = distance
+		global.rule.bound[3] = y - position.y
 	}
 
 	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
@@ -99,27 +84,18 @@ process_rule_calculation :: proc(
 }
 
 @(private = "file")
-draw_rule_overlay :: proc(global: ^state.State, view: ^Viewer) {
-	absolute := raylib.Vector2 {
-		global.frame.cursor.x * global.frame.dpi.x,
-		global.frame.cursor.y * global.frame.dpi.y,
-	}
-
-	world := raylib.GetScreenToWorld2D(absolute, view.camera)
-
-	raylib.DrawLine(
-		i32(world.x) - global.rule.bound[0],
-		i32(world.y),
-		i32(world.x) + global.rule.bound[1],
-		i32(world.y),
+draw_rule_overlay :: proc(global: ^state.State, view: ^Viewer, zoom: f32) {
+	raylib.DrawLineEx(
+		{global.frame.world.x - f32(global.rule.bound[0]), global.frame.world.y},
+		{global.frame.world.x + f32(global.rule.bound[1]), global.frame.world.y},
+		2 / zoom,
 		{121, 191, 255, 255},
 	)
 
-	raylib.DrawLine(
-		i32(world.x),
-		i32(world.y) - global.rule.bound[2],
-		i32(world.x),
-		i32(world.y) + global.rule.bound[3],
+	raylib.DrawLineEx(
+		{global.frame.world.x, global.frame.world.y - f32(global.rule.bound[2])},
+		{global.frame.world.x, global.frame.world.y + f32(global.rule.bound[3])},
+		2 / zoom,
 		{121, 191, 255, 255},
 	)
 }

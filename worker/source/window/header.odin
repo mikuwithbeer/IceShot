@@ -155,6 +155,8 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 			raylib.DrawTextEx(global.frame.font, "Color Picker", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rotc) {
 			raylib.DrawTextEx(global.frame.font, "Rotate Clockwise", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rule) {
+			raylib.DrawTextEx(global.frame.font, "Measure Distance", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.undo) {
 			raylib.DrawTextEx(global.frame.font, "Undo Action", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.read) {
@@ -196,7 +198,7 @@ process_header_actions :: proc(head: ^Header, global: ^state.State) -> error.Err
 			state.show_pick_color_message(&global.message)
 		} else if global.process.rule {
 			global.tool = .Rule
-			state.show_pick_color_message(&global.message)
+			state.show_measure_distance_message(&global.message)
 		}
 	case .Crop:
 		if !global.process.crop {

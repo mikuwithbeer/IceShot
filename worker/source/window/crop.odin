@@ -31,24 +31,15 @@ process_crop_selection :: proc(
 	area: raylib.Rectangle,
 	ready: bool,
 ) {
-	absolute := raylib.Vector2 {
-		global.frame.cursor.x * global.frame.dpi.x,
-		global.frame.cursor.y * global.frame.dpi.y,
-	}
-
-	world := raylib.GetScreenToWorld2D(absolute, view.camera)
-	world.x = raylib.Clamp(world.x, 0.0, f32(global.frame.current.width))
-	world.y = raylib.Clamp(world.y, 0.0, f32(global.frame.current.height))
-
 	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
 		global.crop.dragging = true
-		global.crop.start = {world.x, world.y}
-		global.crop.end = {world.x, world.y}
+		global.crop.start = {global.frame.world.x, global.frame.world.y}
+		global.crop.end = global.crop.start
 	}
 
 	if global.crop.dragging {
 		if raylib.IsMouseButtonDown(.LEFT) {
-			global.crop.end = {world.x, world.y}
+			global.crop.end = {global.frame.world.x, global.frame.world.y}
 		}
 
 		area = raylib.Rectangle {

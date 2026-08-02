@@ -32,24 +32,15 @@ process_rect_creation :: proc(
 	color: raylib.Color,
 	ready: bool,
 ) {
-	absolute := raylib.Vector2 {
-		global.frame.cursor.x * global.frame.dpi.x,
-		global.frame.cursor.y * global.frame.dpi.y,
-	}
-
-	world := raylib.GetScreenToWorld2D(absolute, view.camera)
-	world.x = raylib.Clamp(world.x, 0.0, f32(global.frame.current.width))
-	world.y = raylib.Clamp(world.y, 0.0, f32(global.frame.current.height))
-
 	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
 		global.rect.dragging = true
-		global.rect.start = {world.x, world.y}
-		global.rect.end = {world.x, world.y}
+		global.rect.start = {global.frame.world.x, global.frame.world.y}
+		global.rect.end = global.rect.start
 	}
 
 	if global.rect.dragging {
 		if raylib.IsMouseButtonDown(.LEFT) {
-			global.rect.end = {world.x, world.y}
+			global.rect.end = {global.frame.world.x, global.frame.world.y}
 		}
 
 		area = raylib.Rectangle {
@@ -76,7 +67,6 @@ draw_rect_overlay :: proc(area: raylib.Rectangle, empty: bool, color: raylib.Col
 		raylib.DrawRectangleLinesEx(area, 2, color)
 	} else {
 		raylib.DrawRectangleRec(area, color)
-
 	}
 }
 

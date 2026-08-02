@@ -64,8 +64,11 @@ update_frame :: proc(gui: ^Window) {
 	}
 
 	gui.state.frame.cursor = raylib.GetMousePosition()
-
 	gui.state.frame.dpi = raylib.GetWindowScaleDPI()
+	gui.state.frame.absolute = {
+		gui.state.frame.cursor.x * gui.state.frame.dpi.x,
+		gui.state.frame.cursor.y * gui.state.frame.dpi.y,
+	}
 
 	{
 		color_picker := raylib.Rectangle{gui.state.frame.screen.x - 160, 80, 160, 160}

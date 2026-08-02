@@ -50,6 +50,12 @@ init_viewer :: proc(
 update_viewer :: proc(view: ^Viewer, global: ^state.State) {
 	view.camera.offset = {global.frame.render.x * 0.5, global.frame.render.y * 0.5}
 
+	global.frame.world = raylib.GetScreenToWorld2D(global.frame.absolute, view.camera)
+	global.frame.world = {
+		clamp(global.frame.world.x, 0, f32(global.frame.current.width) - 1),
+		clamp(global.frame.world.y, 0, f32(global.frame.current.height) - 1),
+	}
+
 	process_camera_move(view)
 	process_camera_zoom(view, global)
 	process_camera_clamp(view)
@@ -60,7 +66,7 @@ draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> error.Error {
 	raylib.BeginMode2D(view.camera)
 	defer raylib.EndMode2D()
 
-	raylib.DrawTexture(global.frame.current, 0, 0, {255, 255, 255, 255})
+	raylib.DrawTexture(global.frame.current, 0, 0, raylib.WHITE)
 
 	process_crop(global, view) or_return
 	process_rect(global, view) or_return
@@ -82,7 +88,6 @@ replace_current_texture :: proc(global: ^state.State, texture: raylib.Texture2D)
 @(private = "file")
 process_camera_move :: proc(view: ^Viewer) {
 	speed := 2000.0 * raylib.GetFrameTime() / view.camera.zoom
-
 	if raylib.IsKeyDown(.A) || raylib.IsKeyDown(.LEFT) {
 		view.camera.target.x -= speed
 	}
@@ -103,7 +108,6 @@ process_camera_move :: proc(view: ^Viewer) {
 @(private = "file")
 process_camera_zoom :: proc(view: ^Viewer, global: ^state.State) {
 	wheel := raylib.GetMouseWheelMove()
-
 	if wheel != 0 && global.frame.fly {
 		factor := 1.0 + (wheel * 0.1)
 		view.camera.zoom *= factor
