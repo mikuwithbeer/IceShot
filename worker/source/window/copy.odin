@@ -6,6 +6,7 @@ import "../state"
 
 @(private, require_results)
 process_copy :: proc(global: ^state.State) -> error.Error {
+	// Leave nothing behind.
 	global.process = {}
 
 	act := action.Copy {

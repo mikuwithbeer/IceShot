@@ -6,7 +6,7 @@ import "../state"
 
 @(private, require_results)
 process_rotc :: proc(global: ^state.State) -> error.Error {
-	global.process = {}
+	global.process = {} // Reset the process state
 
 	act := action.RotC {
 		texture = global.frame.current,

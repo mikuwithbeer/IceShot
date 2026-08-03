@@ -173,7 +173,7 @@ void free_capture(Capture *capture) {
   capture->stride = 0;
 }
 
-bool copy_color(const char *content) {
+bool copy_value(const char *content) {
   @autoreleasepool {
     NSString *string = [NSString stringWithUTF8String:content];
     NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];

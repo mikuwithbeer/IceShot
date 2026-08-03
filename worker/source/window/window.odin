@@ -19,8 +19,9 @@ init_window :: proc(allocator := context.allocator) -> (gui: Window, err: error.
 	gui._allocator = allocator
 
 	raylib.SetConfigFlags({.WINDOW_HIGHDPI, .WINDOW_RESIZABLE, .VSYNC_HINT})
-	raylib.InitWindow(800, 600, "IceShot")
 	raylib.SetTargetFPS(60)
+
+	raylib.InitWindow(800, 600, "IceShot")
 
 	gui.state = state.init_state(allocator = allocator) or_return
 
@@ -57,6 +58,7 @@ update_frame :: proc(gui: ^Window) {
 	screen := [2]f32{f32(raylib.GetScreenWidth()), f32(raylib.GetScreenHeight())}
 	render := [2]f32{f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
 
+	// Update the view when the window size changes.
 	if screen != gui.state.frame.screen || render != gui.state.frame.render {
 		gui.state.frame.screen = screen
 		gui.state.frame.render = render
@@ -70,6 +72,7 @@ update_frame :: proc(gui: ^Window) {
 		gui.state.frame.cursor.y * gui.state.frame.dpi.y,
 	}
 
+	// Avoid actions in areas used by the interface.
 	{
 		color_picker := raylib.Rectangle{gui.state.frame.screen.x - 160, 80, 160, 160}
 
@@ -84,7 +87,7 @@ update_frame :: proc(gui: ^Window) {
 	update_viewer(&gui.viewer, &gui.state)
 }
 
-@(private = "file")
+@(private = "file", require_results)
 draw_frame :: proc(gui: ^Window) -> error.Error {
 	raylib.BeginDrawing()
 	defer raylib.EndDrawing()

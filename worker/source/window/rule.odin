@@ -16,6 +16,7 @@ process_rule :: proc(
 		return .None
 	}
 
+	// Avoid loading the same image data more than once.
 	if global.rule.image.data == nil {
 		global.rule.image = raylib.LoadImageFromTexture(global.frame.current)
 		global.rule.pixels = raylib.LoadImageColors(global.rule.image)
@@ -42,6 +43,7 @@ process_rule_calculation :: proc(
 	position := [2]i32{i32(global.frame.world.x), i32(global.frame.world.y)}
 	global.rule.pixel = global.rule.pixels[position.y * global.rule.image.width + position.x]
 
+	// Measure how far the match goes to the left.
 	for x := i32(global.frame.world.x); x >= 0; x -= 1 {
 		if global.rule.pixels[position.y * global.rule.image.width + x] != global.rule.pixel {
 			break
@@ -50,6 +52,7 @@ process_rule_calculation :: proc(
 		global.rule.bound[0] = position.x - x
 	}
 
+	// Measure how far the match goes to the right.
 	for x := i32(global.frame.world.x); x < global.rule.image.width; x += 1 {
 		if global.rule.pixels[position.y * global.rule.image.width + x] != global.rule.pixel {
 			break
@@ -58,6 +61,7 @@ process_rule_calculation :: proc(
 		global.rule.bound[1] = x - position.x
 	}
 
+	// Measure how far the match goes to the upwards.
 	for y := i32(global.frame.world.y); y >= 0; y -= 1 {
 		if global.rule.pixels[y * global.rule.image.width + position.x] != global.rule.pixel {
 			break
@@ -66,6 +70,7 @@ process_rule_calculation :: proc(
 		global.rule.bound[2] = position.y - y
 	}
 
+	// Measure how far the match goes to the downwards.
 	for y := i32(global.frame.world.y); y < global.rule.image.height; y += 1 {
 		if global.rule.pixels[y * global.rule.image.width + position.x] != global.rule.pixel {
 			break
@@ -75,8 +80,8 @@ process_rule_calculation :: proc(
 	}
 
 	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
-		horizontal = global.rule.bound[0] + global.rule.bound[1]
-		vertical = global.rule.bound[2] + global.rule.bound[3]
+		horizontal = global.rule.bound[0] + global.rule.bound[1] // Work out the full width
+		vertical = global.rule.bound[2] + global.rule.bound[3] // Work out the full height
 		ready = true
 	}
 
@@ -85,18 +90,20 @@ process_rule_calculation :: proc(
 
 @(private = "file")
 draw_rule_overlay :: proc(global: ^state.State, view: ^Viewer, zoom: f32) {
+	// Show the horizontal span.
 	raylib.DrawLineEx(
 		{global.frame.world.x - f32(global.rule.bound[0]), global.frame.world.y},
 		{global.frame.world.x + f32(global.rule.bound[1]), global.frame.world.y},
 		2 / zoom,
-		{121, 191, 255, 255},
+		STYLE_BRAND_COLOR_1,
 	)
 
+	// Show the vertical span.
 	raylib.DrawLineEx(
 		{global.frame.world.x, global.frame.world.y - f32(global.rule.bound[2])},
 		{global.frame.world.x, global.frame.world.y + f32(global.rule.bound[3])},
 		2 / zoom,
-		{121, 191, 255, 255},
+		STYLE_BRAND_COLOR_1,
 	)
 }
 
@@ -106,6 +113,7 @@ apply_rule :: proc(
 	horizontal, vertical: i32,
 	allocator := context.allocator,
 ) -> error.Error {
+	// Leave nothing behind.
 	global.process = {}
 	global.rule = {}
 	global.tool = .None

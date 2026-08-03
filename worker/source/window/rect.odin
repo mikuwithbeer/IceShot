@@ -22,7 +22,7 @@ process_rect :: proc(global: ^state.State, view: ^Viewer) -> error.Error {
 	return .None
 }
 
-@(private = "file")
+@(private = "file", require_results)
 process_rect_creation :: proc(
 	global: ^state.State,
 	view: ^Viewer,
@@ -51,7 +51,7 @@ process_rect_creation :: proc(
 		}
 
 		empty = global.rect.empty
-		color = raylib.Color{global.rect.color.r, global.rect.color.g, global.rect.color.b, 255}
+		color = raylib.Color{global.rect.color.r, global.rect.color.g, global.rect.color.b, 255} // Keep screenshots fully opaque
 
 		if raylib.IsMouseButtonReleased(.LEFT) && area.width >= 1 && area.height >= 1 {
 			ready = true
@@ -77,6 +77,7 @@ apply_rect :: proc(
 	empty: bool,
 	color: raylib.Color,
 ) -> error.Error {
+	// Leave nothing behind.
 	global.process = {}
 	global.rect = {}
 	global.tool = .None

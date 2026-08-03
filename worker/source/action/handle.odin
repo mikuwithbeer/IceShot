@@ -75,6 +75,7 @@ handle_rect :: proc(act: Rect) -> (Rect_Result, error.Error) {
 	return {width = modified.width, height = modified.height, texture = modified}, .None
 }
 
+@(require_results)
 handle_pick :: proc(act: Pick, allocator := context.allocator) -> error.Error {
 	content: string
 	switch act.mode {
@@ -96,6 +97,7 @@ handle_pick :: proc(act: Pick, allocator := context.allocator) -> error.Error {
 			allocator = allocator,
 		)
 	case:
+		// Let the default case reuse the hexadecimal formatter rather than repeating the same logic.
 		content = fmt.aprintf(
 			"#%02X%02X%02X",
 			act.color.r,
@@ -114,7 +116,7 @@ handle_pick :: proc(act: Pick, allocator := context.allocator) -> error.Error {
 
 	defer delete(c_content, allocator = allocator)
 
-	ok := native.unsafe_copy_color(c_content)
+	ok := native.unsafe_copy_value(c_content)
 	if !ok {
 		return .Not_Permitted
 	} else {
@@ -147,7 +149,7 @@ handle_rule :: proc(act: Rule, allocator := context.allocator) -> error.Error {
 
 	defer delete(c_content, allocator = allocator)
 
-	ok := native.unsafe_copy_color(c_content)
+	ok := native.unsafe_copy_value(c_content)
 	if !ok {
 		return .Not_Permitted
 	} else {
@@ -161,8 +163,8 @@ handle_read :: proc(act: Read) -> error.Error {
 	defer raylib.UnloadImage(image)
 
 	unsafe := native.Unsafe_Image{image.data, uint(image.width), uint(image.height)}
-	ok := native.unsafe_copy_ocr(unsafe)
 
+	ok := native.unsafe_copy_ocr(unsafe)
 	if !ok {
 		return .No_Text_Found
 	} else {
@@ -170,15 +172,14 @@ handle_read :: proc(act: Read) -> error.Error {
 	}
 }
 
-
 @(require_results)
 handle_copy :: proc(act: Copy) -> error.Error {
 	image := raylib.LoadImageFromTexture(act.texture)
 	defer raylib.UnloadImage(image)
 
 	unsafe := native.Unsafe_Image{image.data, uint(image.width), uint(image.height)}
-	ok := native.unsafe_copy_image(unsafe)
 
+	ok := native.unsafe_copy_image(unsafe)
 	if !ok {
 		return .Not_Permitted
 	} else {
@@ -187,36 +188,50 @@ handle_copy :: proc(act: Copy) -> error.Error {
 }
 
 @(require_results)
-handle_save :: proc(act: Save, allocator := context.allocator) -> (Save_Result, error.Error) {
+handle_save :: proc(
+	act: Save,
+	allocator := context.allocator,
+) -> (
+	result: Save_Result,
+	err: error.Error,
+) {
 	image := raylib.LoadImageFromTexture(act.texture)
 	defer raylib.UnloadImage(image)
 
 	home := os.get_env_alloc("HOME", allocator = allocator)
 	defer delete(home, allocator = allocator)
 
-	date := time.now()
-	year, month, day := time.year(date), time.month(date), time.day(date)
-	hour, minute, second := time.clock_from_time(date)
+	{
+		result.date = time.now()
 
-	path := fmt.aprintf(
-		"%s/Documents/Screenshots/SCR-%04d%02d%02d-%02d%02d%02d.png",
-		home,
-		year,
-		month,
-		day,
-		hour,
-		minute,
-		second,
-		allocator = allocator,
-	)
+		year, month, day := time.year(result.date), time.month(result.date), time.day(result.date)
+		hour, minute, second := time.clock_from_time(result.date)
 
-	c_path := strings.clone_to_cstring(path, allocator = allocator)
+		result.path = fmt.aprintf(
+			"%s/Documents/Screenshots/SCR-%04d%02d%02d-%02d%02d%02d.png",
+			home,
+			year,
+			month,
+			day,
+			hour,
+			minute,
+			second,
+			allocator = allocator,
+		)
+	}
+
+	c_path, allocate_err := strings.clone_to_cstring(result.path, allocator = allocator)
+	if allocate_err != .None {
+		err = .Out_Of_Memory
+		return
+	}
+
 	defer delete(c_path, allocator = allocator)
 
 	ok := raylib.ExportImage(image, c_path)
 	if !ok {
-		return {}, .Failed_To_Write
-	} else {
-		return {date = date, path = path}, .None
+		err = .Failed_To_Write
 	}
+
+	return
 }

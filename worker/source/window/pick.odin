@@ -12,10 +12,12 @@ process_pick :: proc(
 	view: ^Viewer,
 	allocator := context.allocator,
 ) -> error.Error {
+	// Also avoid accidental picks while selecting type.
 	if global.tool != .Pick || global.pick.dropping {
 		return .None
 	}
 
+	// Avoid loading the same image data more than once.
 	if global.pick.image.data == nil {
 		global.pick.image = raylib.LoadImageFromTexture(global.frame.current)
 		global.pick.pixels = raylib.LoadImageColors(global.pick.image)
@@ -57,6 +59,7 @@ apply_pick :: proc(
 	color: raylib.Color,
 	allocator := context.allocator,
 ) -> error.Error {
+	// Leave nothing behind.
 	global.process = {}
 	global.pick = {}
 	global.tool = .None

@@ -41,7 +41,7 @@ bool load_capture(Point2D position, Point2D size, Capture *capture);
 
 void free_capture(Capture *capture);
 
-bool copy_color(const char *content);
+bool copy_value(const char *content);
 
 bool copy_image(Image image);
 

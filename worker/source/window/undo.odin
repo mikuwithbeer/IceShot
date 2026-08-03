@@ -6,7 +6,7 @@ import "../state"
 
 @(private, require_results)
 process_undo :: proc(global: ^state.State) -> error.Error {
-	global.process = {}
+	global.process = {} // Reset the process state
 
 	state.pop_history(&global.history) or_return
 	rebuild_from_history(global) or_return
@@ -24,19 +24,19 @@ rebuild_from_history :: proc(global: ^state.State) -> error.Error {
 		#partial switch act in value {
 		case action.Crop:
 			act_copy := act
-			act_copy.texture = global.frame.current
+			act_copy.texture = global.frame.current // The saved texture may no longer be valid
 
 			result := action.handle_crop(act_copy) or_return
 			replace_current_texture(global, result.texture)
 		case action.Rect:
 			act_copy := act
-			act_copy.texture = global.frame.current
+			act_copy.texture = global.frame.current // The saved texture may no longer be valid
 
 			result := action.handle_rect(act_copy) or_return
 			replace_current_texture(global, result.texture)
 		case action.RotC:
 			act_copy := act
-			act_copy.texture = global.frame.current
+			act_copy.texture = global.frame.current // The saved texture may no longer be valid
 
 			result := action.handle_rotc(act_copy) or_return
 			replace_current_texture(global, result.texture)

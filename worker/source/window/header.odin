@@ -27,7 +27,7 @@ Header :: struct {
 	_allocator: runtime.Allocator,
 }
 
-@(require_results)
+@(private, require_results)
 init_header :: proc(
 	global: ^state.State,
 	allocator := context.allocator,
@@ -39,11 +39,11 @@ init_header :: proc(
 	return
 }
 
-@(require_results)
+@(private, require_results)
 load_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 	layout_header(head, global)
 	draw_header(head, global)
-	process_header_actions(head, global) or_return
+	process_header(head, global) or_return
 
 	return .None
 }
@@ -72,6 +72,7 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 
 @(private = "file")
 draw_header :: proc(head: ^Header, global: ^state.State) {
+	// Switch back to the idle message after a few seconds.
 	{
 		left := time.time_add(time.now(), time.Second * -5)
 		right := global.message.updated
@@ -129,6 +130,7 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 
 	raylib.GuiToggle(head.rule, raylib.GuiIconText(.ICON_TARGET_POINT, ""), &global.process.rule)
 
+	// Keep it disabled until there is something to undo.
 	if len(global.history.actions) == 0 {
 		raylib.GuiSetState(i32(raylib.GuiState.STATE_DISABLED))
 		global.process.undo = raylib.GuiButton(head.undo, raylib.GuiIconText(.ICON_UNDO, ""))
@@ -143,6 +145,7 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 
 	global.process.save = raylib.GuiButton(head.save, raylib.GuiIconText(.ICON_FILE_SAVE, ""))
 
+	// Show a hint when hovering a tool.
 	{
 		text_point := global.frame.cursor + {8, 8}
 		text_color := raylib.WHITE
@@ -171,8 +174,9 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 	}
 }
 
-@(private = "file")
-process_header_actions :: proc(head: ^Header, global: ^state.State) -> error.Error {
+@(private = "file", require_results)
+process_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
+	// Process actions straight away if possible.
 	if global.process.rotc {
 		process_rotc(global) or_return
 	} else if global.process.undo {

@@ -23,7 +23,7 @@ Unsafe_Image :: struct {
 
 foreign import _native "../../output/native.o"
 
-@(default_calling_convention = "c")
+@(default_calling_convention = "c", require_results)
 foreign _native {
 	@(link_name = "init_capture")
 	unsafe_init_capture :: proc() -> c.bool ---
@@ -37,8 +37,8 @@ foreign _native {
 	@(link_name = "free_capture")
 	unsafe_free_capture :: proc(result: ^Unsafe_Capture) ---
 
-	@(link_name = "copy_color")
-	unsafe_copy_color :: proc(content: cstring) -> c.bool ---
+	@(link_name = "copy_value")
+	unsafe_copy_value :: proc(content: cstring) -> c.bool ---
 
 	@(link_name = "copy_image")
 	unsafe_copy_image :: proc(image: Unsafe_Image) -> c.bool ---

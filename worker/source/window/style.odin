@@ -4,7 +4,11 @@ import "../state"
 
 import "vendor:raylib"
 
+@(private = "file")
 STYLE_FONT_DATA :: #load("../../assets/fonts/IntelOneMono.ttf")
+
+STYLE_BRAND_COLOR_1 :: raylib.Color{121, 191, 255, 255}
+STYLE_BRAND_COLOR_2 :: raylib.Color{121, 191, 255, 55}
 
 STYLE_BORDER_COLOR :: 0
 STYLE_BASE_COLOR_NORMAL :: 1
@@ -27,6 +31,7 @@ STYLE_LINE_COLOR :: 18
 STYLE_BACKGROUND_COLOR :: 19
 STYLE_TEXT_ALIGNMENT :: 20
 
+@(private)
 init_style :: proc(frame: ^state.Frame) {
 	if frame.style {
 		return

@@ -13,7 +13,7 @@ Viewer :: struct {
 	_allocator: runtime.Allocator,
 }
 
-@(require_results)
+@(private, require_results)
 init_viewer :: proc(
 	global: ^state.State,
 	allocator := context.allocator,
@@ -25,6 +25,7 @@ init_viewer :: proc(
 
 	result := action.handle_capture() or_return
 
+	// Store both textures for the history.
 	global.frame.initial = result.texture
 	global.frame.current = result.texture
 
@@ -33,11 +34,13 @@ init_viewer :: proc(
 		global.frame.render.y / f32(result.height),
 	}
 
+	// Never zoom in past the original size.
 	zoom := min(scale.x, scale.y)
 	if zoom > 1.0 {
 		zoom = 1.0
 	}
 
+	// Start with the image centred and ready to use.
 	view.camera = raylib.Camera2D {
 		offset = {global.frame.render.x * 0.5, global.frame.render.y * 0.5},
 		target = {f32(result.width) * 0.5, f32(result.height) * 0.5},
@@ -47,9 +50,12 @@ init_viewer :: proc(
 	return
 }
 
+@(private)
 update_viewer :: proc(view: ^Viewer, global: ^state.State) {
 	view.camera.offset = {global.frame.render.x * 0.5, global.frame.render.y * 0.5}
 
+	// Stay within the image.
+	// Leave one pixel to avoid reading out of bounds.
 	global.frame.world = raylib.GetScreenToWorld2D(global.frame.absolute, view.camera)
 	global.frame.world = {
 		clamp(global.frame.world.x, 0, f32(global.frame.current.width) - 1),
@@ -58,10 +64,9 @@ update_viewer :: proc(view: ^Viewer, global: ^state.State) {
 
 	process_camera_move(view)
 	process_camera_zoom(view, global)
-	process_camera_clamp(view)
 }
 
-@(require_results)
+@(private, require_results)
 draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> error.Error {
 	raylib.BeginMode2D(view.camera)
 	defer raylib.EndMode2D()
@@ -78,6 +83,7 @@ draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> error.Error {
 
 @(private)
 replace_current_texture :: proc(global: ^state.State, texture: raylib.Texture2D) {
+	// Keep the initial texture for history replay.
 	if global.frame.current.id != global.frame.initial.id {
 		raylib.UnloadTexture(global.frame.current)
 	}
@@ -87,7 +93,8 @@ replace_current_texture :: proc(global: ^state.State, texture: raylib.Texture2D)
 
 @(private = "file")
 process_camera_move :: proc(view: ^Viewer) {
-	speed := 2000.0 * raylib.GetFrameTime() / view.camera.zoom
+	speed := 2000.0 * raylib.GetFrameTime() / view.camera.zoom // Keep movement the same
+
 	if raylib.IsKeyDown(.A) || raylib.IsKeyDown(.LEFT) {
 		view.camera.target.x -= speed
 	}
@@ -112,9 +119,6 @@ process_camera_zoom :: proc(view: ^Viewer, global: ^state.State) {
 		factor := 1.0 + (wheel * 0.1)
 		view.camera.zoom *= factor
 	}
-}
 
-@(private = "file")
-process_camera_clamp :: proc(view: ^Viewer) {
-	view.camera.zoom = raylib.Clamp(view.camera.zoom, 0.5, 10.0)
+	view.camera.zoom = raylib.Clamp(view.camera.zoom, 0.5, 10.0) // Avoid zooming too far in or out
 }
