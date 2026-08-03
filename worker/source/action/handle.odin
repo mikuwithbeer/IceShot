@@ -97,7 +97,7 @@ handle_pick :: proc(act: Pick, allocator := context.allocator) -> error.Error {
 			allocator = allocator,
 		)
 	case:
-		// Let the default case reuse the hexadecimal formatter rather than repeating the same logic.
+		// Default to hexadecimal formatting when no specific mode is selected.
 		content = fmt.aprintf(
 			"#%02X%02X%02X",
 			act.color.r,
@@ -139,7 +139,16 @@ handle_rotc :: proc(act: RotC) -> (RotC_Result, error.Error) {
 
 @(require_results)
 handle_rule :: proc(act: Rule, allocator := context.allocator) -> error.Error {
-	content := fmt.aprintf("(%d, %d)", act.horizontal, act.vertical, allocator = allocator)
+	content: string
+	switch act.mode {
+	case 1:
+		points: [2]f32 = {f32(act.size.x), f32(act.size.y)} / act.dpi
+		content = fmt.aprintf("pt(%.1f, %.1f)", points.x, points.y, allocator = allocator)
+	case:
+		// Fallback to pixel units for all other modes.
+		content = fmt.aprintf("px(%d, %d)", act.size.x, act.size.y, allocator = allocator)
+	}
+
 	defer delete(content, allocator = allocator)
 
 	c_content, err := strings.clone_to_cstring(content, allocator = allocator)

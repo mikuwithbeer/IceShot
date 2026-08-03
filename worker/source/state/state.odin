@@ -24,15 +24,17 @@ Rect :: struct {
 }
 
 Pick :: struct {
-	dropping: bool,
-	selected: i32,
-	point:    [2]f32,
-	image:    raylib.Image,
-	pixel:    raylib.Color,
-	pixels:   [^]raylib.Color,
+	active: bool,
+	select: i32,
+	point:  [2]f32,
+	image:  raylib.Image,
+	pixel:  raylib.Color,
+	pixels: [^]raylib.Color,
 }
 
 Rule :: struct {
+	active: bool,
+	select: i32,
 	bound:  [4]i32,
 	image:  raylib.Image,
 	pixel:  raylib.Color,

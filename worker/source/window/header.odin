@@ -24,6 +24,7 @@ Header :: struct {
 	pick_type:  raylib.Rectangle,
 	pick_view:  raylib.Rectangle,
 	rect_type:  raylib.Rectangle,
+	rule_type:  raylib.Rectangle,
 	_allocator: runtime.Allocator,
 }
 
@@ -66,8 +67,8 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 
 	head.pick_type = {global.frame.screen.x - 280, 32, 72, 32}
 	head.pick_view = {global.frame.screen.x - 200, 32, 32, 32}
-
 	head.rect_type = {global.frame.screen.x - 240, 32, 72, 32}
+	head.rule_type = {global.frame.screen.x - 240, 32, 72, 32}
 }
 
 @(private = "file")
@@ -107,16 +108,25 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 		if raylib.GuiDropdownBox(
 			head.pick_type,
 			"HEX;RGB;RGBA",
-			&global.pick.selected,
-			global.pick.dropping,
+			&global.pick.select,
+			global.pick.active,
 		) {
-			global.pick.dropping = !global.pick.dropping
+			global.pick.active = !global.pick.active
 		}
 
 		raylib.DrawRectangleRec(head.pick_view, global.pick.pixel)
 	case .Rule:
 		global.process = {
 			rule = true,
+		}
+
+		if raylib.GuiDropdownBox(
+			head.rule_type,
+			"Pixel;Point",
+			&global.rule.select,
+			global.rule.active,
+		) {
+			global.rule.active = !global.rule.active
 		}
 	}
 

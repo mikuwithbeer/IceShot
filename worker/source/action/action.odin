@@ -23,8 +23,9 @@ RotC :: struct {
 }
 
 Rule :: struct {
-	horizontal: i32,
-	vertical:   i32,
+	dpi:  [2]f32,
+	mode: i32,
+	size: [2]i32,
 }
 
 Read :: distinct RotC

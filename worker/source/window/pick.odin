@@ -12,8 +12,8 @@ process_pick :: proc(
 	view: ^Viewer,
 	allocator := context.allocator,
 ) -> error.Error {
-	// Also avoid accidental picks while selecting type.
-	if global.tool != .Pick || global.pick.dropping {
+	// Also avoid accidental actions while using dropdown.
+	if global.tool != .Pick || global.pick.active {
 		return .None
 	}
 
@@ -44,7 +44,7 @@ process_color_pick :: proc(
 		global.pick.pixels[i32(global.frame.world.y) * global.pick.image.width + i32(global.frame.world.x)]
 
 	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
-		mode = global.pick.selected
+		mode = global.pick.select
 		color = global.pick.pixel
 		ready = true
 	}
