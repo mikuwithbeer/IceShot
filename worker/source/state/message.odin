@@ -27,6 +27,11 @@ show_create_line_message :: proc(message: ^Message) {
 	message.updated = time.now()
 }
 
+show_create_triangle_message :: proc(message: ^Message) {
+	message.content = "Click to set 3 points for the triangle..."
+	message.updated = time.now()
+}
+
 show_pick_color_message :: proc(message: ^Message) {
 	message.content = "Click any pixel to pick its color..."
 	message.updated = time.now()

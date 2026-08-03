@@ -16,6 +16,8 @@ Rect_Result :: distinct Capture_Result
 
 Line_Result :: distinct Capture_Result
 
+Tria_Result :: distinct Capture_Result
+
 RotC_Result :: distinct Capture_Result
 
 Save_Result :: struct {
@@ -27,6 +29,8 @@ Result :: union {
 	Capture_Result,
 	Crop_Result,
 	Rect_Result,
+	Line_Result,
+	Tria_Result,
 	RotC_Result,
 	Save_Result,
 }

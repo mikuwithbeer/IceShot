@@ -82,7 +82,7 @@ update_frame :: proc(gui: ^Window) {
 
 		fly_panel := gui.state.frame.cursor.y <= gui.header.panel.height
 		fly_color :=
-			(gui.state.tool == .Rect || gui.state.tool == .Line) &&
+			(gui.state.tool == .Rect || gui.state.tool == .Line || gui.state.tool == .Tria) &&
 			raylib.CheckCollisionPointRec(gui.state.frame.cursor, color_picker)
 
 		gui.state.frame.fly = !(fly_panel || fly_color)

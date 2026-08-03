@@ -21,6 +21,12 @@ Line :: struct {
 	color:      raylib.Color,
 }
 
+Tria :: struct {
+	texture: raylib.Texture2D,
+	point:   [3][2]f32,
+	color:   raylib.Color,
+}
+
 Pick :: struct {
 	mode:  i32,
 	color: raylib.Color,
@@ -46,6 +52,7 @@ Action :: union {
 	Crop,
 	Rect,
 	Line,
+	Tria,
 	Pick,
 	RotC,
 	Rule,

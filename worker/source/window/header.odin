@@ -15,6 +15,7 @@ Header :: struct {
 	crop:           raylib.Rectangle,
 	rect:           raylib.Rectangle,
 	line:           raylib.Rectangle,
+	tria:           raylib.Rectangle,
 	pick:           raylib.Rectangle,
 	rotc:           raylib.Rectangle,
 	rule:           raylib.Rectangle,
@@ -61,9 +62,10 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 	head.crop = {8, 32, 32, 32}
 	head.rect = {48, 32, 32, 32}
 	head.line = {88, 32, 32, 32}
-	head.pick = {128, 32, 32, 32}
-	head.rotc = {168, 32, 32, 32}
-	head.rule = {208, 32, 32, 32}
+	head.tria = {128, 32, 32, 32}
+	head.pick = {168, 32, 32, 32}
+	head.rotc = {208, 32, 32, 32}
+	head.rule = {248, 32, 32, 32}
 
 	head.undo = {global.frame.screen.x - 200, 32, 32, 32}
 	head.redo = {global.frame.screen.x - 160, 32, 32, 32}
@@ -122,6 +124,12 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 		raylib.GuiColorPicker(head.color, "Color", &global.line.color)
 
 		raylib.GuiSlider(head.line_thickness, "", "", &global.line.width, 2, 32)
+	case .Tria:
+		global.process = {
+			tria = true,
+		}
+
+		raylib.GuiColorPicker(head.color, "Color", &global.tria.color)
 	case .Pick:
 		global.process = {
 			pick = true,
@@ -157,6 +165,8 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 	raylib.GuiToggle(head.rect, raylib.GuiIconText(.ICON_BOX, ""), &global.process.rect)
 
 	raylib.GuiToggle(head.line, raylib.GuiIconText(.ICON_CROSSLINE, ""), &global.process.line)
+
+	raylib.GuiToggle(head.tria, raylib.GuiIconText(.ICON_CURSOR_POINTER, ""), &global.process.tria)
 
 	raylib.GuiToggle(head.pick, raylib.GuiIconText(.ICON_COLOR_PICKER, ""), &global.process.pick)
 
@@ -199,6 +209,8 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 			raylib.DrawTextEx(global.frame.font, "Draw Rectangle", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.line) {
 			raylib.DrawTextEx(global.frame.font, "Draw Line", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.tria) {
+			raylib.DrawTextEx(global.frame.font, "Draw Triangle", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.pick) {
 			raylib.DrawTextEx(global.frame.font, "Color Picker", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rotc) {
@@ -249,6 +261,9 @@ process_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 		} else if global.process.line {
 			global.tool = .Line
 			state.show_create_line_message(&global.message)
+		} else if global.process.tria {
+			global.tool = .Tria
+			state.show_create_triangle_message(&global.message) // TODO update that
 		} else if global.process.pick {
 			global.tool = .Pick
 			state.show_pick_color_message(&global.message)
@@ -271,6 +286,12 @@ process_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 	case .Line:
 		if !global.process.line {
 			global.line = {}
+			global.tool = .None
+			state.show_idle_message(&global.message)
+		}
+	case .Tria:
+		if !global.process.tria {
+			global.tria = {}
 			global.tool = .None
 			state.show_idle_message(&global.message)
 		}
