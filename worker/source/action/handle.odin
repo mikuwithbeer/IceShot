@@ -64,7 +64,7 @@ handle_rect :: proc(act: Rect) -> (Rect_Result, error.Error) {
 	defer raylib.UnloadImage(image)
 
 	if act.empty {
-		raylib.ImageDrawRectangleLines(&image, act.area, 2, act.color)
+		raylib.ImageDrawRectangleLines(&image, act.area, act.width, act.color)
 	} else {
 		raylib.ImageDrawRectangleRec(&image, act.area, act.color)
 	}

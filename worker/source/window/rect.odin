@@ -12,11 +12,11 @@ process_rect :: proc(global: ^state.State, view: ^Viewer) -> error.Error {
 		return .None
 	}
 
-	area, empty, color, ready := process_rect_creation(global, view)
+	area, empty, width, color, ready := process_rect_creation(global, view)
 	if ready {
-		apply_rect(global, area, empty, color) or_return
+		apply_rect(global, area, empty, width, color) or_return
 	} else if global.rect.dragging {
-		draw_rect_overlay(area, empty, color, view.camera.zoom)
+		draw_rect_overlay(area, empty, width, color, view.camera.zoom)
 	}
 
 	return .None
@@ -29,6 +29,7 @@ process_rect_creation :: proc(
 ) -> (
 	area: raylib.Rectangle,
 	empty: bool,
+	width: f32,
 	color: raylib.Color,
 	ready: bool,
 ) {
@@ -51,6 +52,7 @@ process_rect_creation :: proc(
 		}
 
 		empty = global.rect.empty
+		width = global.rect.width
 		color = raylib.Color{global.rect.color.r, global.rect.color.g, global.rect.color.b, 255} // Keep screenshots fully opaque
 
 		if raylib.IsMouseButtonReleased(.LEFT) && area.width >= 1 && area.height >= 1 {
@@ -62,9 +64,15 @@ process_rect_creation :: proc(
 }
 
 @(private = "file")
-draw_rect_overlay :: proc(area: raylib.Rectangle, empty: bool, color: raylib.Color, zoom: f32) {
+draw_rect_overlay :: proc(
+	area: raylib.Rectangle,
+	empty: bool,
+	width: f32,
+	color: raylib.Color,
+	zoom: f32,
+) {
 	if empty {
-		raylib.DrawRectangleLinesEx(area, 2, color)
+		raylib.DrawRectangleLinesEx(area, width, color)
 	} else {
 		raylib.DrawRectangleRec(area, color)
 	}
@@ -75,6 +83,7 @@ apply_rect :: proc(
 	global: ^state.State,
 	area: raylib.Rectangle,
 	empty: bool,
+	width: f32,
 	color: raylib.Color,
 ) -> error.Error {
 	// Leave nothing behind.
@@ -86,6 +95,7 @@ apply_rect :: proc(
 		texture = global.frame.current,
 		area    = area,
 		empty   = empty,
+		width   = i32(width),
 		color   = color,
 	}
 

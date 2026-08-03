@@ -20,6 +20,7 @@ Crop :: struct {
 Rect :: struct {
 	using _: Crop,
 	empty:   bool,
+	width:   f32,
 	color:   raylib.Color,
 }
 

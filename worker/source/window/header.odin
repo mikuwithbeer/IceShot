@@ -25,6 +25,7 @@ Header :: struct {
 	pick_type:  raylib.Rectangle,
 	pick_view:  raylib.Rectangle,
 	rect_type:  raylib.Rectangle,
+	rect_line:  raylib.Rectangle,
 	rule_type:  raylib.Rectangle,
 	_allocator: runtime.Allocator,
 }
@@ -69,7 +70,10 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 
 	head.pick_type = {global.frame.screen.x - 320, 32, 72, 32}
 	head.pick_view = {global.frame.screen.x - 240, 32, 32, 32}
+
 	head.rect_type = {global.frame.screen.x - 280, 32, 72, 32}
+	head.rect_line = {global.frame.screen.x - 360, 32, 72, 32}
+
 	head.rule_type = {global.frame.screen.x - 280, 32, 72, 32}
 }
 
@@ -102,6 +106,10 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 		raylib.GuiColorPicker(head.color, "Color", &global.rect.color)
 
 		raylib.GuiToggle(head.rect_type, "No Fill", &global.rect.empty)
+
+		if global.rect.empty {
+			raylib.GuiSlider(head.rect_line, "", "", &global.rect.width, 2, 32)
+		}
 	case .Pick:
 		global.process = {
 			pick = true,
