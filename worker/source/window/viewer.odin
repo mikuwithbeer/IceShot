@@ -26,8 +26,7 @@ init_viewer :: proc(
 	result := action.handle_capture() or_return
 
 	// Store both textures for the history.
-	global.frame.initial = result.texture
-	global.frame.current = result.texture
+	global.frame.initial, global.frame.current = result.texture, result.texture
 
 	scale := [2]f32 {
 		global.frame.render.x / f32(result.width),
@@ -35,10 +34,7 @@ init_viewer :: proc(
 	}
 
 	// Never zoom in past the original size.
-	zoom := min(scale.x, scale.y)
-	if zoom > 1.0 {
-		zoom = 1.0
-	}
+	zoom := min(min(scale.x, scale.y), 1.0)
 
 	// Start with the image centred and ready to use.
 	view.camera = raylib.Camera2D {
@@ -121,5 +117,5 @@ process_camera_zoom :: proc(view: ^Viewer, global: ^state.State) {
 		view.camera.zoom *= factor
 	}
 
-	view.camera.zoom = raylib.Clamp(view.camera.zoom, 0.5, 10.0) // Avoid zooming too far in or out
+	view.camera.zoom = clamp(view.camera.zoom, 0.5, 10.0) // Avoid zooming too far in or out
 }

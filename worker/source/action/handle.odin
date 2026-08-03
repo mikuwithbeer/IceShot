@@ -80,6 +80,8 @@ handle_line :: proc(act: Line) -> (Line_Result, error.Error) {
 	image := raylib.LoadImageFromTexture(act.texture)
 	defer raylib.UnloadImage(image)
 
+	fmt.println(act)
+
 	raylib.ImageDrawLineEx(&image, act.start, act.end, act.width, act.color)
 
 	modified := raylib.LoadTextureFromImage(image)

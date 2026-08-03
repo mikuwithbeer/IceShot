@@ -15,9 +15,7 @@ process_crop :: proc(global: ^state.State, view: ^Viewer) -> error.Error {
 	area, ready := process_crop_selection(global, view)
 	if ready {
 		result := apply_crop(global, area) or_return
-
-		// Keep the cropped image stays in focus.
-		view.camera.target = {f32(result.width) * 0.5, f32(result.height) * 0.5}
+		view.camera.target = {f32(result.width) * 0.5, f32(result.height) * 0.5} // Keep the image stays in focus
 	} else if global.crop.dragging {
 		draw_crop_overlay(area, view.camera.zoom)
 	}
@@ -35,13 +33,13 @@ process_crop_selection :: proc(
 ) {
 	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
 		global.crop.dragging = true
-		global.crop.start = {global.frame.world.x, global.frame.world.y}
-		global.crop.end = global.crop.start
+		global.crop.start = global.frame.world
+		global.crop.end = global.frame.world
 	}
 
 	if global.crop.dragging {
 		if raylib.IsMouseButtonDown(.LEFT) {
-			global.crop.end = {global.frame.world.x, global.frame.world.y}
+			global.crop.end = global.frame.world
 		}
 
 		area = raylib.Rectangle {
@@ -73,11 +71,6 @@ apply_crop :: proc(
 	result: action.Crop_Result,
 	err: error.Error,
 ) {
-	// Leave nothing behind.
-	global.process = {}
-	global.crop = {}
-	global.tool = .None
-
 	act := action.Crop {
 		texture = global.frame.current,
 		area    = area,
@@ -89,6 +82,8 @@ apply_crop :: proc(
 	state.push_history(&global.history, act) or_return
 
 	state.show_idle_message(&global.message)
+
+	global.process, global.crop, global.tool = {}, {}, .None // Reset the process state
 
 	return
 }

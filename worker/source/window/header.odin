@@ -197,6 +197,8 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 			raylib.DrawTextEx(global.frame.font, "Crop Image", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rect) {
 			raylib.DrawTextEx(global.frame.font, "Draw Rectangle", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.line) {
+			raylib.DrawTextEx(global.frame.font, "Draw Line", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.pick) {
 			raylib.DrawTextEx(global.frame.font, "Color Picker", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rotc) {

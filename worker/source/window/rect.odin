@@ -12,11 +12,11 @@ process_rect :: proc(global: ^state.State, view: ^Viewer) -> error.Error {
 		return .None
 	}
 
-	area, empty, width, color, ready := process_rect_creation(global, view)
+	area, color, ready := process_rect_creation(global, view)
 	if ready {
-		apply_rect(global, area, empty, width, color) or_return
+		apply_rect(global, area, color) or_return
 	} else if global.rect.dragging {
-		draw_rect_overlay(area, empty, width, color, view.camera.zoom)
+		draw_rect_overlay(global, area, color)
 	}
 
 	return .None
@@ -28,20 +28,17 @@ process_rect_creation :: proc(
 	view: ^Viewer,
 ) -> (
 	area: raylib.Rectangle,
-	empty: bool,
-	width: f32,
 	color: raylib.Color,
 	ready: bool,
 ) {
 	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
 		global.rect.dragging = true
-		global.rect.start = {global.frame.world.x, global.frame.world.y}
-		global.rect.end = global.rect.start
+		global.rect.start, global.rect.end = global.frame.world, global.frame.world
 	}
 
 	if global.rect.dragging {
 		if raylib.IsMouseButtonDown(.LEFT) {
-			global.rect.end = {global.frame.world.x, global.frame.world.y}
+			global.rect.end = global.frame.world
 		}
 
 		area = raylib.Rectangle {
@@ -51,9 +48,7 @@ process_rect_creation :: proc(
 			height = abs(global.rect.start.y - global.rect.end.y),
 		}
 
-		empty = global.rect.empty
-		width = global.rect.width
-		color = raylib.Color{global.rect.color.r, global.rect.color.g, global.rect.color.b, 255} // Keep it fully opaque
+		color = {global.rect.color.r, global.rect.color.g, global.rect.color.b, 255} // Keep it fully opaque
 
 		if raylib.IsMouseButtonReleased(.LEFT) && area.width >= 1 && area.height >= 1 {
 			ready = true
@@ -64,15 +59,9 @@ process_rect_creation :: proc(
 }
 
 @(private = "file")
-draw_rect_overlay :: proc(
-	area: raylib.Rectangle,
-	empty: bool,
-	width: f32,
-	color: raylib.Color,
-	zoom: f32,
-) {
-	if empty {
-		raylib.DrawRectangleLinesEx(area, width, color)
+draw_rect_overlay :: proc(global: ^state.State, area: raylib.Rectangle, color: raylib.Color) {
+	if global.rect.empty {
+		raylib.DrawRectangleLinesEx(area, global.rect.width, color)
 	} else {
 		raylib.DrawRectangleRec(area, color)
 	}
@@ -82,20 +71,13 @@ draw_rect_overlay :: proc(
 apply_rect :: proc(
 	global: ^state.State,
 	area: raylib.Rectangle,
-	empty: bool,
-	width: f32,
 	color: raylib.Color,
 ) -> error.Error {
-	// Leave nothing behind.
-	global.process = {}
-	global.rect = {}
-	global.tool = .None
-
 	act := action.Rect {
 		texture = global.frame.current,
 		area    = area,
-		empty   = empty,
-		width   = i32(width),
+		empty   = global.rect.empty,
+		width   = i32(global.rect.width),
 		color   = color,
 	}
 
@@ -105,6 +87,8 @@ apply_rect :: proc(
 	state.push_history(&global.history, act) or_return
 
 	state.show_idle_message(&global.message)
+
+	global.process, global.rect, global.tool = {}, {}, .None // Reset the process state
 
 	return .None
 }

@@ -64,13 +64,13 @@ update_frame :: proc(gui: ^Window) {
 
 	// Update the view when the window size changes.
 	if screen != gui.state.frame.screen || render != gui.state.frame.render {
-		gui.state.frame.screen = screen
-		gui.state.frame.render = render
+		gui.state.frame.screen, gui.state.frame.render = screen, render
 		gui.state.frame.board = true
 	}
 
-	gui.state.frame.cursor = raylib.GetMousePosition()
-	gui.state.frame.dpi = raylib.GetWindowScaleDPI()
+	gui.state.frame.cursor, gui.state.frame.dpi =
+		raylib.GetMousePosition(), raylib.GetWindowScaleDPI()
+
 	gui.state.frame.absolute = {
 		gui.state.frame.cursor.x * gui.state.frame.dpi.x,
 		gui.state.frame.cursor.y * gui.state.frame.dpi.y,

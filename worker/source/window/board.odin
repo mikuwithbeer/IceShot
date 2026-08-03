@@ -47,8 +47,15 @@ draw_board :: proc(gui: ^Window) {
 		gui.state.frame.board = false
 	}
 
-	source := raylib.Rectangle{0, 0, f32(render.x), -f32(render.y)}
-	target := raylib.Rectangle{0, 0, f32(render.x), f32(render.y)}
+	source := raylib.Rectangle {
+		width  = f32(render.x),
+		height = -f32(render.y),
+	}
+
+	target := raylib.Rectangle {
+		width  = f32(render.x),
+		height = f32(render.y),
+	}
 
 	raylib.DrawTexturePro(gui.state.frame.tiles.texture, source, target, {}, 0, raylib.WHITE)
 }

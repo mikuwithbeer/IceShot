@@ -13,27 +13,27 @@ show_idle_message :: proc(message: ^Message) {
 }
 
 show_select_area_message :: proc(message: ^Message) {
-	message.content = "Click and drag to capture an area"
+	message.content = "Click and drag to capture an area..."
 	message.updated = time.now()
 }
 
 show_create_rectangle_message :: proc(message: ^Message) {
-	message.content = "Click and drag to draw a rectangle"
+	message.content = "Click and drag to draw a rectangle..."
 	message.updated = time.now()
 }
 
 show_create_line_message :: proc(message: ^Message) {
-	message.content = "Click and drag to draw a line"
+	message.content = "Click and drag to draw a line..."
 	message.updated = time.now()
 }
 
 show_pick_color_message :: proc(message: ^Message) {
-	message.content = "Click any pixel to pick its color"
+	message.content = "Click any pixel to pick its color..."
 	message.updated = time.now()
 }
 
 show_measure_distance_message :: proc(message: ^Message) {
-	message.content = "Click to measure dimensions"
+	message.content = "Click to measure dimensions..."
 	message.updated = time.now()
 }
 

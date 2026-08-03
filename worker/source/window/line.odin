@@ -12,11 +12,11 @@ process_line :: proc(global: ^state.State, view: ^Viewer) -> error.Error {
 		return .None
 	}
 
-	start, end, width, color, ready := process_line_creation(global, view)
+	color, ready := process_line_creation(global, view)
 	if ready {
-		apply_line(global, start, end, width, color) or_return
+		apply_line(global, color) or_return
 	} else if global.line.dragging {
-		draw_line_overlay(start, end, width, color)
+		draw_line_overlay(global, color)
 	}
 
 	return .None
@@ -27,29 +27,23 @@ process_line_creation :: proc(
 	global: ^state.State,
 	view: ^Viewer,
 ) -> (
-	start: [2]f32,
-	end: [2]f32,
-	width: f32,
 	color: raylib.Color,
 	ready: bool,
 ) {
 	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
 		global.line.dragging = true
-		global.line.start = {global.frame.world.x, global.frame.world.y}
-		global.line.end = global.line.start
+		global.line.start = global.frame.world
+		global.line.end = global.frame.world
 	}
 
 	if global.line.dragging {
 		if raylib.IsMouseButtonDown(.LEFT) {
-			global.line.end = {global.frame.world.x, global.frame.world.y}
+			global.line.end = global.frame.world
 		}
 
-		start = global.line.start
-		end = global.line.end
-		width = global.line.width
-		color = raylib.Color{global.line.color.r, global.line.color.g, global.line.color.b, 255} // Keep it fully opaque
+		color = {global.line.color.r, global.line.color.g, global.line.color.b, 255} // Keep it fully opaque
 
-		if raylib.IsMouseButtonReleased(.LEFT) && start != end {
+		if raylib.IsMouseButtonReleased(.LEFT) && global.line.start != global.line.end {
 			ready = true
 		}
 	}
@@ -58,28 +52,17 @@ process_line_creation :: proc(
 }
 
 @(private = "file")
-draw_line_overlay :: proc(start: [2]f32, end: [2]f32, width: f32, color: raylib.Color) {
-	raylib.DrawLineEx(start, end, width, color)
+draw_line_overlay :: proc(global: ^state.State, color: raylib.Color) {
+	raylib.DrawLineEx(global.line.start, global.line.end, global.line.width, color)
 }
 
 @(private = "file", require_results)
-apply_line :: proc(
-	global: ^state.State,
-	start: [2]f32,
-	end: [2]f32,
-	width: f32,
-	color: raylib.Color,
-) -> error.Error {
-	// Leave nothing behind.
-	global.process = {}
-	global.line = {}
-	global.tool = .None
-
+apply_line :: proc(global: ^state.State, color: raylib.Color) -> error.Error {
 	act := action.Line {
 		texture = global.frame.current,
-		start   = start,
-		end     = end,
-		width   = i32(width),
+		start   = global.line.start,
+		end     = global.line.end,
+		width   = i32(global.line.width),
 		color   = color,
 	}
 
@@ -89,6 +72,8 @@ apply_line :: proc(
 	state.push_history(&global.history, act) or_return
 
 	state.show_idle_message(&global.message)
+
+	global.process, global.line, global.tool = {}, {}, .None // Reset the process state
 
 	return .None
 }

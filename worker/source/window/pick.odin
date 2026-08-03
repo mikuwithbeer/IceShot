@@ -23,57 +23,40 @@ process_pick :: proc(
 		global.pick.pixels = raylib.LoadImageColors(global.pick.image)
 	}
 
-	mode, color, ready := process_color_pick(global, view)
+	ready := process_color_pick(global, view)
 	if ready {
-		apply_pick(global, mode, color, allocator = allocator) or_return
+		apply_pick(global, allocator = allocator) or_return
 	}
 
 	return .None
 }
 
 @(private = "file", require_results)
-process_color_pick :: proc(
-	global: ^state.State,
-	view: ^Viewer,
-) -> (
-	mode: i32,
-	color: raylib.Color,
-	ready: bool,
-) {
+process_color_pick :: proc(global: ^state.State, view: ^Viewer) -> bool {
 	global.pick.pixel =
 		global.pick.pixels[i32(global.frame.world.y) * global.pick.image.width + i32(global.frame.world.x)]
 
 	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
-		mode = global.pick.select
-		color = global.pick.pixel
-		ready = true
+		return true
 	}
 
-	return
+	return false
 }
 
 @(private = "file", require_results)
-apply_pick :: proc(
-	global: ^state.State,
-	mode: i32,
-	color: raylib.Color,
-	allocator := context.allocator,
-) -> error.Error {
-	// Leave nothing behind.
-	global.process = {}
-	global.pick = {}
-	global.tool = .None
-
+apply_pick :: proc(global: ^state.State, allocator := context.allocator) -> error.Error {
 	raylib.UnloadImageColors(global.pick.pixels)
 	raylib.UnloadImage(global.pick.image)
 
 	act := action.Pick {
-		mode  = mode,
-		color = color,
+		mode  = global.pick.select,
+		color = global.pick.pixel,
 	}
 
 	action.handle_pick(act, allocator = allocator) or_return
 	state.show_copied_message(&global.message)
+
+	global.process, global.pick, global.tool = {}, {}, .None // Reset the process state
 
 	return .None
 }
