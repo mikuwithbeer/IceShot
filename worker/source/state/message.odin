@@ -46,3 +46,8 @@ show_undo_message :: proc(message: ^Message) {
 	message.content = "Undone. Like it never happened!"
 	message.updated = time.now()
 }
+
+show_redo_message :: proc(message: ^Message) {
+	message.content = "Redone. Right back where we were!"
+	message.updated = time.now()
+}

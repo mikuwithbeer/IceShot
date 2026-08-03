@@ -8,10 +8,22 @@ import "../state"
 process_undo :: proc(global: ^state.State) -> error.Error {
 	global.process = {} // Reset the process state
 
-	state.pop_history(&global.history) or_return
+	state.undo_history(&global.history) or_return
 	rebuild_from_history(global) or_return
 
 	state.show_undo_message(&global.message)
+
+	return .None
+}
+
+@(private, require_results)
+process_redo :: proc(global: ^state.State) -> error.Error {
+	global.process = {} // Reset the process state
+
+	state.redo_history(&global.history) or_return
+	rebuild_from_history(global) or_return
+
+	state.show_redo_message(&global.message)
 
 	return .None
 }
@@ -20,7 +32,7 @@ process_undo :: proc(global: ^state.State) -> error.Error {
 rebuild_from_history :: proc(global: ^state.State) -> error.Error {
 	replace_current_texture(global, global.frame.initial)
 
-	for value in global.history.actions {
+	for value in state.load_history(&global.history) {
 		#partial switch act in value {
 		case action.Crop:
 			act_copy := act

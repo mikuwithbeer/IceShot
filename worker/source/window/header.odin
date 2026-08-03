@@ -18,6 +18,7 @@ Header :: struct {
 	rotc:       raylib.Rectangle,
 	rule:       raylib.Rectangle,
 	undo:       raylib.Rectangle,
+	redo:       raylib.Rectangle,
 	read:       raylib.Rectangle,
 	copy:       raylib.Rectangle,
 	save:       raylib.Rectangle,
@@ -52,7 +53,7 @@ load_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 @(private = "file")
 layout_header :: proc(head: ^Header, global: ^state.State) {
 	head.panel = {0, 0, global.frame.screen.x, 72}
-	head.color = {global.frame.screen.x - 160, 80, 128, 128}
+	head.color = {global.frame.screen.x - 200, 80, 168, 168}
 
 	head.crop = {8, 32, 32, 32}
 	head.rect = {48, 32, 32, 32}
@@ -60,15 +61,16 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 	head.rotc = {128, 32, 32, 32}
 	head.rule = {168, 32, 32, 32}
 
-	head.undo = {global.frame.screen.x - 160, 32, 32, 32}
+	head.undo = {global.frame.screen.x - 200, 32, 32, 32}
+	head.redo = {global.frame.screen.x - 160, 32, 32, 32}
 	head.read = {global.frame.screen.x - 120, 32, 32, 32}
 	head.copy = {global.frame.screen.x - 80, 32, 32, 32}
 	head.save = {global.frame.screen.x - 40, 32, 32, 32}
 
-	head.pick_type = {global.frame.screen.x - 280, 32, 72, 32}
-	head.pick_view = {global.frame.screen.x - 200, 32, 32, 32}
-	head.rect_type = {global.frame.screen.x - 240, 32, 72, 32}
-	head.rule_type = {global.frame.screen.x - 240, 32, 72, 32}
+	head.pick_type = {global.frame.screen.x - 320, 32, 72, 32}
+	head.pick_view = {global.frame.screen.x - 240, 32, 32, 32}
+	head.rect_type = {global.frame.screen.x - 280, 32, 72, 32}
+	head.rule_type = {global.frame.screen.x - 280, 32, 72, 32}
 }
 
 @(private = "file")
@@ -140,14 +142,23 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 
 	raylib.GuiToggle(head.rule, raylib.GuiIconText(.ICON_TARGET_POINT, ""), &global.process.rule)
 
-	// Keep it disabled until there is something to undo.
-	if len(global.history.actions) == 0 {
+	// Keep it disabled if nothing to undo.
+	if !state.can_undo_history(&global.history) {
 		raylib.GuiSetState(i32(raylib.GuiState.STATE_DISABLED))
-		global.process.undo = raylib.GuiButton(head.undo, raylib.GuiIconText(.ICON_UNDO, ""))
-		raylib.GuiSetState(i32(raylib.GuiState.STATE_NORMAL))
-	} else {
-		global.process.undo = raylib.GuiButton(head.undo, raylib.GuiIconText(.ICON_UNDO, ""))
 	}
+
+	global.process.undo = raylib.GuiButton(head.undo, raylib.GuiIconText(.ICON_UNDO, ""))
+
+	raylib.GuiSetState(i32(raylib.GuiState.STATE_NORMAL)) // Change back to normal
+
+	// Keep it disabled if nothing to redo.
+	if !state.can_redo_history(&global.history) {
+		raylib.GuiSetState(i32(raylib.GuiState.STATE_DISABLED))
+	}
+
+	global.process.redo = raylib.GuiButton(head.redo, raylib.GuiIconText(.ICON_REDO, ""))
+
+	raylib.GuiSetState(i32(raylib.GuiState.STATE_NORMAL)) // Change back to normal
 
 	global.process.read = raylib.GuiButton(head.read, raylib.GuiIconText(.ICON_ZOOM_BIG, ""))
 
@@ -172,6 +183,8 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 			raylib.DrawTextEx(global.frame.font, "Measure Distance", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.undo) {
 			raylib.DrawTextEx(global.frame.font, "Undo Action", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.redo) {
+			raylib.DrawTextEx(global.frame.font, "Redo Action", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.read) {
 			raylib.DrawTextEx(global.frame.font, "Copy OCR", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.copy) {
@@ -191,6 +204,8 @@ process_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 		process_rotc(global) or_return
 	} else if global.process.undo {
 		process_undo(global) or_return
+	} else if global.process.redo {
+		process_redo(global) or_return
 	} else if global.process.copy {
 		process_copy(global) or_return
 	} else if global.process.read {

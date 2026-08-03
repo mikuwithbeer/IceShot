@@ -50,7 +50,7 @@ Frame :: struct {
 }
 
 Process :: struct {
-	crop, rect, pick, rotc, rule, undo, read, copy, save: bool,
+	crop, rect, pick, rotc, rule, undo, redo, read, copy, save: bool,
 }
 
 State :: struct {
