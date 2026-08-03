@@ -14,6 +14,13 @@ Rect :: struct {
 	color:   raylib.Color,
 }
 
+Line :: struct {
+	texture:    raylib.Texture2D,
+	start, end: [2]f32,
+	width:      i32,
+	color:      raylib.Color,
+}
+
 Pick :: struct {
 	mode:  i32,
 	color: raylib.Color,
@@ -38,6 +45,7 @@ Save :: distinct RotC
 Action :: union {
 	Crop,
 	Rect,
+	Line,
 	Pick,
 	RotC,
 	Rule,

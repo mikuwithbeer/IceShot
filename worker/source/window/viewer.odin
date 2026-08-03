@@ -75,6 +75,7 @@ draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> error.Error {
 
 	process_crop(global, view) or_return
 	process_rect(global, view) or_return
+	process_line(global, view) or_return
 	process_pick(global, view, allocator = view._allocator) or_return
 	process_rule(global, view, allocator = view._allocator) or_return
 

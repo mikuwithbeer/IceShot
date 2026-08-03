@@ -8,6 +8,7 @@ Tool :: enum {
 	None,
 	Crop,
 	Rect,
+	Line,
 	Pick,
 	Rule,
 }
@@ -20,6 +21,12 @@ Crop :: struct {
 Rect :: struct {
 	using _: Crop,
 	empty:   bool,
+	width:   f32,
+	color:   raylib.Color,
+}
+
+Line :: struct {
+	using _: Crop,
 	width:   f32,
 	color:   raylib.Color,
 }
@@ -51,13 +58,14 @@ Frame :: struct {
 }
 
 Process :: struct {
-	crop, rect, pick, rotc, rule, undo, redo, read, copy, save: bool,
+	crop, rect, line, pick, rotc, rule, undo, redo, read, copy, save: bool,
 }
 
 State :: struct {
 	tool:    Tool,
 	crop:    Crop,
 	rect:    Rect,
+	line:    Line,
 	pick:    Pick,
 	rule:    Rule,
 	frame:   Frame,

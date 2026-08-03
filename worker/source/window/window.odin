@@ -7,6 +7,10 @@ import "base:runtime"
 
 import "vendor:raylib"
 
+WINDOW_WIDTH :: 960
+WINDOW_HEIGHT :: 720
+WINDOW_TITLE :: "IceShot"
+
 Window :: struct {
 	state:      state.State,
 	viewer:     Viewer,
@@ -21,7 +25,7 @@ init_window :: proc(allocator := context.allocator) -> (gui: Window, err: error.
 	raylib.SetConfigFlags({.WINDOW_HIGHDPI, .WINDOW_RESIZABLE, .VSYNC_HINT})
 	raylib.SetTargetFPS(60)
 
-	raylib.InitWindow(800, 600, "IceShot")
+	raylib.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
 
 	gui.state = state.init_state(allocator = allocator) or_return
 
@@ -78,7 +82,7 @@ update_frame :: proc(gui: ^Window) {
 
 		fly_panel := gui.state.frame.cursor.y <= gui.header.panel.height
 		fly_color :=
-			gui.state.tool == .Rect &&
+			(gui.state.tool == .Rect || gui.state.tool == .Line) &&
 			raylib.CheckCollisionPointRec(gui.state.frame.cursor, color_picker)
 
 		gui.state.frame.fly = !(fly_panel || fly_color)

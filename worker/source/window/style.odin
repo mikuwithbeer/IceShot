@@ -65,6 +65,8 @@ init_style :: proc(frame: ^state.Frame) {
 	raylib.GuiSetStyle(.DROPDOWNBOX, STYLE_DROPDOWN_TEXT_PADDING, 0x00000008)
 	raylib.GuiSetStyle(.DROPDOWNBOX, STYLE_DROPDOWN_TEXT_ALIGNMENT, 0x00000000)
 
+	raylib.GuiSetStyle(.SLIDER, STYLE_BASE_COLOR_PRESSED, 0x79BFFFFF)
+
 	font := raylib.LoadFontFromMemory(
 		".ttf",
 		raw_data(STYLE_FONT_DATA),

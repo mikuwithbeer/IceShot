@@ -46,6 +46,12 @@ rebuild_from_history :: proc(global: ^state.State) -> error.Error {
 
 			result := action.handle_rect(act_copy) or_return
 			replace_current_texture(global, result.texture)
+		case action.Line:
+			act_copy := act
+			act_copy.texture = global.frame.current // The saved texture may no longer be valid
+
+			result := action.handle_line(act_copy) or_return
+			replace_current_texture(global, result.texture)
 		case action.RotC:
 			act_copy := act
 			act_copy.texture = global.frame.current // The saved texture may no longer be valid

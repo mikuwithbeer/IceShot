@@ -10,24 +10,26 @@ import "base:runtime"
 import "vendor:raylib"
 
 Header :: struct {
-	panel:      raylib.Rectangle,
-	color:      raylib.Rectangle,
-	crop:       raylib.Rectangle,
-	rect:       raylib.Rectangle,
-	pick:       raylib.Rectangle,
-	rotc:       raylib.Rectangle,
-	rule:       raylib.Rectangle,
-	undo:       raylib.Rectangle,
-	redo:       raylib.Rectangle,
-	read:       raylib.Rectangle,
-	copy:       raylib.Rectangle,
-	save:       raylib.Rectangle,
-	pick_type:  raylib.Rectangle,
-	pick_view:  raylib.Rectangle,
-	rect_type:  raylib.Rectangle,
-	rect_line:  raylib.Rectangle,
-	rule_type:  raylib.Rectangle,
-	_allocator: runtime.Allocator,
+	panel:          raylib.Rectangle,
+	color:          raylib.Rectangle,
+	crop:           raylib.Rectangle,
+	rect:           raylib.Rectangle,
+	line:           raylib.Rectangle,
+	pick:           raylib.Rectangle,
+	rotc:           raylib.Rectangle,
+	rule:           raylib.Rectangle,
+	undo:           raylib.Rectangle,
+	redo:           raylib.Rectangle,
+	read:           raylib.Rectangle,
+	copy:           raylib.Rectangle,
+	save:           raylib.Rectangle,
+	pick_type:      raylib.Rectangle,
+	pick_view:      raylib.Rectangle,
+	rect_type:      raylib.Rectangle,
+	rect_thickness: raylib.Rectangle,
+	line_thickness: raylib.Rectangle,
+	rule_type:      raylib.Rectangle,
+	_allocator:     runtime.Allocator,
 }
 
 @(private, require_results)
@@ -58,9 +60,10 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 
 	head.crop = {8, 32, 32, 32}
 	head.rect = {48, 32, 32, 32}
-	head.pick = {88, 32, 32, 32}
-	head.rotc = {128, 32, 32, 32}
-	head.rule = {168, 32, 32, 32}
+	head.line = {88, 32, 32, 32}
+	head.pick = {128, 32, 32, 32}
+	head.rotc = {168, 32, 32, 32}
+	head.rule = {208, 32, 32, 32}
 
 	head.undo = {global.frame.screen.x - 200, 32, 32, 32}
 	head.redo = {global.frame.screen.x - 160, 32, 32, 32}
@@ -72,7 +75,8 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 	head.pick_view = {global.frame.screen.x - 240, 32, 32, 32}
 
 	head.rect_type = {global.frame.screen.x - 280, 32, 72, 32}
-	head.rect_line = {global.frame.screen.x - 360, 32, 72, 32}
+	head.rect_thickness = {global.frame.screen.x - 360, 32, 72, 32}
+	head.line_thickness = {global.frame.screen.x - 280, 32, 72, 32}
 
 	head.rule_type = {global.frame.screen.x - 280, 32, 72, 32}
 }
@@ -108,8 +112,16 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 		raylib.GuiToggle(head.rect_type, "No Fill", &global.rect.empty)
 
 		if global.rect.empty {
-			raylib.GuiSlider(head.rect_line, "", "", &global.rect.width, 2, 32)
+			raylib.GuiSlider(head.rect_thickness, "", "", &global.rect.width, 2, 32)
 		}
+	case .Line:
+		global.process = {
+			line = true,
+		}
+
+		raylib.GuiColorPicker(head.color, "Color", &global.line.color)
+
+		raylib.GuiSlider(head.line_thickness, "", "", &global.line.width, 2, 32)
 	case .Pick:
 		global.process = {
 			pick = true,
@@ -143,6 +155,8 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 	raylib.GuiToggle(head.crop, raylib.GuiIconText(.ICON_CROP, ""), &global.process.crop)
 
 	raylib.GuiToggle(head.rect, raylib.GuiIconText(.ICON_BOX, ""), &global.process.rect)
+
+	raylib.GuiToggle(head.line, raylib.GuiIconText(.ICON_CROSSLINE, ""), &global.process.line)
 
 	raylib.GuiToggle(head.pick, raylib.GuiIconText(.ICON_COLOR_PICKER, ""), &global.process.pick)
 
@@ -229,7 +243,10 @@ process_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 			state.show_select_area_message(&global.message)
 		} else if global.process.rect {
 			global.tool = .Rect
-			state.show_select_area_message(&global.message)
+			state.show_create_rectangle_message(&global.message)
+		} else if global.process.line {
+			global.tool = .Line
+			state.show_create_line_message(&global.message)
 		} else if global.process.pick {
 			global.tool = .Pick
 			state.show_pick_color_message(&global.message)
@@ -246,6 +263,12 @@ process_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 	case .Rect:
 		if !global.process.rect {
 			global.rect = {}
+			global.tool = .None
+			state.show_idle_message(&global.message)
+		}
+	case .Line:
+		if !global.process.line {
+			global.line = {}
 			global.tool = .None
 			state.show_idle_message(&global.message)
 		}

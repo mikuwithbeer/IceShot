@@ -53,7 +53,7 @@ process_rect_creation :: proc(
 
 		empty = global.rect.empty
 		width = global.rect.width
-		color = raylib.Color{global.rect.color.r, global.rect.color.g, global.rect.color.b, 255} // Keep screenshots fully opaque
+		color = raylib.Color{global.rect.color.r, global.rect.color.g, global.rect.color.b, 255} // Keep it fully opaque
 
 		if raylib.IsMouseButtonReleased(.LEFT) && area.width >= 1 && area.height >= 1 {
 			ready = true

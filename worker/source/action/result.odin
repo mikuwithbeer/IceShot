@@ -14,6 +14,8 @@ Crop_Result :: distinct Capture_Result
 
 Rect_Result :: distinct Capture_Result
 
+Line_Result :: distinct Capture_Result
+
 RotC_Result :: distinct Capture_Result
 
 Save_Result :: struct {

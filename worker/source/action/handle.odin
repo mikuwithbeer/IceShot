@@ -76,6 +76,19 @@ handle_rect :: proc(act: Rect) -> (Rect_Result, error.Error) {
 }
 
 @(require_results)
+handle_line :: proc(act: Line) -> (Line_Result, error.Error) {
+	image := raylib.LoadImageFromTexture(act.texture)
+	defer raylib.UnloadImage(image)
+
+	raylib.ImageDrawLineEx(&image, act.start, act.end, act.width, act.color)
+
+	modified := raylib.LoadTextureFromImage(image)
+	raylib.SetTextureFilter(modified, .BILINEAR)
+
+	return {width = modified.width, height = modified.height, texture = modified}, .None
+}
+
+@(require_results)
 handle_pick :: proc(act: Pick, allocator := context.allocator) -> error.Error {
 	content: string
 	switch act.mode {
