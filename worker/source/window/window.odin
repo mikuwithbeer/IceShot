@@ -74,7 +74,7 @@ update_frame :: proc(gui: ^Window) {
 
 	// Avoid actions in areas used by the interface.
 	{
-		color_picker := raylib.Rectangle{gui.state.frame.screen.x - 160, 80, 160, 160}
+		color_picker := raylib.Rectangle{gui.state.frame.screen.x - 200, 80, 200, 160}
 
 		fly_panel := gui.state.frame.cursor.y <= gui.header.panel.height
 		fly_color :=
