@@ -1,6 +1,6 @@
 #import "tray.m"
 
-int main(int argc, const char *argv[]) {
+int main(void) {
   @autoreleasepool {
     NSApplication *app = [NSApplication sharedApplication];
 

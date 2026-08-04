@@ -1,26 +1,31 @@
-#import <Carbon/Carbon.h>
+#import "hotkey.m"
+
 #import <Cocoa/Cocoa.h>
-#import <Foundation/Foundation.h>
+#import <CoreGraphics/CoreGraphics.h>
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 @property(strong) NSStatusItem *status_item;
 @end
 
 @interface AppDelegate ()
-- (void)screenshot:(id)sender;
-- (void)quit:(id)sender;
+- (void)setup_status_bar;
+- (void)take_screenshot;
+- (void)menu_screenshot_action:(id)sender;
+- (void)redirect_github:(id)sender;
+- (void)quit_app:(id)sender;
 @end
-
-OSStatus screenshot_key_handler(EventHandlerCallRef _next, EventRef event,
-                                void *data) {
-  AppDelegate *delegate = (__bridge AppDelegate *)data;
-  [delegate screenshot:nil];
-
-  return noErr;
-}
 
 @implementation AppDelegate
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
+  [self setup_status_bar];
+
+  __block __typeof__(self) block_self = self;
+  register_screenshot_hotkey(^{
+    [block_self take_screenshot];
+  });
+}
+
+- (void)setup_status_bar {
   self.status_item = [[NSStatusBar systemStatusBar]
       statusItemWithLength:NSVariableStatusItemLength];
 
@@ -31,37 +36,38 @@ OSStatus screenshot_key_handler(EventHandlerCallRef _next, EventRef event,
     NSImage *icon = [[NSImage alloc] initWithContentsOfFile:tray_icon_path];
     [icon setTemplate:YES];
     [icon setSize:NSMakeSize(18.0, 18.0)];
+
     self.status_item.button.image = icon;
   }
 
   NSMenu *menu = [[NSMenu alloc] init];
 
-  NSMenuItem *item = [menu addItemWithTitle:@"Capture Screen"
-                                     action:@selector(screenshot:)
-                              keyEquivalent:@"3"];
+  NSMenuItem *capture_item =
+      [menu addItemWithTitle:@"Capture Screen"
+                      action:@selector(menu_screenshot_action:)
+               keyEquivalent:@"3"];
 
-  [item setKeyEquivalentModifierMask:NSEventModifierFlagCommand |
-                                     NSEventModifierFlagShift];
+  [capture_item setKeyEquivalentModifierMask:NSEventModifierFlagCommand |
+                                             NSEventModifierFlagShift];
 
   [menu addItem:[NSMenuItem separatorItem]];
 
-  [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@"q"];
+  [menu addItemWithTitle:@"Source Code"
+                  action:@selector(redirect_github:)
+           keyEquivalent:@""];
+
+  [menu addItemWithTitle:@"Quit"
+                  action:@selector(quit_app:)
+           keyEquivalent:@"q"];
 
   self.status_item.menu = menu;
-
-  EventTypeSpec event_type = {kEventClassKeyboard, kEventHotKeyPressed};
-
-  InstallApplicationEventHandler(NewEventHandlerUPP(screenshot_key_handler), 1,
-                                 &event_type, (__bridge void *)self, NULL);
-
-  EventHotKeyID shot_key_id = {.signature = 'SHOT', .id = 1};
-
-  EventHotKeyRef shot_key = NULL;
-  RegisterEventHotKey(kVK_ANSI_3, cmdKey | shiftKey, shot_key_id,
-                      GetApplicationEventTarget(), 0, &shot_key);
 }
 
-- (void)screenshot:(id)sender {
+- (void)menu_screenshot_action:(id)sender {
+  [self take_screenshot];
+}
+
+- (void)take_screenshot {
   NSString *worker_path =
       [[NSBundle mainBundle] pathForAuxiliaryExecutable:@"IceShotWorker"];
 
@@ -74,7 +80,12 @@ OSStatus screenshot_key_handler(EventHandlerCallRef _next, EventRef event,
   }
 }
 
-- (void)quit:(id)sender {
+- (void)redirect_github:(id)sender {
+  NSURL *url = [NSURL URLWithString:@"https://github.com/mikuwithbeer/IceShot"];
+  [[NSWorkspace sharedWorkspace] openURL:url];
+}
+
+- (void)quit_app:(id)sender {
   [NSApp terminate:nil];
 }
 @end
