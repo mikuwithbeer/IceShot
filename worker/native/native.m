@@ -42,7 +42,7 @@ bool init_capture(void) {
       }
     }
 
-    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+    __auto_type semaphore = dispatch_semaphore_create(0);
 
     [SCShareableContent
         getShareableContentWithCompletionHandler:^(
@@ -53,8 +53,8 @@ bool init_capture(void) {
             return;
           }
 
-          CGDirectDisplayID main_display_id = CGMainDisplayID();
-          SCDisplay *target_display = content.displays.firstObject;
+          __auto_type main_display_id = CGMainDisplayID();
+          __auto_type target_display = content.displays.firstObject;
 
           for (SCDisplay *candidate in content.displays) {
             if (candidate.displayID == main_display_id) {
@@ -102,7 +102,7 @@ bool load_capture(Point2D position, Point2D size, Capture *capture) {
       return false;
     }
 
-    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+    __auto_type semaphore = dispatch_semaphore_create(0);
 
     __block void *pixels = NULL;
 
@@ -111,11 +111,11 @@ bool load_capture(Point2D position, Point2D size, Capture *capture) {
     __block u64 height = 0;
     __block u64 stride = 0;
 
-    SCContentFilter *filter =
+    __auto_type filter =
         [[SCContentFilter alloc] initWithDisplay:capture_display
                                 excludingWindows:@[]];
 
-    SCStreamConfiguration *config = [[SCStreamConfiguration alloc] init];
+    __auto_type config = [[SCStreamConfiguration alloc] init];
 
     config.sourceRect = CGRectMake(position.x, position.y, size.x, size.y);
     config.width = (NSInteger)lround(size.x * capture_factor);
@@ -184,8 +184,8 @@ void free_capture(Capture *capture) {
 
 bool copy_value(const char *content) {
   @autoreleasepool {
-    NSString *string = [NSString stringWithUTF8String:content];
-    NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+    __auto_type string = [NSString stringWithUTF8String:content];
+    __auto_type pasteboard = [NSPasteboard generalPasteboard];
 
     [pasteboard clearContents];
     return [pasteboard setString:string forType:NSPasteboardTypeString];
@@ -194,7 +194,7 @@ bool copy_value(const char *content) {
 
 bool copy_image(Image image) {
   @autoreleasepool {
-    NSBitmapImageRep *representation = [[NSBitmapImageRep alloc]
+    __auto_type representation = [[NSBitmapImageRep alloc]
         initWithBitmapDataPlanes:NULL
                       pixelsWide:(NSInteger)image.width
                       pixelsHigh:(NSInteger)image.height
@@ -213,11 +213,11 @@ bool copy_image(Image image) {
     memcpy([representation bitmapData], image.data,
            image.width * image.height * 4);
 
-    NSImage *ns_image =
+    __auto_type ns_image =
         [[NSImage alloc] initWithSize:NSMakeSize(image.width, image.height)];
     [ns_image addRepresentation:representation];
 
-    NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+    __auto_type pasteboard = [NSPasteboard generalPasteboard];
     [pasteboard clearContents];
 
     return [pasteboard writeObjects:@[ ns_image ]];
@@ -226,7 +226,7 @@ bool copy_image(Image image) {
 
 bool copy_ocr(Image image) {
   @autoreleasepool {
-    NSBitmapImageRep *representation = [[NSBitmapImageRep alloc]
+    __auto_type representation = [[NSBitmapImageRep alloc]
         initWithBitmapDataPlanes:NULL
                       pixelsWide:(NSInteger)image.width
                       pixelsHigh:(NSInteger)image.height
@@ -245,17 +245,17 @@ bool copy_ocr(Image image) {
     memcpy([representation bitmapData], image.data,
            image.width * image.height * 4);
 
-    CGImageRef cg_image = [representation CGImage];
+    __auto_type cg_image = [representation CGImage];
     if (!cg_image) {
       return false;
     }
 
-    __block NSMutableString *recognized = [NSMutableString string];
+    __block __auto_type recognized = [NSMutableString string];
 
-    VNImageRequestHandler *request_handler =
+    __auto_type request_handler =
         [[VNImageRequestHandler alloc] initWithCGImage:cg_image options:@{}];
 
-    VNRecognizeTextRequest *request = [[VNRecognizeTextRequest alloc]
+    __auto_type request = [[VNRecognizeTextRequest alloc]
         initWithCompletionHandler:^(VNRequest *request, NSError *error) {
           if (error) {
             return;
@@ -278,7 +278,7 @@ bool copy_ocr(Image image) {
       return false;
     }
 
-    NSString *final = [recognized
+    __auto_type final = [recognized
         stringByTrimmingCharactersInSet:[NSCharacterSet
                                             whitespaceAndNewlineCharacterSet]];
 
@@ -286,7 +286,7 @@ bool copy_ocr(Image image) {
       return false;
     }
 
-    NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+    __auto_type pasteboard = [NSPasteboard generalPasteboard];
     [pasteboard clearContents];
 
     return [pasteboard setString:final forType:NSPasteboardTypeString];
@@ -297,10 +297,11 @@ void error_box(const char *content) {
   @autoreleasepool {
     [NSApplication sharedApplication];
 
-    NSAlert *alert = [[NSAlert alloc] init];
+    __auto_type alert = [[NSAlert alloc] init];
     alert.messageText = [NSString stringWithUTF8String:"Worker Error"];
     alert.informativeText = [NSString stringWithUTF8String:content];
     alert.alertStyle = NSAlertStyleCritical;
+
     [alert addButtonWithTitle:@"OK"];
 
     [alert runModal];
@@ -326,13 +327,13 @@ static bool image_to_rgba(CGImageRef image, void **out_pixels, u64 *out_length,
     return false;
   }
 
-  CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
+  __auto_type color_space = CGColorSpaceCreateDeviceRGB();
   if (!color_space) {
     free(pixels);
     return false;
   }
 
-  CGContextRef context = CGBitmapContextCreate(
+  __auto_type context = CGBitmapContextCreate(
       pixels, width, height, 8, stride, color_space,
       kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
 

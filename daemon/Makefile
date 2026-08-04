@@ -8,7 +8,7 @@ SOURCE_PATH = source
 OUTPUT_PATH = output
 OUTPUT_NAME = $(OUTPUT_PATH)/$(NAME)
 
-FLAGS_DEBUG   = -g -gdwarf -fstandalone-debug -Og -fsanitize=address,undefined -fno-omit-frame-pointer
+FLAGS_DEBUG   = -Og -g
 FLAGS_RELEASE = -O3 -flto
 FLAGS_LINKING = -framework Foundation -framework Cocoa -framework Carbon -framework ServiceManagement
 FLAGS_DEFAULT = -mmacosx-version-min=14.0 \

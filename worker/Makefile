@@ -10,24 +10,27 @@ NATIVE_PATH = native
 OUTPUT_PATH = output
 OUTPUT_NAME = $(OUTPUT_PATH)/$(NAME)
 
-FLAGS_PREPARE = -c -fobjc-arc -mmacosx-version-min=14.0
+FLAGS_NATIVE_DEBUG   = -Og -g
+FLAGS_NATIVE_RELEASE = -O3
+FLAGS_NATIVE_DEFAULT = -c -fobjc-arc -mmacosx-version-min=14.0
+
 FLAGS_DEBUG   = -debug
 FLAGS_RELEASE = -o:aggressive
 FLAGS_LINKING = -framework Foundation -framework Cocoa -framework ScreenCaptureKit -framework Vision
 FLAGS_DEFAULT = -vet -strict-style -extra-linker-flags:"$(FLAGS_LINKING)"
 
-.PHONY: all prepare debug release run clean
+.PHONY: all debug release run clean
 
 all: release
 
-prepare:
+debug:
 	@mkdir -p $(OUTPUT_PATH)
-	@$(CC) $(FLAGS_PREPARE) $(NATIVE_PATH)/native.m -o $(OUTPUT_PATH)/native.o
-
-debug: prepare
+	@$(CC) $(FLAGS_PREPARE) $(NATIVE_PATH)/native.m -o $(OUTPUT_PATH)/native.o $(FLAGS_NATIVE_DEFAULT) $(FLAGS_NATIVE_DEBUG)
 	@$(ODIN) build $(SOURCE_PATH) -out=$(OUTPUT_NAME) $(FLAGS_DEFAULT) $(FLAGS_DEBUG)
 
-release: prepare
+release:
+	@mkdir -p $(OUTPUT_PATH)
+	@$(CC) $(FLAGS_PREPARE) $(NATIVE_PATH)/native.m -o $(OUTPUT_PATH)/native.o $(FLAGS_NATIVE_DEFAULT) $(FLAGS_NATIVE_RELEASE)
 	@$(ODIN) build $(SOURCE_PATH) -out=$(OUTPUT_NAME) $(FLAGS_DEFAULT) $(FLAGS_RELEASE)
 
 run: debug
