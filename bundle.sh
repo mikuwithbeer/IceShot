@@ -1,36 +1,44 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
+info() {
+    echo -e "\033[1;32m==> $1\033[0m"
+}
+
+error() {
+    echo -e "\033[1;31m==> error: $1\033[0m"
+}
+
+BUNDLE_MODE="${1:-release}"
 BUNDLE_FILE="IceShot.app"
+
+if [[ "$BUNDLE_MODE" != "release" && "$BUNDLE_MODE" != "debug" ]]; then
+    error "invalid build mode '${BUNDLE_MODE}'!"
+    exit 1
+fi
+
 BUNDLE_CONTENTS="${BUNDLE_FILE}/Contents"
 BUNDLE_EXECUTABLES="${BUNDLE_CONTENTS}/MacOS"
 BUNDLE_RESOURCES="${BUNDLE_CONTENTS}/Resources"
 
-echo "-> 1. clean old build"
+info "1. clean old build"
 rm -rf "${BUNDLE_FILE}"
 
-echo "-> 2. create bundle structure"
-mkdir -p "${BUNDLE_EXECUTABLES}"
-mkdir -p "${BUNDLE_RESOURCES}"
+info "2. create bundle structure"
+mkdir -p "${BUNDLE_EXECUTABLES}" "${BUNDLE_RESOURCES}"
 
-echo "-> 3. build the worker"
-cd worker
-make clean
-make release
-cp ./output/IceShotWorker "../${BUNDLE_EXECUTABLES}/"
-cd ..
+info "3. build the worker:${BUNDLE_MODE}"
+make -C worker clean "${BUNDLE_MODE}"
+cp worker/output/IceShotWorker "${BUNDLE_EXECUTABLES}/"
 
-echo "-> 4. build the daemon"
-cd daemon
-make clean
-make release
-cp ./output/IceShotDaemon "../${BUNDLE_EXECUTABLES}/"
-cp ./assets/tray.pdf "../${BUNDLE_RESOURCES}/"
-cp ./assets/icon.icns "../${BUNDLE_RESOURCES}/"
-cd ..
+info "4. build the daemon:${BUNDLE_MODE}"
+make -C daemon clean "${BUNDLE_MODE}"
+cp daemon/output/IceShotDaemon "${BUNDLE_EXECUTABLES}/"
+cp daemon/assets/tray.pdf "${BUNDLE_RESOURCES}/"
+cp daemon/assets/icon.icns "${BUNDLE_RESOURCES}/"
 
-echo "-> 5. copy information"
+info "5. copy information"
 cat <<EOF > "${BUNDLE_CONTENTS}/Info.plist"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -47,4 +55,4 @@ cat <<EOF > "${BUNDLE_CONTENTS}/Info.plist"
 </plist>
 EOF
 
-echo "${BUNDLE_FILE} has been built successfully!"
+info "${BUNDLE_FILE} (${BUNDLE_MODE}) has been built successfully!"

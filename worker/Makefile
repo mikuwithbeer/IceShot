@@ -1,18 +1,18 @@
 CC   = clang
 ODIN = odin
 
-ARGS        =
-NAME        = IceShotWorker
-VERSION     = 0.0.0
+ARGS    =
+NAME    = IceShotWorker
+VERSION = 0.0.0
 
 SOURCE_PATH = source
 NATIVE_PATH = native
 OUTPUT_PATH = output
 OUTPUT_NAME = $(OUTPUT_PATH)/$(NAME)
 
-FLAGS_PREPARE = -c -fobjc-arc
+FLAGS_PREPARE = -c -fobjc-arc -mmacosx-version-min=14.0
 FLAGS_DEBUG   = -debug
-FLAGS_RELEASE = -o:speed
+FLAGS_RELEASE = -o:aggressive
 FLAGS_LINKING = -framework Foundation -framework Cocoa -framework ScreenCaptureKit -framework Vision
 FLAGS_DEFAULT = -vet -strict-style -extra-linker-flags:"$(FLAGS_LINKING)"
 
