@@ -10,8 +10,10 @@ OUTPUT_NAME = $(OUTPUT_PATH)/$(NAME)
 
 FLAGS_DEBUG   = -g -gdwarf -fstandalone-debug -Og -fsanitize=address,undefined -fno-omit-frame-pointer
 FLAGS_RELEASE = -O3 -flto
-FLAGS_LINKING = -framework Foundation -framework Cocoa -framework Carbon
-FLAGS_DEFAULT = -Wall -Wextra -Wpedantic -Wshadow -Wconversion -mmacosx-version-min=14.0
+FLAGS_LINKING = -framework Foundation -framework Cocoa -framework Carbon -framework ServiceManagement
+FLAGS_DEFAULT = -mmacosx-version-min=14.0 \
+                -Wall -Wextra -Wpedantic -Wshadow -Wconversion \
+                -Wno-gnu-auto-type
 
 .PHONY: all debug release run clean
 

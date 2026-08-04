@@ -2,6 +2,8 @@
 
 int main(void) {
   @autoreleasepool {
+    load_config();
+
     NSApplication *app = [NSApplication sharedApplication];
 
     AppDelegate *delegate = [[AppDelegate alloc] init];
@@ -10,4 +12,6 @@ int main(void) {
     [app setActivationPolicy:NSApplicationActivationPolicyAccessory];
     [app run];
   }
+
+  return 0;
 }
