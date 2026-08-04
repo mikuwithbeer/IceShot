@@ -4,7 +4,6 @@ import "../error"
 import "../native"
 
 import "core:fmt"
-import "core:os"
 import "core:strings"
 import "core:time"
 
@@ -235,9 +234,6 @@ handle_save :: proc(
 	image := raylib.LoadImageFromTexture(act.texture)
 	defer raylib.UnloadImage(image)
 
-	home := os.get_env_alloc("HOME", allocator = allocator)
-	defer delete(home, allocator = allocator)
-
 	{
 		result.date = time.now()
 
@@ -245,8 +241,9 @@ handle_save :: proc(
 		hour, minute, second := time.clock_from_time(result.date)
 
 		result.path = fmt.aprintf(
-			"%s/Documents/Screenshots/SCR-%04d%02d%02d-%02d%02d%02d.png",
-			home,
+			"%s/%s/SCR-%04d%02d%02d-%02d%02d%02d.png",
+			act.home,
+			act.path,
 			year,
 			month,
 			day,
@@ -267,7 +264,7 @@ handle_save :: proc(
 
 	ok := raylib.ExportImage(image, c_path)
 	if !ok {
-		err = .Failed_To_Write
+		err = .Failed_To_Write_File
 	}
 
 	return

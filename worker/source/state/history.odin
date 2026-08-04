@@ -3,20 +3,16 @@ package state
 import "../action"
 import "../error"
 
-import "base:runtime"
-
 History :: struct {
-	running:    bool,
-	current:    int,
-	actions:    [dynamic]action.Action,
-	_allocator: runtime.Allocator,
+	running: bool,
+	current: int,
+	actions: [dynamic]action.Action,
 }
 
-@(require_results)
+@(private, require_results)
 init_history :: proc(allocator := context.allocator) -> (history: History, err: error.Error) {
 	DEFAULT_CAPACITY :: 16
 
-	history._allocator = allocator
 	actions, allocate_err := make(
 		type_of(history.actions),
 		0,
@@ -85,6 +81,7 @@ can_redo_history :: proc(history: ^History) -> bool {
 	return history.current != len(history.actions)
 }
 
+@(private)
 free_history :: proc(history: ^History) {
 	history.running = false
 	delete(history.actions)

@@ -10,6 +10,8 @@ process_save :: proc(global: ^state.State, allocator := context.allocator) -> er
 
 	act := action.Save {
 		texture = global.frame.current,
+		home    = state.home_config(&global.config),
+		path    = global.config.save_path,
 	}
 
 	result := action.handle_save(act, allocator) or_return

@@ -46,7 +46,11 @@ Read :: distinct RotC
 
 Copy :: distinct RotC
 
-Save :: distinct RotC
+Save :: struct {
+	texture: raylib.Texture2D,
+	home:    string,
+	path:    string,
+}
 
 Action :: union {
 	Crop,

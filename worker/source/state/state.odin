@@ -78,18 +78,27 @@ State :: struct {
 	rule:    Rule,
 	frame:   Frame,
 	process: Process,
+	config:  Config,
 	history: History,
 	message: Message,
 }
 
 @(require_results)
 init_state :: proc(allocator := context.allocator) -> (state: State, err: error.Error) {
-	state.history = init_history(allocator = allocator) or_return
-	show_idle_message(&state.message)
+	config := init_config(allocator = allocator) or_return
 
+	defer if err != .None do free_config(&config)
+
+	history := init_history(allocator = allocator) or_return
+
+	state.config = config
+	state.history = history
+
+	show_idle_message(&state.message)
 	return
 }
 
 free_state :: proc(state: ^State) {
 	free_history(&state.history)
+	free_config(&state.config)
 }
