@@ -1,6 +1,8 @@
 #include "native.h"
 
+#import <AppKit/AppKit.h>
 #import <Cocoa/Cocoa.h>
+#import <CoreGraphics/CoreGraphics.h>
 #import <Foundation/Foundation.h>
 #import <ScreenCaptureKit/ScreenCaptureKit.h>
 #import <Vision/Vision.h>
@@ -31,6 +33,13 @@ bool init_capture(void) {
 
     if (capture_ready) {
       return success;
+    }
+
+    if (!CGPreflightScreenCaptureAccess()) {
+      bool granted = CGRequestScreenCaptureAccess();
+      if (!granted) {
+        return false;
+      }
     }
 
     dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
@@ -282,6 +291,22 @@ bool copy_ocr(Image image) {
 
     return [pasteboard setString:final forType:NSPasteboardTypeString];
   }
+}
+
+void error_box(const char *content) {
+  @autoreleasepool {
+    [NSApplication sharedApplication];
+
+    NSAlert *alert = [[NSAlert alloc] init];
+    alert.messageText = [NSString stringWithUTF8String:"Worker Error"];
+    alert.informativeText = [NSString stringWithUTF8String:content];
+    alert.alertStyle = NSAlertStyleCritical;
+    [alert addButtonWithTitle:@"OK"];
+
+    [alert runModal];
+  }
+
+  exit(EXIT_FAILURE);
 }
 
 // [--------------------------------------------------------------] //

@@ -21,10 +21,10 @@ Unsafe_Image :: struct {
 	height: c.size_t,
 }
 
-foreign import _native "../../output/native.o"
+foreign import native "../../output/native.o"
 
 @(default_calling_convention = "c", require_results)
-foreign _native {
+foreign native {
 	@(link_name = "init_capture")
 	unsafe_init_capture :: proc() -> c.bool ---
 
@@ -45,4 +45,7 @@ foreign _native {
 
 	@(link_name = "copy_ocr")
 	unsafe_copy_ocr :: proc(image: Unsafe_Image) -> c.bool ---
+
+	@(link_name = "error_box")
+	unsafe_error_box :: proc(content: cstring) ---
 }

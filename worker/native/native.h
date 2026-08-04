@@ -47,4 +47,6 @@ bool copy_image(Image image);
 
 bool copy_ocr(Image image);
 
+void error_box(const char *content);
+
 #endif // NATIVE_H
