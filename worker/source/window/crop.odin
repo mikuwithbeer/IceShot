@@ -17,7 +17,7 @@ process_crop :: proc(global: ^state.State, view: ^Viewer) -> error.Error {
 		result := apply_crop(global, area) or_return
 		view.camera.target = {f32(result.width) * 0.5, f32(result.height) * 0.5} // Keep the image stays in focus
 	} else if global.crop.dragging {
-		draw_crop_overlay(area, view.camera.zoom)
+		draw_crop_overlay(global, area, view.camera.zoom)
 	}
 
 	return .None
@@ -58,9 +58,11 @@ process_crop_selection :: proc(
 }
 
 @(private = "file")
-draw_crop_overlay :: proc(area: raylib.Rectangle, zoom: f32) {
-	raylib.DrawRectangleRec(area, STYLE_BRAND_COLOR_2)
-	raylib.DrawRectangleLinesEx(area, 2.0 / zoom, STYLE_BRAND_COLOR_1)
+draw_crop_overlay :: proc(global: ^state.State, area: raylib.Rectangle, zoom: f32) {
+	color_1, color_2 := get_brand_color(global.config.dark_mode)
+
+	raylib.DrawRectangleRec(area, color_2)
+	raylib.DrawRectangleLinesEx(area, 2.0 / zoom, color_1)
 }
 
 @(private = "file", require_results)

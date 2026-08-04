@@ -201,34 +201,64 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 	// Show a hint when hovering a tool.
 	{
 		text_point := global.frame.cursor + {8, 8}
-		text_color := raylib.WHITE
+		text_color := get_tip_color(global.config.dark_mode)
 
-		if raylib.CheckCollisionPointRec(global.frame.cursor, head.crop) {
-			raylib.DrawTextEx(global.frame.font, "Crop Image", text_point, 16, 0, text_color)
-		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rect) {
-			raylib.DrawTextEx(global.frame.font, "Draw Rectangle", text_point, 16, 0, text_color)
-		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.line) {
-			raylib.DrawTextEx(global.frame.font, "Draw Line", text_point, 16, 0, text_color)
-		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.tria) {
-			raylib.DrawTextEx(global.frame.font, "Draw Triangle", text_point, 16, 0, text_color)
-		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.pick) {
-			raylib.DrawTextEx(global.frame.font, "Color Picker", text_point, 16, 0, text_color)
-		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rotc) {
-			raylib.DrawTextEx(global.frame.font, "Rotate Clockwise", text_point, 16, 0, text_color)
-		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rule) {
-			raylib.DrawTextEx(global.frame.font, "Measure Distance", text_point, 16, 0, text_color)
-		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.undo) {
-			raylib.DrawTextEx(global.frame.font, "Undo Action", text_point, 16, 0, text_color)
-		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.redo) {
-			raylib.DrawTextEx(global.frame.font, "Redo Action", text_point, 16, 0, text_color)
-		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.read) {
-			raylib.DrawTextEx(global.frame.font, "Copy OCR", text_point, 16, 0, text_color)
-		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.copy) {
-			text_point.x -= 80
-			raylib.DrawTextEx(global.frame.font, "Copy Image", text_point, 16, 0, text_color)
-		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.save) {
-			text_point.x -= 80
-			raylib.DrawTextEx(global.frame.font, "Save Image", text_point, 16, 0, text_color)
+		if !global.frame.fly {
+			if raylib.CheckCollisionPointRec(global.frame.cursor, head.crop) {
+				raylib.DrawTextEx(global.frame.font, "Crop Image", text_point, 16, 0, text_color)
+			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rect) {
+				raylib.DrawTextEx(
+					global.frame.font,
+					"Draw Rectangle",
+					text_point,
+					16,
+					0,
+					text_color,
+				)
+			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.line) {
+				raylib.DrawTextEx(global.frame.font, "Draw Line", text_point, 16, 0, text_color)
+			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.tria) {
+				raylib.DrawTextEx(
+					global.frame.font,
+					"Draw Triangle",
+					text_point,
+					16,
+					0,
+					text_color,
+				)
+			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.pick) {
+				raylib.DrawTextEx(global.frame.font, "Color Picker", text_point, 16, 0, text_color)
+			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rotc) {
+				raylib.DrawTextEx(
+					global.frame.font,
+					"Rotate Clockwise",
+					text_point,
+					16,
+					0,
+					text_color,
+				)
+			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rule) {
+				raylib.DrawTextEx(
+					global.frame.font,
+					"Measure Distance",
+					text_point,
+					16,
+					0,
+					text_color,
+				)
+			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.undo) {
+				raylib.DrawTextEx(global.frame.font, "Undo Action", text_point, 16, 0, text_color)
+			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.redo) {
+				raylib.DrawTextEx(global.frame.font, "Redo Action", text_point, 16, 0, text_color)
+			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.read) {
+				raylib.DrawTextEx(global.frame.font, "Copy OCR", text_point, 16, 0, text_color)
+			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.copy) {
+				text_point.x -= 80
+				raylib.DrawTextEx(global.frame.font, "Copy Image", text_point, 16, 0, text_color)
+			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.save) {
+				text_point.x -= 80
+				raylib.DrawTextEx(global.frame.font, "Save Image", text_point, 16, 0, text_color)
+			}
 		}
 	}
 }

@@ -29,7 +29,11 @@ init_window :: proc(allocator := context.allocator) -> (gui: Window, err: error.
 
 	gui.state = state.init_state(allocator = allocator) or_return
 
-	init_style(&gui.state.frame)
+	if gui.state.config.dark_mode {
+		init_dark_mode(&gui.state.frame)
+	} else {
+		init_light_mode(&gui.state.frame)
+	}
 
 	gui.state.frame.screen = {f32(raylib.GetScreenWidth()), f32(raylib.GetScreenHeight())}
 	gui.state.frame.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}

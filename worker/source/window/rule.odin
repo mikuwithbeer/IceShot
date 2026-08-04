@@ -83,12 +83,14 @@ process_rule_calculation :: proc(global: ^state.State, view: ^Viewer) -> bool {
 
 @(private = "file")
 draw_rule_overlay :: proc(global: ^state.State, view: ^Viewer, zoom: f32) {
+	color, _ := get_brand_color(global.config.dark_mode)
+
 	// Show the horizontal span.
 	raylib.DrawLineEx(
 		{global.frame.world.x - f32(global.rule.bound[0]), global.frame.world.y},
 		{global.frame.world.x + f32(global.rule.bound[1]), global.frame.world.y},
 		2 / zoom,
-		STYLE_BRAND_COLOR_1,
+		color,
 	)
 
 	// Show the vertical span.
@@ -96,7 +98,7 @@ draw_rule_overlay :: proc(global: ^state.State, view: ^Viewer, zoom: f32) {
 		{global.frame.world.x, global.frame.world.y - f32(global.rule.bound[2])},
 		{global.frame.world.x, global.frame.world.y + f32(global.rule.bound[3])},
 		2 / zoom,
-		STYLE_BRAND_COLOR_1,
+		color,
 	)
 }
 

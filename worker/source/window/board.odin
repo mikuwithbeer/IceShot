@@ -6,7 +6,10 @@ import "vendor:raylib"
 BOARD_CELL_SIZE :: 8
 
 @(private = "file", rodata)
-BOARD_COLORS := [2]raylib.Color{{30, 30, 35, 255}, {40, 40, 45, 255}}
+BOARD_COLORS_DARK := [2]raylib.Color{{30, 30, 35, 255}, {40, 40, 45, 255}}
+
+@(private = "file", rodata)
+BOARD_COLORS_LIGHT := [2]raylib.Color{{200, 200, 205, 255}, {220, 220, 225, 255}}
 
 @(private)
 draw_board :: proc(gui: ^Window) {
@@ -31,9 +34,11 @@ draw_board :: proc(gui: ^Window) {
 		columns := render.x / BOARD_CELL_SIZE + 1
 		rows := render.y / BOARD_CELL_SIZE + 1
 
+		colors := BOARD_COLORS_DARK if gui.state.config.dark_mode else BOARD_COLORS_LIGHT
+
 		for column in 0 ..< columns {
 			for row in 0 ..< rows {
-				color := BOARD_COLORS[(column + row) % 2]
+				color := colors[(column + row) % 2]
 				raylib.DrawRectangle(
 					column * BOARD_CELL_SIZE,
 					row * BOARD_CELL_SIZE,
