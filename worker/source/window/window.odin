@@ -1,6 +1,7 @@
 package window
 
 import "../error"
+import "../native"
 import "../state"
 
 import "base:runtime"
@@ -19,7 +20,13 @@ Window :: struct {
 }
 
 @(require_results)
-init_window :: proc(allocator := context.allocator) -> (gui: Window, err: error.Error) {
+init_window :: proc(
+	capture: ^native.Unsafe_Capture,
+	allocator := context.allocator,
+) -> (
+	gui: Window,
+	err: error.Error,
+) {
 	gui._allocator = allocator
 
 	raylib.SetConfigFlags({.WINDOW_HIGHDPI, .WINDOW_RESIZABLE, .VSYNC_HINT})
@@ -39,7 +46,7 @@ init_window :: proc(allocator := context.allocator) -> (gui: Window, err: error.
 	gui.state.frame.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
 	gui.state.frame.board = true
 
-	gui.viewer = init_viewer(&gui.state, allocator = allocator) or_return
+	gui.viewer = init_viewer(&gui.state, capture, allocator = allocator) or_return
 	gui.header = init_header(&gui.state, allocator = allocator) or_return
 
 	return

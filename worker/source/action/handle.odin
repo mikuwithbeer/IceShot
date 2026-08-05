@@ -10,41 +10,6 @@ import "core:time"
 import "vendor:raylib"
 
 @(require_results)
-handle_capture :: proc() -> (Capture_Result, error.Error) {
-	ok := native.unsafe_init_capture()
-	if !ok {
-		return {}, .Not_Permitted
-	}
-
-	size: native.Unsafe_Point2D
-	ok = native.unsafe_size_capture(&size)
-	if !ok {
-		return {}, .Not_Permitted
-	}
-
-	capture: native.Unsafe_Capture
-	ok = native.unsafe_load_capture({0, 0}, size, &capture)
-	if !ok {
-		return {}, .Out_Of_Memory
-	}
-
-	defer native.unsafe_free_capture(&capture)
-
-	image := raylib.Image {
-		data    = capture.data,
-		width   = i32(capture.width),
-		height  = i32(capture.height),
-		mipmaps = 1,
-		format  = .UNCOMPRESSED_R8G8B8A8,
-	}
-
-	texture := raylib.LoadTextureFromImage(image)
-	raylib.SetTextureFilter(texture, .BILINEAR)
-
-	return {width = image.width, height = image.height, texture = texture}, .None
-}
-
-@(require_results)
 handle_crop :: proc(act: Crop) -> (Crop_Result, error.Error) {
 	image := raylib.LoadImageFromTexture(act.texture)
 	defer raylib.UnloadImage(image)

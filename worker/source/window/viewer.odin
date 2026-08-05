@@ -1,7 +1,7 @@
 package window
 
-import "../action"
 import "../error"
+import "../native"
 import "../state"
 
 import "base:runtime"
@@ -16,6 +16,7 @@ Viewer :: struct {
 @(private, require_results)
 init_viewer :: proc(
 	global: ^state.State,
+	capture: ^native.Unsafe_Capture,
 	allocator := context.allocator,
 ) -> (
 	view: Viewer,
@@ -23,14 +24,25 @@ init_viewer :: proc(
 ) {
 	view._allocator = allocator
 
-	result := action.handle_capture() or_return
+	image := raylib.Image {
+		data    = capture.data,
+		width   = i32(capture.width),
+		height  = i32(capture.height),
+		mipmaps = 1,
+		format  = .UNCOMPRESSED_R8G8B8A8,
+	}
+
+	texture := raylib.LoadTextureFromImage(image)
+	raylib.SetTextureFilter(texture, .BILINEAR)
+
+	native.unsafe_free_capture(capture) // Already loaded as texture so free it
 
 	// Store both textures for the history.
-	global.frame.initial, global.frame.current = result.texture, result.texture
+	global.frame.initial, global.frame.current = texture, texture
 
 	scale := [2]f32 {
-		global.frame.render.x / f32(result.width),
-		global.frame.render.y / f32(result.height),
+		global.frame.render.x / f32(texture.width),
+		global.frame.render.y / f32(texture.height),
 	}
 
 	// Never zoom in past the original size.
@@ -39,7 +51,7 @@ init_viewer :: proc(
 	// Start with the image centred and ready to use.
 	view.camera = raylib.Camera2D {
 		offset = {global.frame.render.x * 0.5, global.frame.render.y * 0.5},
-		target = {f32(result.width) * 0.5, f32(result.height) * 0.5},
+		target = {f32(texture.width) * 0.5, f32(texture.height) * 0.5},
 		zoom   = zoom,
 	}
 
