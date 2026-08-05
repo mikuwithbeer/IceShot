@@ -54,7 +54,12 @@ init_config :: proc(allocator := context.allocator) -> (config: Config, err: err
 	defer delete(config_file, allocator = allocator)
 
 	file: ^os.File
-	file, os_err = os.open(config_file, {.Create, .Read, .Write})
+	file, os_err = os.open(
+		config_file,
+		{.Create, .Read, .Write},
+		perm = {.Read_User, .Read_Other, .Read_Group, .Write_User},
+	)
+
 	if os_err != os.ERROR_NONE {
 		err = .Failed_To_Open_File
 		return
