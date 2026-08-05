@@ -4,9 +4,9 @@ import "../action"
 import "../error"
 
 History :: struct {
-	running: bool,
-	current: int,
 	actions: [dynamic]action.Action,
+	current: int,
+	running: bool,
 }
 
 @(private, require_results)
@@ -23,9 +23,9 @@ init_history :: proc(allocator := context.allocator) -> (history: History, err: 
 	if allocate_err != .None {
 		err = .Out_Of_Memory
 	} else {
-		history.running = true
-		history.current = 0
 		history.actions = actions
+		history.current = 0
+		history.running = true
 	}
 
 	return

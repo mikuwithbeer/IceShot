@@ -142,7 +142,7 @@ init_font :: proc(frame: ^state.Frame) {
 		".ttf",
 		raw_data(STYLE_FONT_DATA),
 		i32(len(STYLE_FONT_DATA)),
-		64,
+		64, // Supersampling to increase quality
 		nil,
 		0,
 	)

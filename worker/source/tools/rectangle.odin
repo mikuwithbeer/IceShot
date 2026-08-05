@@ -41,7 +41,7 @@ start :: proc(global: ^state.State) -> (area: raylib.Rectangle, color: raylib.Co
 			height = abs(global.rectangle.start.y - global.rectangle.end.y),
 		}
 
-		// Keep color fully opaque.
+		// Keep the color fully opaque.
 		color = {global.rectangle.color.r, global.rectangle.color.g, global.rectangle.color.b, 255}
 
 		if raylib.IsMouseButtonReleased(.LEFT) && area.width >= 1 && area.height >= 1 {
@@ -68,7 +68,7 @@ end :: proc(global: ^state.State, area: raylib.Rectangle, color: raylib.Color) -
 	state.push_history(&global.history, act) or_return
 	state.show_idle_message(&global.message)
 
-	global.process, global.rectangle, global.tool = {}, {}, .None // Reset the process state
+	global.process, global.rectangle, global.tool = {}, {}, .None
 	return .None
 }
 

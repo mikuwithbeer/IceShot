@@ -52,6 +52,6 @@ end :: proc(global: ^state.State, allocator := context.allocator) -> error.Error
 	action.picker(act, allocator = allocator) or_return
 	state.show_copied_message(&global.message)
 
-	global.process, global.picker, global.tool = {}, {}, .None // Reset the process state
+	global.process, global.picker, global.tool = {}, {}, .None
 	return .None
 }

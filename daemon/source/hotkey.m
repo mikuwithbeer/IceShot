@@ -1,7 +1,15 @@
 #import <Carbon/Carbon.h>
 #import <Cocoa/Cocoa.h>
 
+// [--------------------------------------------------------------] //
+// > Global Variables                                             < //
+// [--------------------------------------------------------------] //
+
 static void (^on_hotkey_pressed)(void) = nil;
+
+// [--------------------------------------------------------------] //
+// > Function Implementations                                     < //
+// [--------------------------------------------------------------] //
 
 OSStatus screenshot_key_handler(__unused EventHandlerCallRef next_handler,
                                 __unused EventRef event,

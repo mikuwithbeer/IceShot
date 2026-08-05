@@ -25,7 +25,6 @@ undo :: proc(global: ^state.State) -> error.Error {
 	rebuild_from_history(global) or_return
 
 	state.show_undo_message(&global.message)
-
 	return .None
 }
 
@@ -37,7 +36,6 @@ redo :: proc(global: ^state.State) -> error.Error {
 	rebuild_from_history(global) or_return
 
 	state.show_redo_message(&global.message)
-
 	return .None
 }
 
@@ -76,7 +74,7 @@ copy :: proc(global: ^state.State) -> error.Error {
 
 @(require_results)
 save :: proc(global: ^state.State, allocator := context.allocator) -> error.Error {
-	global.process = {} // Reset the process state
+	global.process = {}
 
 	act := action.Save {
 		texture = global.frame.current,

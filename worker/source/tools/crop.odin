@@ -72,7 +72,7 @@ end :: proc(
 	state.push_history(&global.history, act) or_return
 	state.show_idle_message(&global.message)
 
-	global.process, global.crop, global.tool = {}, {}, .None // Reset the process state
+	global.process, global.crop, global.tool = {}, {}, .None
 	return
 }
 

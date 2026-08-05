@@ -8,23 +8,18 @@ import "base:runtime"
 
 main :: proc() {
 	allocator := runtime.heap_allocator()
-
-	capture, ok := capture_screenshot()
-	if !ok {
+	if capture, ok := capture_screenshot(); ok {
+		gui, err := window.init_window(&capture, allocator = allocator)
+		if err != .None {
+			window.free_window(&gui)
+			error.message_box(err)
+		} else {
+			err = window.load_window(&gui)
+			window.free_window(&gui)
+			error.message_box(err)
+		}
+	} else {
 		error.message_box(.Not_Permitted)
-	}
-
-	gui, err := window.init_window(&capture, allocator = allocator)
-	if err != .None {
-		window.free_window(&gui)
-		error.message_box(err)
-	}
-
-	err = window.load_window(&gui)
-	window.free_window(&gui)
-
-	if err != .None {
-		error.message_box(err)
 	}
 }
 

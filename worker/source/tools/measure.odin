@@ -102,7 +102,7 @@ end :: proc(global: ^state.State, allocator := context.allocator) -> error.Error
 	action.measure(act, allocator = allocator) or_return
 	state.show_copied_message(&global.message)
 
-	global.process, global.measure, global.tool = {}, {}, .None // Reset the process state
+	global.process, global.measure, global.tool = {}, {}, .None
 	return .None
 }
 

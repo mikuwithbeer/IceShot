@@ -287,7 +287,7 @@ save :: proc(act: Save, allocator := context.allocator) -> error.Error {
 
 	defer delete(path, allocator = allocator)
 
-	c_path, allocate_err := strings.clone_to_cstring(path, allocator = allocator)
+	c_path, allocate_err := strings.clone_to_cstring(path, allocator = allocator) // Is there a better way?
 	if allocate_err != .None {
 		return .Out_Of_Memory
 	}
@@ -297,7 +297,7 @@ save :: proc(act: Save, allocator := context.allocator) -> error.Error {
 	ok := raylib.ExportImage(image, c_path)
 	if !ok {
 		return .Failed_To_Write_File
+	} else {
+		return .None
 	}
-
-	return .None
 }

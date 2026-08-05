@@ -1,17 +1,28 @@
 #import <Foundation/Foundation.h>
 #import <ServiceManagement/ServiceManagement.h>
 
+// [--------------------------------------------------------------] //
+// > Data Structures                                              < //
+// [--------------------------------------------------------------] //
+
 typedef struct {
   BOOL auto_launch;
 } Config;
 
-Config daemon_config = {.auto_launch = NO};
+// [--------------------------------------------------------------] //
+// > Global Variables                                             < //
+// [--------------------------------------------------------------] //
 
+Config daemon_config = {NO};
 extern Config daemon_config;
 
 static __auto_type default_config = @"{\n"
                                     @"  \"auto_launch\": false\n"
                                     @"}\n";
+
+// [--------------------------------------------------------------] //
+// > Function Implementations                                     < //
+// [--------------------------------------------------------------] //
 
 BOOL load_config(void) {
   __auto_type file_manager = [NSFileManager defaultManager];

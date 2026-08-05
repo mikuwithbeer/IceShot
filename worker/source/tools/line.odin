@@ -35,7 +35,8 @@ start :: proc(global: ^state.State) -> (color: raylib.Color, ready: bool) {
 			global.line.end = global.frame.world
 		}
 
-		color = {global.line.color.r, global.line.color.g, global.line.color.b, 255} // Keep it fully opaque
+		// Keep the color fully opaque.
+		color = {global.line.color.r, global.line.color.g, global.line.color.b, 255}
 
 		if raylib.IsMouseButtonReleased(.LEFT) && global.line.start != global.line.end {
 			ready = true
@@ -61,7 +62,7 @@ end :: proc(global: ^state.State, color: raylib.Color) -> error.Error {
 	state.push_history(&global.history, act) or_return
 	state.show_idle_message(&global.message)
 
-	global.process, global.line, global.tool = {}, {}, .None // Reset the process state
+	global.process, global.line, global.tool = {}, {}, .None
 	return .None
 }
 

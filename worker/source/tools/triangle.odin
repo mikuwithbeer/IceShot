@@ -24,9 +24,6 @@ triangle :: proc(global: ^state.State) -> error.Error {
 
 @(private = "file", require_results)
 start :: proc(global: ^state.State) -> (color: raylib.Color, ready: bool) {
-	// Keep it fully opaque.
-	color = {global.triangle.color.r, global.triangle.color.g, global.triangle.color.b, 255}
-
 	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
 		global.triangle.point[global.triangle.index] = global.frame.world
 		global.triangle.index += 1
@@ -35,6 +32,9 @@ start :: proc(global: ^state.State) -> (color: raylib.Color, ready: bool) {
 			ready = true
 		}
 	}
+
+	// Keep the color fully opaque.
+	color = {global.triangle.color.r, global.triangle.color.g, global.triangle.color.b, 255}
 
 	return
 }
@@ -53,7 +53,7 @@ end :: proc(global: ^state.State, color: raylib.Color) -> error.Error {
 	state.push_history(&global.history, act) or_return
 	state.show_idle_message(&global.message)
 
-	global.process, global.triangle, global.tool = {}, {}, .None // Reset the process state
+	global.process, global.triangle, global.tool = {}, {}, .None
 	return .None
 }
 

@@ -15,7 +15,12 @@ Error :: enum {
 }
 
 message_box :: proc(error: Error) {
-	native.unsafe_error_box(to_string(error))
+	// None is not an error, just return if somehow it gets there.
+	if error == .None {
+		return
+	} else {
+		native.unsafe_error_box(to_string(error))
+	}
 }
 
 @(private)
@@ -26,11 +31,11 @@ to_string :: proc(error: Error) -> cstring {
 	case .Not_Permitted:
 		return "Please enable screen recording permission in System Settings and try again."
 	case .Nothing_To_Undo:
-		return "There's nothing to undo."
+		return "There's nothing to undo." // This message is unreachable
 	case .Nothing_To_Redo:
-		return "There's nothing to redo."
+		return "There's nothing to redo." // This message is unreachable
 	case .No_Text_Found:
-		return "No text was found."
+		return "No text was found." // This message is unreachable
 	case .Failed_To_Open_File:
 		return "Could not open the configuration file."
 	case .Failed_To_Read_File:
@@ -39,5 +44,5 @@ to_string :: proc(error: Error) -> cstring {
 		return "Could not save the configuration file. Check whether the path is valid."
 	}
 
-	return "Something went wrong."
+	return "Something went wrong." // This message is unreachable
 }

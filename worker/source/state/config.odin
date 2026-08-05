@@ -32,7 +32,7 @@ Config :: struct {
 init_config :: proc(allocator := context.allocator) -> (config: Config, err: error.Error) {
 	home_directory, os_err := os.user_home_dir(allocator = allocator)
 	if os_err != os.ERROR_NONE {
-		err = .Out_Of_Memory
+		err = .Out_Of_Memory // It might not be an allocation issue?
 		return
 	}
 
@@ -47,7 +47,7 @@ init_config :: proc(allocator := context.allocator) -> (config: Config, err: err
 
 	defer delete(config_directory, allocator = allocator)
 
-	os.make_directory(config_directory) // TODO: proper error handling
+	os.make_directory(config_directory) // This needs a better error handling
 
 	config_file := fmt.aprintf("%s/%s", config_directory, CONFIG_FILE, allocator = allocator)
 
@@ -88,7 +88,7 @@ init_config :: proc(allocator := context.allocator) -> (config: Config, err: err
 		}
 	}
 
-	_, os_err = os.seek(file, 0, .Start)
+	_, os_err = os.seek(file, 0, .Start) // Move to beginning in case of write
 	if os_err != os.ERROR_NONE {
 		err = .Failed_To_Read_File
 		return
@@ -103,7 +103,7 @@ init_config :: proc(allocator := context.allocator) -> (config: Config, err: err
 
 	defer delete(raw_config, allocator = allocator)
 
-	json_err := json.unmarshal(raw_config, &config, .JSON5, allocator = allocator)
+	json_err := json.unmarshal(raw_config, &config, allocator = allocator) // Might change specification in the future
 	if json_err != nil {
 		err = .Failed_To_Read_File
 		return

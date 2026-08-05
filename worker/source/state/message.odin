@@ -8,7 +8,7 @@ Message :: struct {
 }
 
 try_reset_message :: proc(message: ^Message) {
-	left := time.time_add(time.now(), time.Second * -5)
+	left := time.time_add(time.now(), time.Second * -5) // May improve this over time
 	right := message.updated
 
 	if time.to_unix_nanoseconds(left) > time.to_unix_nanoseconds(right) {

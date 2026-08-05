@@ -37,7 +37,6 @@ init_viewer :: proc(
 
 	native.unsafe_free_capture(capture) // Already loaded as texture so free it
 
-	// Store both textures for the history.
 	global.frame.initial, global.frame.current = texture, texture
 
 	scale := [2]f32 {
@@ -45,8 +44,7 @@ init_viewer :: proc(
 		global.frame.render.y / f32(texture.height),
 	}
 
-	// Never zoom in past the original size.
-	zoom := min(min(scale.x, scale.y), 1.0)
+	zoom := min(min(scale.x, scale.y), 1.0) // Never zoom in past the original size
 
 	// Start with the image centred and ready to use.
 	global.frame.camera = raylib.Camera2D {
@@ -64,6 +62,7 @@ update_viewer :: proc(view: ^Viewer, global: ^state.State) {
 
 	// Stay within the image.
 	// Leave one pixel to avoid reading out of bounds.
+	// It is only required inside picker and measure, must be fixed for other cases.
 	global.frame.world = raylib.GetScreenToWorld2D(global.frame.absolute, global.frame.camera)
 	global.frame.world = {
 		clamp(global.frame.world.x, 0, f32(global.frame.current.width) - 1),
@@ -83,6 +82,7 @@ draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> error.Error {
 
 	color_first, color_second := get_brand_color(global.config.dark_mode)
 
+	// Every tool that do not run instantly are handled here.
 	tools.crop(global, color_first, color_second) or_return
 	tools.rectangle(global) or_return
 	tools.line(global) or_return
@@ -95,6 +95,7 @@ draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> error.Error {
 
 @(private = "file")
 process_camera_move :: proc(global: ^state.State) {
+	// Avoid moving while using shortcuts.
 	if raylib.IsKeyDown(.LEFT_SUPER) {
 		return
 	}

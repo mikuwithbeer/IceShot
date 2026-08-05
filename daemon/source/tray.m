@@ -4,6 +4,10 @@
 #import <Cocoa/Cocoa.h>
 #import <CoreGraphics/CoreGraphics.h>
 
+// [--------------------------------------------------------------] //
+// > Class Interfaces                                             < //
+// [--------------------------------------------------------------] //
+
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 @property(strong) NSStatusItem *status_item;
 @property(strong) NSMenuItem *capture_item;
@@ -18,6 +22,10 @@
 - (void)redirect_github:(id)sender;
 - (void)quit_app:(id)sender;
 @end
+
+// [--------------------------------------------------------------] //
+// > Method Implementations                                       < //
+// [--------------------------------------------------------------] //
 
 @implementation AppDelegate
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
@@ -49,9 +57,6 @@
   self.capture_item = [menu addItemWithTitle:@"Capture Screen"
                                       action:@selector(menu_screenshot_action:)
                                keyEquivalent:@"3"];
-
-  [self.capture_item setKeyEquivalentModifierMask:NSEventModifierFlagCommand |
-                                                  NSEventModifierFlagShift];
 
   [menu addItem:[NSMenuItem separatorItem]];
 
