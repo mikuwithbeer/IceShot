@@ -7,11 +7,11 @@ import "vendor:raylib"
 Tool :: enum {
 	None,
 	Crop,
-	Rect,
+	Rectangle,
 	Line,
-	Tria,
-	Pick,
-	Rule,
+	Triangle,
+	Picker,
+	Measure,
 }
 
 Crop :: struct {
@@ -19,7 +19,7 @@ Crop :: struct {
 	start, end: [2]f32,
 }
 
-Rect :: struct {
+Rectangle :: struct {
 	using _: Crop,
 	empty:   bool,
 	width:   f32,
@@ -32,13 +32,13 @@ Line :: struct {
 	color:   raylib.Color,
 }
 
-Tria :: struct {
+Triangle :: struct {
 	index: u64,
 	point: [3][2]f32,
 	color: raylib.Color,
 }
 
-Pick :: struct {
+Picker :: struct {
 	active: bool,
 	select: i32,
 	point:  [2]f32,
@@ -47,7 +47,7 @@ Pick :: struct {
 	pixels: [^]raylib.Color,
 }
 
-Rule :: struct {
+Measure :: struct {
 	active: bool,
 	select: i32,
 	bound:  [4]i32,
@@ -57,6 +57,7 @@ Rule :: struct {
 }
 
 Frame :: struct {
+	camera:                                       raylib.Camera2D,
 	initial, current:                             raylib.Texture2D,
 	tiles:                                        raylib.RenderTexture2D,
 	font:                                         raylib.Font,
@@ -65,22 +66,22 @@ Frame :: struct {
 }
 
 Process :: struct {
-	crop, rect, line, tria, pick, rotc, rule, undo, redo, read, copy, save: bool,
+	crop, rectangle, line, triangle, picker, rotate, measure, undo, redo, read, copy, save: bool,
 }
 
 State :: struct {
-	tool:    Tool,
-	crop:    Crop,
-	rect:    Rect,
-	line:    Line,
-	tria:    Tria,
-	pick:    Pick,
-	rule:    Rule,
-	frame:   Frame,
-	process: Process,
-	config:  Config,
-	history: History,
-	message: Message,
+	tool:      Tool,
+	crop:      Crop,
+	rectangle: Rectangle,
+	line:      Line,
+	triangle:  Triangle,
+	picker:    Picker,
+	measure:   Measure,
+	frame:     Frame,
+	process:   Process,
+	config:    Config,
+	history:   History,
+	message:   Message,
 }
 
 @(require_results)

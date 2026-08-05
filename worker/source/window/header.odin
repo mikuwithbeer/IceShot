@@ -2,6 +2,7 @@ package window
 
 import "../error"
 import "../state"
+import "../tools"
 
 import "base:runtime"
 
@@ -11,23 +12,23 @@ Header :: struct {
 	panel:          raylib.Rectangle,
 	color:          raylib.Rectangle,
 	crop:           raylib.Rectangle,
-	rect:           raylib.Rectangle,
+	rectangle:      raylib.Rectangle,
 	line:           raylib.Rectangle,
-	tria:           raylib.Rectangle,
-	pick:           raylib.Rectangle,
-	rotc:           raylib.Rectangle,
-	rule:           raylib.Rectangle,
+	triangle:       raylib.Rectangle,
+	picker:         raylib.Rectangle,
+	rotate:         raylib.Rectangle,
+	measure:        raylib.Rectangle,
 	undo:           raylib.Rectangle,
 	redo:           raylib.Rectangle,
 	read:           raylib.Rectangle,
 	copy:           raylib.Rectangle,
 	save:           raylib.Rectangle,
-	pick_type:      raylib.Rectangle,
-	pick_view:      raylib.Rectangle,
-	rect_type:      raylib.Rectangle,
-	rect_thickness: raylib.Rectangle,
-	line_thickness: raylib.Rectangle,
-	rule_type:      raylib.Rectangle,
+	picker_format:  raylib.Rectangle,
+	picker_viewer:  raylib.Rectangle,
+	rectangle_type: raylib.Rectangle,
+	rectangle_size: raylib.Rectangle,
+	line_size:      raylib.Rectangle,
+	measure_type:   raylib.Rectangle,
 	_allocator:     runtime.Allocator,
 }
 
@@ -58,12 +59,12 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 	head.color = {global.frame.screen.x - 200, 80, 168, 168}
 
 	head.crop = {8, 32, 32, 32}
-	head.rect = {48, 32, 32, 32}
+	head.rectangle = {48, 32, 32, 32}
 	head.line = {88, 32, 32, 32}
-	head.tria = {128, 32, 32, 32}
-	head.pick = {168, 32, 32, 32}
-	head.rotc = {208, 32, 32, 32}
-	head.rule = {248, 32, 32, 32}
+	head.triangle = {128, 32, 32, 32}
+	head.picker = {168, 32, 32, 32}
+	head.rotate = {208, 32, 32, 32}
+	head.measure = {248, 32, 32, 32}
 
 	head.undo = {global.frame.screen.x - 200, 32, 32, 32}
 	head.redo = {global.frame.screen.x - 160, 32, 32, 32}
@@ -71,14 +72,15 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 	head.copy = {global.frame.screen.x - 80, 32, 32, 32}
 	head.save = {global.frame.screen.x - 40, 32, 32, 32}
 
-	head.pick_type = {global.frame.screen.x - 320, 32, 72, 32}
-	head.pick_view = {global.frame.screen.x - 240, 32, 32, 32}
+	head.picker_format = {global.frame.screen.x - 320, 32, 72, 32}
+	head.picker_viewer = {global.frame.screen.x - 240, 32, 32, 32}
 
-	head.rect_type = {global.frame.screen.x - 280, 32, 72, 32}
-	head.rect_thickness = {global.frame.screen.x - 360, 32, 72, 32}
-	head.line_thickness = {global.frame.screen.x - 280, 32, 72, 32}
+	head.rectangle_type = {global.frame.screen.x - 280, 32, 72, 32}
+	head.rectangle_size = {global.frame.screen.x - 360, 32, 72, 32}
 
-	head.rule_type = {global.frame.screen.x - 280, 32, 72, 32}
+	head.line_size = {global.frame.screen.x - 280, 32, 72, 32}
+
+	head.measure_type = {global.frame.screen.x - 280, 32, 72, 32}
 }
 
 @(private = "file")
@@ -89,35 +91,51 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 
 	raylib.GuiToggle(head.crop, raylib.GuiIconText(.ICON_CROP, ""), &global.process.crop)
 
-	raylib.GuiToggle(head.rect, raylib.GuiIconText(.ICON_BOX, ""), &global.process.rect)
+	raylib.GuiToggle(head.rectangle, raylib.GuiIconText(.ICON_BOX, ""), &global.process.rectangle)
 
 	raylib.GuiToggle(head.line, raylib.GuiIconText(.ICON_CROSSLINE, ""), &global.process.line)
 
-	raylib.GuiToggle(head.tria, raylib.GuiIconText(.ICON_CURSOR_POINTER, ""), &global.process.tria)
+	raylib.GuiToggle(
+		head.triangle,
+		raylib.GuiIconText(.ICON_CURSOR_POINTER, ""),
+		&global.process.triangle,
+	)
 
-	raylib.GuiToggle(head.pick, raylib.GuiIconText(.ICON_COLOR_PICKER, ""), &global.process.pick)
+	raylib.GuiToggle(
+		head.picker,
+		raylib.GuiIconText(.ICON_COLOR_PICKER, ""),
+		&global.process.picker,
+	)
 
-	global.process.rotc = raylib.GuiButton(head.rotc, raylib.GuiIconText(.ICON_ROTATE, ""))
+	global.process.rotate = raylib.GuiButton(head.rotate, raylib.GuiIconText(.ICON_ROTATE, ""))
 
-	raylib.GuiToggle(head.rule, raylib.GuiIconText(.ICON_TARGET_POINT, ""), &global.process.rule)
+	raylib.GuiToggle(
+		head.measure,
+		raylib.GuiIconText(.ICON_TARGET_POINT, ""),
+		&global.process.measure,
+	)
 
-	// Keep it disabled if nothing to undo.
-	if !state.can_undo_history(&global.history) {
-		raylib.GuiSetState(i32(raylib.GuiState.STATE_DISABLED))
+	{
+		// Keep it disabled if nothing to undo.
+		if !state.can_undo_history(&global.history) {
+			raylib.GuiSetState(i32(raylib.GuiState.STATE_DISABLED))
+		}
+
+		global.process.undo = raylib.GuiButton(head.undo, raylib.GuiIconText(.ICON_UNDO, ""))
+
+		raylib.GuiSetState(i32(raylib.GuiState.STATE_NORMAL)) // Change back to normal
 	}
 
-	global.process.undo = raylib.GuiButton(head.undo, raylib.GuiIconText(.ICON_UNDO, ""))
+	{
+		// Keep it disabled if nothing to redo.
+		if !state.can_redo_history(&global.history) {
+			raylib.GuiSetState(i32(raylib.GuiState.STATE_DISABLED))
+		}
 
-	raylib.GuiSetState(i32(raylib.GuiState.STATE_NORMAL)) // Change back to normal
+		global.process.redo = raylib.GuiButton(head.redo, raylib.GuiIconText(.ICON_REDO, ""))
 
-	// Keep it disabled if nothing to redo.
-	if !state.can_redo_history(&global.history) {
-		raylib.GuiSetState(i32(raylib.GuiState.STATE_DISABLED))
+		raylib.GuiSetState(i32(raylib.GuiState.STATE_NORMAL)) // Change back to normal
 	}
-
-	global.process.redo = raylib.GuiButton(head.redo, raylib.GuiIconText(.ICON_REDO, ""))
-
-	raylib.GuiSetState(i32(raylib.GuiState.STATE_NORMAL)) // Change back to normal
 
 	global.process.read = raylib.GuiButton(head.read, raylib.GuiIconText(.ICON_ZOOM_BIG, ""))
 
@@ -141,17 +159,17 @@ draw_header_extra :: proc(head: ^Header, global: ^state.State) {
 			crop = global.process.crop,
 		}
 
-	case .Rect:
+	case .Rectangle:
 		global.process = {
-			rect = global.process.rect,
+			rectangle = global.process.rectangle,
 		}
 
-		raylib.GuiColorPicker(head.color, "Color", &global.rect.color)
+		raylib.GuiColorPicker(head.color, "Color", &global.rectangle.color)
 
-		raylib.GuiToggle(head.rect_type, "No Fill", &global.rect.empty)
+		raylib.GuiToggle(head.rectangle_type, "No Fill", &global.rectangle.empty)
 
-		if global.rect.empty {
-			raylib.GuiSlider(head.rect_thickness, "", "", &global.rect.width, 2, 32)
+		if global.rectangle.empty {
+			raylib.GuiSlider(head.rectangle_size, "", "", &global.rectangle.width, 2, 32)
 		}
 	case .Line:
 		global.process = {
@@ -160,40 +178,40 @@ draw_header_extra :: proc(head: ^Header, global: ^state.State) {
 
 		raylib.GuiColorPicker(head.color, "Color", &global.line.color)
 
-		raylib.GuiSlider(head.line_thickness, "", "", &global.line.width, 2, 32)
-	case .Tria:
+		raylib.GuiSlider(head.line_size, "", "", &global.line.width, 2, 32)
+	case .Triangle:
 		global.process = {
-			tria = global.process.tria,
+			triangle = global.process.triangle,
 		}
 
-		raylib.GuiColorPicker(head.color, "Color", &global.tria.color)
-	case .Pick:
+		raylib.GuiColorPicker(head.color, "Color", &global.triangle.color)
+	case .Picker:
 		global.process = {
-			pick = global.process.pick,
+			picker = global.process.picker,
 		}
 
 		if raylib.GuiDropdownBox(
-			head.pick_type,
+			head.picker_format,
 			"HEX;RGB;RGBA",
-			&global.pick.select,
-			global.pick.active,
+			&global.picker.select,
+			global.picker.active,
 		) {
-			global.pick.active = !global.pick.active
+			global.picker.active = !global.picker.active
 		}
 
-		raylib.DrawRectangleRec(head.pick_view, global.pick.pixel)
-	case .Rule:
+		raylib.DrawRectangleRec(head.picker_viewer, global.picker.pixel)
+	case .Measure:
 		global.process = {
-			rule = global.process.rule,
+			measure = global.process.measure,
 		}
 
 		if raylib.GuiDropdownBox(
-			head.rule_type,
+			head.measure_type,
 			"Pixel;Point",
-			&global.rule.select,
-			global.rule.active,
+			&global.measure.select,
+			global.measure.active,
 		) {
-			global.rule.active = !global.rule.active
+			global.measure.active = !global.measure.active
 		}
 	}
 }
@@ -206,17 +224,17 @@ draw_header_hints :: proc(head: ^Header, global: ^state.State) {
 	if !global.frame.fly {
 		if raylib.CheckCollisionPointRec(global.frame.cursor, head.crop) {
 			raylib.DrawTextEx(global.frame.font, "Crop Image", text_point, 16, 0, text_color)
-		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rect) {
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rectangle) {
 			raylib.DrawTextEx(global.frame.font, "Draw Rectangle", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.line) {
 			raylib.DrawTextEx(global.frame.font, "Draw Line", text_point, 16, 0, text_color)
-		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.tria) {
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.triangle) {
 			raylib.DrawTextEx(global.frame.font, "Draw Triangle", text_point, 16, 0, text_color)
-		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.pick) {
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.picker) {
 			raylib.DrawTextEx(global.frame.font, "Color Picker", text_point, 16, 0, text_color)
-		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rotc) {
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rotate) {
 			raylib.DrawTextEx(global.frame.font, "Rotate Clockwise", text_point, 16, 0, text_color)
-		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rule) {
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.measure) {
 			raylib.DrawTextEx(global.frame.font, "Measure Distance", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.undo) {
 			raylib.DrawTextEx(global.frame.font, "Undo Action", text_point, 16, 0, text_color)
@@ -267,35 +285,35 @@ process_raw_shortcut :: proc(global: ^state.State) {
 	if raylib.IsKeyPressed(.C) {
 		global.process.crop = !global.process.crop
 	} else if raylib.IsKeyPressed(.R) {
-		global.process.rect = !global.process.rect
+		global.process.rectangle = !global.process.rectangle
 	} else if raylib.IsKeyPressed(.L) {
 		global.process.line = !global.process.line
 	} else if raylib.IsKeyPressed(.T) {
-		global.process.tria = !global.process.tria
+		global.process.triangle = !global.process.triangle
 	} else if raylib.IsKeyPressed(.I) {
-		global.process.pick = !global.process.pick
+		global.process.picker = !global.process.picker
 	} else if raylib.IsKeyPressed(.O) {
-		global.process.rotc = true
+		global.process.rotate = true
 	} else if raylib.IsKeyPressed(.M) {
-		global.process.rule = !global.process.rule
+		global.process.measure = !global.process.measure
 	}
 }
 
 @(private = "file", require_results)
 process_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 	// Process actions straight away if possible.
-	if global.process.rotc {
-		process_rotc(global) or_return
+	if global.process.rotate {
+		tools.rotate(global) or_return
 	} else if global.process.undo {
-		process_undo(global) or_return
+		tools.undo(global) or_return
 	} else if global.process.redo {
-		process_redo(global) or_return
+		tools.redo(global) or_return
 	} else if global.process.copy {
-		process_copy(global) or_return
+		tools.copy(global) or_return
 	} else if global.process.read {
-		process_read(global) or_return
+		tools.read(global) or_return
 	} else if global.process.save {
-		process_save(global, head._allocator) or_return
+		tools.save(global, head._allocator) or_return
 	}
 
 	switch global.tool {
@@ -303,20 +321,20 @@ process_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 		if global.process.crop {
 			global.tool = .Crop
 			state.show_select_area_message(&global.message)
-		} else if global.process.rect {
-			global.tool = .Rect
+		} else if global.process.rectangle {
+			global.tool = .Rectangle
 			state.show_create_rectangle_message(&global.message)
 		} else if global.process.line {
 			global.tool = .Line
 			state.show_create_line_message(&global.message)
-		} else if global.process.tria {
-			global.tool = .Tria
-			state.show_create_triangle_message(&global.message) // TODO update that
-		} else if global.process.pick {
-			global.tool = .Pick
+		} else if global.process.triangle {
+			global.tool = .Triangle
+			state.show_create_triangle_message(&global.message)
+		} else if global.process.picker {
+			global.tool = .Picker
 			state.show_pick_color_message(&global.message)
-		} else if global.process.rule {
-			global.tool = .Rule
+		} else if global.process.measure {
+			global.tool = .Measure
 			state.show_measure_distance_message(&global.message)
 		}
 	case .Crop:
@@ -325,9 +343,9 @@ process_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 			global.tool = .None
 			state.show_idle_message(&global.message)
 		}
-	case .Rect:
-		if !global.process.rect {
-			global.rect = {}
+	case .Rectangle:
+		if !global.process.rectangle {
+			global.rectangle = {}
 			global.tool = .None
 			state.show_idle_message(&global.message)
 		}
@@ -337,21 +355,21 @@ process_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 			global.tool = .None
 			state.show_idle_message(&global.message)
 		}
-	case .Tria:
-		if !global.process.tria {
-			global.tria = {}
+	case .Triangle:
+		if !global.process.triangle {
+			global.triangle = {}
 			global.tool = .None
 			state.show_idle_message(&global.message)
 		}
-	case .Pick:
-		if !global.process.pick {
-			global.pick = {}
+	case .Picker:
+		if !global.process.picker {
+			global.picker = {}
 			global.tool = .None
 			state.show_idle_message(&global.message)
 		}
-	case .Rule:
-		if !global.process.rule {
-			global.rule = {}
+	case .Measure:
+		if !global.process.measure {
+			global.measure = {}
 			global.tool = .None
 			state.show_idle_message(&global.message)
 		}
