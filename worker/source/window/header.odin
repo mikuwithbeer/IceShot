@@ -3,8 +3,6 @@ package window
 import "../error"
 import "../state"
 
-import "core:time"
-
 import "base:runtime"
 
 import "vendor:raylib"
@@ -85,80 +83,9 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 
 @(private = "file")
 draw_header :: proc(head: ^Header, global: ^state.State) {
-	// Switch back to the idle message after a few seconds.
-	{
-		left := time.time_add(time.now(), time.Second * -5)
-		right := global.message.updated
-
-		if time.to_unix_nanoseconds(left) > time.to_unix_nanoseconds(right) {
-			state.show_idle_message(&global.message)
-		}
-	}
+	state.try_reset_message(&global.message)
 
 	raylib.GuiPanel(head.panel, global.message.content)
-
-	switch global.tool {
-	case .None:
-		break
-	case .Crop:
-		global.process = {
-			crop = true,
-		}
-	case .Rect:
-		global.process = {
-			rect = true,
-		}
-
-		raylib.GuiColorPicker(head.color, "Color", &global.rect.color)
-
-		raylib.GuiToggle(head.rect_type, "No Fill", &global.rect.empty)
-
-		if global.rect.empty {
-			raylib.GuiSlider(head.rect_thickness, "", "", &global.rect.width, 2, 32)
-		}
-	case .Line:
-		global.process = {
-			line = true,
-		}
-
-		raylib.GuiColorPicker(head.color, "Color", &global.line.color)
-
-		raylib.GuiSlider(head.line_thickness, "", "", &global.line.width, 2, 32)
-	case .Tria:
-		global.process = {
-			tria = true,
-		}
-
-		raylib.GuiColorPicker(head.color, "Color", &global.tria.color)
-	case .Pick:
-		global.process = {
-			pick = true,
-		}
-
-		if raylib.GuiDropdownBox(
-			head.pick_type,
-			"HEX;RGB;RGBA",
-			&global.pick.select,
-			global.pick.active,
-		) {
-			global.pick.active = !global.pick.active
-		}
-
-		raylib.DrawRectangleRec(head.pick_view, global.pick.pixel)
-	case .Rule:
-		global.process = {
-			rule = true,
-		}
-
-		if raylib.GuiDropdownBox(
-			head.rule_type,
-			"Pixel;Point",
-			&global.rule.select,
-			global.rule.active,
-		) {
-			global.rule.active = !global.rule.active
-		}
-	}
 
 	raylib.GuiToggle(head.crop, raylib.GuiIconText(.ICON_CROP, ""), &global.process.crop)
 
@@ -198,68 +125,159 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 
 	global.process.save = raylib.GuiButton(head.save, raylib.GuiIconText(.ICON_FILE_SAVE, ""))
 
-	// Show a hint when hovering a tool.
-	{
-		text_point := global.frame.cursor + {8, 8}
-		text_color := get_tip_color(global.config.dark_mode)
+	process_shortcut(global)
 
-		if !global.frame.fly {
-			if raylib.CheckCollisionPointRec(global.frame.cursor, head.crop) {
-				raylib.DrawTextEx(global.frame.font, "Crop Image", text_point, 16, 0, text_color)
-			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rect) {
-				raylib.DrawTextEx(
-					global.frame.font,
-					"Draw Rectangle",
-					text_point,
-					16,
-					0,
-					text_color,
-				)
-			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.line) {
-				raylib.DrawTextEx(global.frame.font, "Draw Line", text_point, 16, 0, text_color)
-			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.tria) {
-				raylib.DrawTextEx(
-					global.frame.font,
-					"Draw Triangle",
-					text_point,
-					16,
-					0,
-					text_color,
-				)
-			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.pick) {
-				raylib.DrawTextEx(global.frame.font, "Color Picker", text_point, 16, 0, text_color)
-			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rotc) {
-				raylib.DrawTextEx(
-					global.frame.font,
-					"Rotate Clockwise",
-					text_point,
-					16,
-					0,
-					text_color,
-				)
-			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rule) {
-				raylib.DrawTextEx(
-					global.frame.font,
-					"Measure Distance",
-					text_point,
-					16,
-					0,
-					text_color,
-				)
-			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.undo) {
-				raylib.DrawTextEx(global.frame.font, "Undo Action", text_point, 16, 0, text_color)
-			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.redo) {
-				raylib.DrawTextEx(global.frame.font, "Redo Action", text_point, 16, 0, text_color)
-			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.read) {
-				raylib.DrawTextEx(global.frame.font, "Copy OCR", text_point, 16, 0, text_color)
-			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.copy) {
-				text_point.x -= 80
-				raylib.DrawTextEx(global.frame.font, "Copy Image", text_point, 16, 0, text_color)
-			} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.save) {
-				text_point.x -= 80
-				raylib.DrawTextEx(global.frame.font, "Save Image", text_point, 16, 0, text_color)
-			}
+	draw_header_extra(head, global)
+	draw_header_hints(head, global)
+}
+
+@(private = "file")
+draw_header_extra :: proc(head: ^Header, global: ^state.State) {
+	switch global.tool {
+	case .None:
+		return
+	case .Crop:
+		global.process = {
+			crop = global.process.crop,
 		}
+
+	case .Rect:
+		global.process = {
+			rect = global.process.rect,
+		}
+
+		raylib.GuiColorPicker(head.color, "Color", &global.rect.color)
+
+		raylib.GuiToggle(head.rect_type, "No Fill", &global.rect.empty)
+
+		if global.rect.empty {
+			raylib.GuiSlider(head.rect_thickness, "", "", &global.rect.width, 2, 32)
+		}
+	case .Line:
+		global.process = {
+			line = global.process.line,
+		}
+
+		raylib.GuiColorPicker(head.color, "Color", &global.line.color)
+
+		raylib.GuiSlider(head.line_thickness, "", "", &global.line.width, 2, 32)
+	case .Tria:
+		global.process = {
+			tria = global.process.tria,
+		}
+
+		raylib.GuiColorPicker(head.color, "Color", &global.tria.color)
+	case .Pick:
+		global.process = {
+			pick = global.process.pick,
+		}
+
+		if raylib.GuiDropdownBox(
+			head.pick_type,
+			"HEX;RGB;RGBA",
+			&global.pick.select,
+			global.pick.active,
+		) {
+			global.pick.active = !global.pick.active
+		}
+
+		raylib.DrawRectangleRec(head.pick_view, global.pick.pixel)
+	case .Rule:
+		global.process = {
+			rule = global.process.rule,
+		}
+
+		if raylib.GuiDropdownBox(
+			head.rule_type,
+			"Pixel;Point",
+			&global.rule.select,
+			global.rule.active,
+		) {
+			global.rule.active = !global.rule.active
+		}
+	}
+}
+
+@(private = "file")
+draw_header_hints :: proc(head: ^Header, global: ^state.State) {
+	text_point := global.frame.cursor + {8, 8}
+	text_color := get_tip_color(global.config.dark_mode)
+
+	if !global.frame.fly {
+		if raylib.CheckCollisionPointRec(global.frame.cursor, head.crop) {
+			raylib.DrawTextEx(global.frame.font, "Crop Image", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rect) {
+			raylib.DrawTextEx(global.frame.font, "Draw Rectangle", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.line) {
+			raylib.DrawTextEx(global.frame.font, "Draw Line", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.tria) {
+			raylib.DrawTextEx(global.frame.font, "Draw Triangle", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.pick) {
+			raylib.DrawTextEx(global.frame.font, "Color Picker", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rotc) {
+			raylib.DrawTextEx(global.frame.font, "Rotate Clockwise", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.rule) {
+			raylib.DrawTextEx(global.frame.font, "Measure Distance", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.undo) {
+			raylib.DrawTextEx(global.frame.font, "Undo Action", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.redo) {
+			raylib.DrawTextEx(global.frame.font, "Redo Action", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.read) {
+			raylib.DrawTextEx(global.frame.font, "Copy OCR", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.copy) {
+			text_point.x -= 80
+			raylib.DrawTextEx(global.frame.font, "Copy Image", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.save) {
+			text_point.x -= 80
+			raylib.DrawTextEx(global.frame.font, "Save Image", text_point, 16, 0, text_color)
+		}
+	}
+}
+
+@(private = "file")
+process_shortcut :: proc(global: ^state.State) {
+	if raylib.IsKeyDown(.LEFT_SUPER) {
+		process_super_shortcut(global)
+	} else {
+		process_raw_shortcut(global)
+	}
+}
+
+@(private = "file")
+process_super_shortcut :: proc(global: ^state.State) {
+	shift := raylib.IsKeyDown(.LEFT_SHIFT)
+
+	if raylib.IsKeyPressed(.Z) {
+		if shift {
+			if state.can_redo_history(&global.history) {
+				global.process.redo = true
+			}
+		} else if state.can_undo_history(&global.history) {
+			global.process.undo = true
+		}
+	} else if raylib.IsKeyPressed(.C) {
+		global.process.copy = true
+	} else if raylib.IsKeyPressed(.S) {
+		global.process.save = true
+	}
+}
+
+@(private = "file")
+process_raw_shortcut :: proc(global: ^state.State) {
+	if raylib.IsKeyPressed(.C) {
+		global.process.crop = !global.process.crop
+	} else if raylib.IsKeyPressed(.R) {
+		global.process.rect = !global.process.rect
+	} else if raylib.IsKeyPressed(.L) {
+		global.process.line = !global.process.line
+	} else if raylib.IsKeyPressed(.T) {
+		global.process.tria = !global.process.tria
+	} else if raylib.IsKeyPressed(.I) {
+		global.process.pick = !global.process.pick
+	} else if raylib.IsKeyPressed(.O) {
+		global.process.rotc = true
+	} else if raylib.IsKeyPressed(.M) {
+		global.process.rule = !global.process.rule
 	}
 }
 

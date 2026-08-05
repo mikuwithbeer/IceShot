@@ -91,6 +91,10 @@ replace_current_texture :: proc(global: ^state.State, texture: raylib.Texture2D)
 
 @(private = "file")
 process_camera_move :: proc(view: ^Viewer) {
+	if raylib.IsKeyDown(.LEFT_SUPER) {
+		return
+	}
+
 	speed := 2000.0 * raylib.GetFrameTime() / view.camera.zoom // Keep movement the same
 
 	if raylib.IsKeyDown(.A) || raylib.IsKeyDown(.LEFT) {

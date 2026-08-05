@@ -7,6 +7,15 @@ Message :: struct {
 	updated: time.Time,
 }
 
+try_reset_message :: proc(message: ^Message) {
+	left := time.time_add(time.now(), time.Second * -5)
+	right := message.updated
+
+	if time.to_unix_nanoseconds(left) > time.to_unix_nanoseconds(right) {
+		show_idle_message(message)
+	}
+}
+
 show_idle_message :: proc(message: ^Message) {
 	message.content = "Waiting for an action..."
 	message.updated = time.now()
