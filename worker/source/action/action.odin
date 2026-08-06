@@ -160,6 +160,15 @@ picker :: proc(act: Picker, allocator := context.allocator) -> error.Error {
 			act.color.a,
 			allocator = allocator,
 		)
+	case 3:
+		h, s, l := rgb_to_hsl(act.color)
+		content = fmt.aprintf(
+			"hsl(%.0f, %.0f%%, %.1f%%)",
+			h,
+			s * 100.0,
+			l * 100.0,
+			allocator = allocator,
+		)
 	case:
 		// Default to hexadecimal formatting when no specific mode is selected.
 		content = fmt.aprintf(
@@ -299,4 +308,39 @@ save :: proc(act: Save, allocator := context.allocator) -> error.Error {
 	} else {
 		return .None
 	}
+}
+
+@(private = "file")
+rgb_to_hsl :: proc(color: raylib.Color) -> (hue, saturation, lightness: f32) {
+	r, g, b := f32(color.r) / 255.0, f32(color.g) / 255.0, f32(color.b) / 255.0
+	color_max, color_min := max(r, g, b), min(r, g, b)
+
+	lightness = (color_max + color_min) * 0.5
+
+	if color_max == color_min {
+		return
+	}
+
+	delta := color_max - color_min
+
+	if lightness > 0.5 {
+		saturation = delta / (2.0 - color_max - color_min)
+	} else {
+		saturation = delta / (color_max + color_min)
+	}
+
+	switch {
+	case color_max == r:
+		hue = (g - b) / delta
+		if g < b {
+			hue += 6.0
+		}
+	case color_max == g:
+		hue = (b - r) / delta + 2.0
+	case color_max == b:
+		hue = (r - g) / delta + 4.0
+	}
+
+	hue *= 60.0
+	return
 }

@@ -183,7 +183,7 @@ draw_header_extra :: proc(head: ^Header, global: ^state.State) {
 
 		if raylib.GuiDropdownBox(
 			head.picker_format,
-			"HEX;RGB;RGBA",
+			"HEX;RGB;RGBA;HSL",
 			&global.picker.select,
 			global.picker.active,
 		) {
