@@ -1,12 +1,11 @@
 package window
 
 import "../error"
+import "../raylib"
 import "../state"
 import "../tools"
 
 import "base:runtime"
-
-import "vendor:raylib"
 
 Header :: struct {
 	panel:          raylib.Rectangle,
@@ -89,59 +88,51 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 
 	raylib.GuiPanel(head.panel, global.message.content)
 
-	raylib.GuiToggle(head.crop, raylib.GuiIconText(.ICON_CROP, ""), &global.process.crop)
+	raylib.GuiToggle(head.crop, raylib.GuiIconText(.Crop, ""), &global.process.crop)
 
-	raylib.GuiToggle(head.rectangle, raylib.GuiIconText(.ICON_BOX, ""), &global.process.rectangle)
+	raylib.GuiToggle(head.rectangle, raylib.GuiIconText(.Box, ""), &global.process.rectangle)
 
-	raylib.GuiToggle(head.line, raylib.GuiIconText(.ICON_CROSSLINE, ""), &global.process.line)
+	raylib.GuiToggle(head.line, raylib.GuiIconText(.Crossline, ""), &global.process.line)
 
 	raylib.GuiToggle(
 		head.triangle,
-		raylib.GuiIconText(.ICON_CURSOR_POINTER, ""),
+		raylib.GuiIconText(.Cursor_Pointer, ""),
 		&global.process.triangle,
 	)
 
-	raylib.GuiToggle(
-		head.picker,
-		raylib.GuiIconText(.ICON_COLOR_PICKER, ""),
-		&global.process.picker,
-	)
+	raylib.GuiToggle(head.picker, raylib.GuiIconText(.Color_Picker, ""), &global.process.picker)
 
-	global.process.rotate = raylib.GuiButton(head.rotate, raylib.GuiIconText(.ICON_ROTATE, ""))
+	global.process.rotate = raylib.GuiButton(head.rotate, raylib.GuiIconText(.Rotate, ""))
 
-	raylib.GuiToggle(
-		head.measure,
-		raylib.GuiIconText(.ICON_TARGET_POINT, ""),
-		&global.process.measure,
-	)
+	raylib.GuiToggle(head.measure, raylib.GuiIconText(.Target_Point, ""), &global.process.measure)
 
 	{
 		// Keep it disabled if nothing to undo.
 		if !state.can_undo_history(&global.history) {
-			raylib.GuiSetState(i32(raylib.GuiState.STATE_DISABLED))
+			raylib.GuiSetState(cast(i32)(raylib.Gui_State.Disabled))
 		}
 
-		global.process.undo = raylib.GuiButton(head.undo, raylib.GuiIconText(.ICON_UNDO, ""))
+		global.process.undo = raylib.GuiButton(head.undo, raylib.GuiIconText(.Undo, ""))
 
-		raylib.GuiSetState(i32(raylib.GuiState.STATE_NORMAL)) // Change back to normal
+		raylib.GuiSetState(cast(i32)(raylib.Gui_State.Normal)) // Change back to normal
 	}
 
 	{
 		// Keep it disabled if nothing to redo.
 		if !state.can_redo_history(&global.history) {
-			raylib.GuiSetState(i32(raylib.GuiState.STATE_DISABLED))
+			raylib.GuiSetState(cast(i32)(raylib.Gui_State.Disabled))
 		}
 
-		global.process.redo = raylib.GuiButton(head.redo, raylib.GuiIconText(.ICON_REDO, ""))
+		global.process.redo = raylib.GuiButton(head.redo, raylib.GuiIconText(.Redo, ""))
 
-		raylib.GuiSetState(i32(raylib.GuiState.STATE_NORMAL)) // Change back to normal
+		raylib.GuiSetState(cast(i32)(raylib.Gui_State.Normal)) // Change back to normal
 	}
 
-	global.process.read = raylib.GuiButton(head.read, raylib.GuiIconText(.ICON_ZOOM_BIG, ""))
+	global.process.read = raylib.GuiButton(head.read, raylib.GuiIconText(.Zoom_Big, ""))
 
-	global.process.copy = raylib.GuiButton(head.copy, raylib.GuiIconText(.ICON_FILE_COPY, ""))
+	global.process.copy = raylib.GuiButton(head.copy, raylib.GuiIconText(.File_Copy, ""))
 
-	global.process.save = raylib.GuiButton(head.save, raylib.GuiIconText(.ICON_FILE_SAVE, ""))
+	global.process.save = raylib.GuiButton(head.save, raylib.GuiIconText(.File_Save, ""))
 
 	process_shortcut(global)
 
@@ -254,7 +245,7 @@ draw_header_hints :: proc(head: ^Header, global: ^state.State) {
 
 @(private = "file")
 process_shortcut :: proc(global: ^state.State) {
-	if raylib.IsKeyDown(.LEFT_SUPER) {
+	if raylib.IsKeyDown(.Left_Super) {
 		process_super_shortcut(global)
 	} else {
 		process_raw_shortcut(global)
@@ -263,7 +254,7 @@ process_shortcut :: proc(global: ^state.State) {
 
 @(private = "file")
 process_super_shortcut :: proc(global: ^state.State) {
-	shift := raylib.IsKeyDown(.LEFT_SHIFT)
+	shift := raylib.IsKeyDown(.Left_Shift)
 
 	if raylib.IsKeyPressed(.Z) {
 		if shift {

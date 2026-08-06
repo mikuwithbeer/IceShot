@@ -1,6 +1,6 @@
 package window
 
-import "vendor:raylib"
+import "../raylib"
 
 @(private = "file")
 BOARD_CELL_SIZE :: 8
@@ -13,7 +13,7 @@ BOARD_COLORS_LIGHT := [2]raylib.Color{{200, 200, 205, 255}, {220, 220, 225, 255}
 
 @(private)
 draw_board :: proc(gui: ^Window) {
-	raylib.ClearBackground(raylib.WHITE)
+	raylib.ClearBackground({255, 255, 255, 255})
 
 	render: [2]i32 = {i32(gui.state.frame.render.x), i32(gui.state.frame.render.y)}
 	if render.x <= 0 || render.y <= 0 {
@@ -62,5 +62,12 @@ draw_board :: proc(gui: ^Window) {
 		height = f32(render.y),
 	}
 
-	raylib.DrawTexturePro(gui.state.frame.tiles.texture, source, target, {}, 0, raylib.WHITE)
+	raylib.DrawTexturePro(
+		gui.state.frame.tiles.texture,
+		source,
+		target,
+		{},
+		0,
+		{255, 255, 255, 255},
+	)
 }

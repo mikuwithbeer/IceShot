@@ -2,9 +2,8 @@ package tools
 
 import "../action"
 import "../error"
+import "../raylib"
 import "../state"
-
-import "vendor:raylib"
 
 @(require_results)
 crop :: proc(global: ^state.State, color_first, color_second: raylib.Color) -> error.Error {
@@ -27,14 +26,14 @@ crop :: proc(global: ^state.State, color_first, color_second: raylib.Color) -> e
 
 @(private = "file", require_results)
 start :: proc(global: ^state.State) -> (area: raylib.Rectangle, ready: bool) {
-	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
+	if global.frame.fly && raylib.IsMouseButtonPressed(.Left) {
 		global.crop.dragging = true
 		global.crop.start = global.frame.world
 		global.crop.end = global.frame.world
 	}
 
 	if global.crop.dragging {
-		if raylib.IsMouseButtonDown(.LEFT) {
+		if raylib.IsMouseButtonDown(.Left) {
 			global.crop.end = global.frame.world
 		}
 
@@ -45,7 +44,7 @@ start :: proc(global: ^state.State) -> (area: raylib.Rectangle, ready: bool) {
 			height = abs(global.crop.start.y - global.crop.end.y),
 		}
 
-		if raylib.IsMouseButtonReleased(.LEFT) && area.width >= 1 && area.height >= 1 {
+		if raylib.IsMouseButtonReleased(.Left) && area.width >= 1 && area.height >= 1 {
 			ready = true
 		}
 	}

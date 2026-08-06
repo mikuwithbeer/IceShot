@@ -1,8 +1,7 @@
 package tools
 
+import "../raylib"
 import "../state"
-
-import "vendor:raylib"
 
 replace_current_texture :: proc(global: ^state.State, texture: raylib.Texture2D) {
 	// Keep the initial texture for history replay.

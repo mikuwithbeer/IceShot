@@ -2,9 +2,8 @@ package tools
 
 import "../action"
 import "../error"
+import "../raylib"
 import "../state"
-
-import "vendor:raylib"
 
 @(require_results)
 triangle :: proc(global: ^state.State) -> error.Error {
@@ -24,7 +23,7 @@ triangle :: proc(global: ^state.State) -> error.Error {
 
 @(private = "file", require_results)
 start :: proc(global: ^state.State) -> (color: raylib.Color, ready: bool) {
-	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
+	if global.frame.fly && raylib.IsMouseButtonPressed(.Left) {
 		global.triangle.point[global.triangle.index] = global.frame.world
 		global.triangle.index += 1
 

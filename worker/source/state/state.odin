@@ -1,8 +1,7 @@
 package state
 
 import "../error"
-
-import "vendor:raylib"
+import "../raylib"
 
 Tool :: enum {
 	None,
@@ -59,7 +58,7 @@ Measure :: struct {
 Frame :: struct {
 	camera:                                       raylib.Camera2D,
 	initial, current:                             raylib.Texture2D,
-	tiles:                                        raylib.RenderTexture2D,
+	tiles:                                        raylib.Render_Texture2D,
 	font:                                         raylib.Font,
 	dpi, cursor, absolute, render, screen, world: [2]f32,
 	fly, style, board:                            bool,

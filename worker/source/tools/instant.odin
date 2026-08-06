@@ -80,6 +80,7 @@ save :: proc(global: ^state.State, allocator := context.allocator) -> error.Erro
 		texture = global.frame.current,
 		home    = state.home_config(&global.config),
 		path    = global.config.save_path,
+		format  = global.config.save_format,
 	}
 
 	action.save(act, allocator) or_return

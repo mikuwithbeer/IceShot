@@ -2,12 +2,11 @@ package window
 
 import "../error"
 import "../native"
+import "../raylib"
 import "../state"
 import "../tools"
 
 import "base:runtime"
-
-import "vendor:raylib"
 
 Viewer :: struct {
 	_allocator: runtime.Allocator,
@@ -29,11 +28,11 @@ init_viewer :: proc(
 		width   = i32(capture.width),
 		height  = i32(capture.height),
 		mipmaps = 1,
-		format  = .UNCOMPRESSED_R8G8B8A8,
+		format  = .Uncompressed_RGBA8888,
 	}
 
 	texture := raylib.LoadTextureFromImage(image)
-	raylib.SetTextureFilter(texture, .BILINEAR)
+	raylib.SetTextureFilter(texture, .BiLinear)
 
 	native.unsafe_free_capture(capture) // Already loaded as texture so free it
 
@@ -78,7 +77,7 @@ draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> error.Error {
 	raylib.BeginMode2D(global.frame.camera)
 	defer raylib.EndMode2D()
 
-	raylib.DrawTexture(global.frame.current, 0, 0, raylib.WHITE)
+	raylib.DrawTexture(global.frame.current, 0, 0, {255, 255, 255, 255})
 
 	color_first, color_second := get_brand_color(global.config.dark_mode)
 
@@ -96,25 +95,25 @@ draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> error.Error {
 @(private = "file")
 process_camera_move :: proc(global: ^state.State) {
 	// Avoid moving while using shortcuts.
-	if raylib.IsKeyDown(.LEFT_SUPER) {
+	if raylib.IsKeyDown(.Left_Super) {
 		return
 	}
 
 	speed := 2000.0 * raylib.GetFrameTime() / global.frame.camera.zoom // Keep movement the same
 
-	if raylib.IsKeyDown(.A) || raylib.IsKeyDown(.LEFT) {
+	if raylib.IsKeyDown(.A) || raylib.IsKeyDown(.Left) {
 		global.frame.camera.target.x -= speed
 	}
 
-	if raylib.IsKeyDown(.D) || raylib.IsKeyDown(.RIGHT) {
+	if raylib.IsKeyDown(.D) || raylib.IsKeyDown(.Right) {
 		global.frame.camera.target.x += speed
 	}
 
-	if raylib.IsKeyDown(.W) || raylib.IsKeyDown(.UP) {
+	if raylib.IsKeyDown(.W) || raylib.IsKeyDown(.Up) {
 		global.frame.camera.target.y -= speed
 	}
 
-	if raylib.IsKeyDown(.S) || raylib.IsKeyDown(.DOWN) {
+	if raylib.IsKeyDown(.S) || raylib.IsKeyDown(.Down) {
 		global.frame.camera.target.y += speed
 	}
 }

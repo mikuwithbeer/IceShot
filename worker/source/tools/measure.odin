@@ -2,9 +2,8 @@ package tools
 
 import "../action"
 import "../error"
+import "../raylib"
 import "../state"
-
-import "vendor:raylib"
 
 @(require_results)
 measure :: proc(
@@ -78,7 +77,7 @@ start :: proc(global: ^state.State) -> bool {
 		global.measure.bound[3] = y - world.y
 	}
 
-	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
+	if global.frame.fly && raylib.IsMouseButtonPressed(.Left) {
 		return true
 	}
 

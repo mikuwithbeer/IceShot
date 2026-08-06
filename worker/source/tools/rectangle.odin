@@ -2,9 +2,8 @@ package tools
 
 import "../action"
 import "../error"
+import "../raylib"
 import "../state"
-
-import "vendor:raylib"
 
 @(require_results)
 rectangle :: proc(global: ^state.State) -> error.Error {
@@ -24,13 +23,13 @@ rectangle :: proc(global: ^state.State) -> error.Error {
 
 @(private = "file", require_results)
 start :: proc(global: ^state.State) -> (area: raylib.Rectangle, color: raylib.Color, ready: bool) {
-	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
+	if global.frame.fly && raylib.IsMouseButtonPressed(.Left) {
 		global.rectangle.dragging = true
 		global.rectangle.start, global.rectangle.end = global.frame.world, global.frame.world
 	}
 
 	if global.rectangle.dragging {
-		if raylib.IsMouseButtonDown(.LEFT) {
+		if raylib.IsMouseButtonDown(.Left) {
 			global.rectangle.end = global.frame.world
 		}
 
@@ -44,7 +43,7 @@ start :: proc(global: ^state.State) -> (area: raylib.Rectangle, color: raylib.Co
 		// Keep the color fully opaque.
 		color = {global.rectangle.color.r, global.rectangle.color.g, global.rectangle.color.b, 255}
 
-		if raylib.IsMouseButtonReleased(.LEFT) && area.width >= 1 && area.height >= 1 {
+		if raylib.IsMouseButtonReleased(.Left) && area.width >= 1 && area.height >= 1 {
 			ready = true
 		}
 	}

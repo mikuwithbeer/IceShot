@@ -2,9 +2,8 @@ package tools
 
 import "../action"
 import "../error"
+import "../raylib"
 import "../state"
-
-import "vendor:raylib"
 
 @(require_results)
 picker :: proc(global: ^state.State, allocator := context.allocator) -> error.Error {
@@ -32,7 +31,7 @@ start :: proc(global: ^state.State) -> bool {
 	world: [2]i32 = {i32(global.frame.world.x), i32(global.frame.world.y)}
 	global.picker.pixel = global.picker.pixels[world.y * global.picker.image.width + world.x]
 
-	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
+	if global.frame.fly && raylib.IsMouseButtonPressed(.Left) {
 		return true
 	} else {
 		return false

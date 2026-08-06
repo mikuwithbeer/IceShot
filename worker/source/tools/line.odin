@@ -2,9 +2,8 @@ package tools
 
 import "../action"
 import "../error"
+import "../raylib"
 import "../state"
-
-import "vendor:raylib"
 
 @(require_results)
 line :: proc(global: ^state.State) -> error.Error {
@@ -24,21 +23,21 @@ line :: proc(global: ^state.State) -> error.Error {
 
 @(private = "file", require_results)
 start :: proc(global: ^state.State) -> (color: raylib.Color, ready: bool) {
-	if global.frame.fly && raylib.IsMouseButtonPressed(.LEFT) {
+	if global.frame.fly && raylib.IsMouseButtonPressed(.Left) {
 		global.line.dragging = true
 		global.line.start = global.frame.world
 		global.line.end = global.frame.world
 	}
 
 	if global.line.dragging {
-		if raylib.IsMouseButtonDown(.LEFT) {
+		if raylib.IsMouseButtonDown(.Left) {
 			global.line.end = global.frame.world
 		}
 
 		// Keep the color fully opaque.
 		color = {global.line.color.r, global.line.color.g, global.line.color.b, 255}
 
-		if raylib.IsMouseButtonReleased(.LEFT) && global.line.start != global.line.end {
+		if raylib.IsMouseButtonReleased(.Left) && global.line.start != global.line.end {
 			ready = true
 		}
 	}

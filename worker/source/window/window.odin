@@ -2,11 +2,10 @@ package window
 
 import "../error"
 import "../native"
+import "../raylib"
 import "../state"
 
 import "base:runtime"
-
-import "vendor:raylib"
 
 WINDOW_WIDTH :: 960
 WINDOW_HEIGHT :: 720
@@ -29,7 +28,7 @@ init_window :: proc(
 ) {
 	gui._allocator = allocator
 
-	raylib.SetConfigFlags({.WINDOW_HIGHDPI, .WINDOW_RESIZABLE, .VSYNC_HINT})
+	raylib.SetConfigFlags({.HighDPI, .Resizable, .VSync_Hint})
 	raylib.SetTargetFPS(60)
 
 	raylib.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
