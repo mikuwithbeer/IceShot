@@ -305,9 +305,10 @@ save :: proc(act: Save, allocator := context.allocator) -> error.Error {
 	ok := raylib.ExportImage(image, c_path)
 	if !ok {
 		return .Failed_To_Write_File
-	} else {
-		return .None
 	}
+
+	native.unsafe_navigate_box(c_path)
+	return .None
 }
 
 @(private = "file")

@@ -48,4 +48,7 @@ foreign native {
 
 	@(link_name = "error_box")
 	unsafe_error_box :: proc(content: cstring) ---
+
+	@(link_name = "navigate_box")
+	unsafe_navigate_box :: proc(path: cstring) ---
 }

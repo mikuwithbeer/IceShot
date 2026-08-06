@@ -310,6 +310,28 @@ void error_box(const char *content) {
   exit(EXIT_FAILURE);
 }
 
+void navigate_box(const char *path) {
+  @autoreleasepool {
+    [NSApplication sharedApplication];
+
+    __auto_type alert = [[NSAlert alloc] init];
+    alert.messageText = @"Reveal File";
+    alert.informativeText = @"Would you like to reveal the file in Finder?";
+    alert.alertStyle = NSAlertStyleInformational;
+
+    [alert addButtonWithTitle:@"OK"];
+    [alert addButtonWithTitle:@"Cancel"];
+
+    __auto_type return_code = [alert runModal];
+    if (return_code == NSAlertFirstButtonReturn) {
+      __auto_type ns_path = [NSString stringWithUTF8String:path];
+      __auto_type file = [NSURL fileURLWithPath:ns_path];
+
+      [[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs:@[ file ]];
+    }
+  }
+}
+
 // [--------------------------------------------------------------] //
 // > Internal Functions                                           < //
 // [--------------------------------------------------------------] //

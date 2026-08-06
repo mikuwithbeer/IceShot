@@ -40,6 +40,7 @@ cp daemon/assets/icon.icns "${BUNDLE_RESOURCES}/"
 
 info "5. copy informations"
 cp LICENSE "${BUNDLE_RESOURCES}/"
+cp README.md "${BUNDLE_RESOURCES}/"
 cat <<EOF > "${BUNDLE_CONTENTS}/Info.plist"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -59,7 +60,7 @@ cat <<EOF > "${BUNDLE_CONTENTS}/Info.plist"
     <string>6.0</string>
 
     <key>CFBundleShortVersionString</key>
-    <string>2026.08.06-pre</string>
+    <string>2026.08.06</string>
     <key>CFBundleVersion</key>
     <string>2026080601</string>
 

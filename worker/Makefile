@@ -3,7 +3,7 @@ ODIN = odin
 
 ARGS    =
 NAME    = IceShotWorker
-VERSION = 2026.08.06-pre
+VERSION = 2026.08.06
 
 SOURCE_PATH = source
 NATIVE_PATH = native

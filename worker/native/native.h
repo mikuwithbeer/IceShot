@@ -49,4 +49,6 @@ bool copy_ocr(Image image);
 
 void error_box(const char *content);
 
+void navigate_box(const char *path);
+
 #endif // NATIVE_H
