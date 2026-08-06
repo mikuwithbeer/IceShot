@@ -284,8 +284,6 @@ save :: proc(act: Save, allocator := context.allocator) -> error.Error {
 		allocator = allocator,
 	)
 
-	fmt.println(path)
-
 	defer delete(path, allocator = allocator)
 
 	c_path, allocate_err := strings.clone_to_cstring(path, allocator = allocator) // Is there a better way?

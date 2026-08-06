@@ -59,6 +59,7 @@ BOOL load_config(void) {
     return NO;
   }
 
+  daemon_config.auto_launch = [json[@"auto_launch"] boolValue];
   if (daemon_config.auto_launch) {
     [SMAppService.mainAppService registerAndReturnError:&error];
   } else {
@@ -69,8 +70,6 @@ BOOL load_config(void) {
     NSLog(@"failed to change startup property: %@", error);
     return NO;
   }
-
-  daemon_config.auto_launch = [json[@"auto_launch"] boolValue];
 
   return YES;
 }
