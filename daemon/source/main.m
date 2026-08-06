@@ -6,6 +6,7 @@
 
 int main(void) {
   @autoreleasepool {
+    NSLog(@"IceShot Daemon v%s", VERSION);
     load_config();
 
     NSApplication *app = [NSApplication sharedApplication];

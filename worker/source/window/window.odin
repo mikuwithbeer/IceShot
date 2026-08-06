@@ -28,6 +28,12 @@ init_window :: proc(
 ) {
 	gui._allocator = allocator
 
+	when ODIN_DEBUG {
+		raylib.SetTraceLogLevel(.Debug)
+	} else {
+		raylib.SetTraceLogLevel(.Error)
+	}
+
 	raylib.SetConfigFlags({.HighDPI, .Resizable, .VSync_Hint})
 	raylib.SetTargetFPS(60)
 

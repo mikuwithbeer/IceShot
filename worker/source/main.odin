@@ -6,8 +6,14 @@ import "window"
 
 import "base:runtime"
 
+import "core:fmt"
+
+WORKER_VERSION :: #config(VERSION, "0.0.0")
+
 main :: proc() {
+	fmt.printf("IceShot Worker v%s", WORKER_VERSION)
 	allocator := runtime.heap_allocator()
+
 	if capture, ok := capture_screenshot(); ok {
 		gui, err := window.init_window(&capture, allocator = allocator)
 		if err != .None {

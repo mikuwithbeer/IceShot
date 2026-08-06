@@ -97,6 +97,17 @@ Font :: struct {
 	glyphs:        [^]Glyph_Info,
 }
 
+Trace_Log_Level :: enum c.int {
+	Everything = 0,
+	Trace,
+	Debug,
+	Information,
+	Warning,
+	Error,
+	Fatal,
+	Disable,
+}
+
 foreign import raylib "../../assets/raylib/libraylib.a"
 
 @(default_calling_convention = "c", require_results)
@@ -163,5 +174,6 @@ foreign raylib {
 	InitWindow :: proc(width, height: c.int, title: cstring) ---
 	SetConfigFlags :: proc(flags: Config_Flags) ---
 	SetTargetFPS :: proc(fps: c.int) ---
+	SetTraceLogLevel :: proc(log_level: Trace_Log_Level) ---
 	WindowShouldClose :: proc() -> c.bool ---
 }

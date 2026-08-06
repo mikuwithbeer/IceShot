@@ -3,7 +3,7 @@ ODIN = odin
 
 ARGS    =
 NAME    = IceShotWorker
-VERSION = 0.0.0
+VERSION = 2026.08.06-pre
 
 SOURCE_PATH = source
 NATIVE_PATH = native
@@ -17,7 +17,7 @@ FLAGS_NATIVE_DEFAULT = -c -fobjc-arc -mmacosx-version-min=14.0
 FLAGS_DEBUG   = -debug
 FLAGS_RELEASE = -o:speed -no-bounds-check
 FLAGS_LINKING = -framework Cocoa -framework IOKit -framework CoreFoundation -framework CoreGraphics -framework ScreenCaptureKit -framework Vision
-FLAGS_DEFAULT = -vet -strict-style -extra-linker-flags:"$(FLAGS_LINKING)"
+FLAGS_DEFAULT = -define:VERSION="$(VERSION)" -vet -strict-style -extra-linker-flags:"$(FLAGS_LINKING)"
 
 .PHONY: all debug release run clean
 
