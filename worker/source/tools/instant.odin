@@ -81,6 +81,7 @@ save :: proc(global: ^state.State, allocator := context.allocator) -> error.Erro
 		home    = state.home_config(&global.config),
 		path    = global.config.save_path,
 		format  = global.config.save_format,
+		reveal  = global.config.save_reveal,
 	}
 
 	action.save(act, allocator) or_return

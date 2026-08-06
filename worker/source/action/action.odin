@@ -62,6 +62,7 @@ Save :: struct {
 	home:    string,
 	path:    string,
 	format:  string,
+	reveal:  bool,
 }
 
 Action :: union {
@@ -307,7 +308,10 @@ save :: proc(act: Save, allocator := context.allocator) -> error.Error {
 		return .Failed_To_Write_File
 	}
 
-	native.unsafe_navigate_box(c_path)
+	if act.reveal {
+		native.unsafe_navigate_box(c_path)
+	}
+
 	return .None
 }
 
