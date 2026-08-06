@@ -17,15 +17,17 @@ CONFIG_FILE :: "worker.json"
 @(private = "file")
 CONFIG_DEFAULT :: `{
   "save_path": "Documents/Screenshots",
+  "save_format": "PNG",
   "dark_mode": true
 }
 `
 
 Config :: struct {
-	save_path:  string,
-	dark_mode:  bool,
-	_home_path: string `json:"-"`,
-	_allocator: runtime.Allocator `json:"-"`,
+	save_path:   string,
+	save_format: string,
+	dark_mode:   bool,
+	_home_path:  string `json:"-"`,
+	_allocator:  runtime.Allocator `json:"-"`,
 }
 
 @(private, require_results)
@@ -106,6 +108,14 @@ init_config :: proc(allocator := context.allocator) -> (config: Config, err: err
 	json_err := json.unmarshal(raw_config, &config, allocator = allocator) // Might change specification in the future
 	if json_err != nil {
 		err = .Failed_To_Read_File
+		return
+	}
+
+	switch config.save_format {
+	case "png", "PNG", "jpg", "JPG", "jpeg", "JPEG", "bmp", "BMP":
+		break
+	case:
+		err = .Invalid_Image_Format
 		return
 	}
 

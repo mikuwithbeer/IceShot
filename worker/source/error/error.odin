@@ -43,6 +43,8 @@ to_string :: proc(error: Error) -> cstring {
 		return "Could not read the configuration file. It may be invalid."
 	case .Failed_To_Write_File:
 		return "Could not save the configuration file. Check whether the path is valid."
+	case .Invalid_Image_Format:
+		return "The configured image format is not supported."
 	}
 
 	return "Something went wrong." // This message is unreachable

@@ -9,6 +9,8 @@ output/
 *.o
 *.obj
 *.a
+!libraylib.a
+!libraygui.a
 *.lib
 *.dll
 *.so

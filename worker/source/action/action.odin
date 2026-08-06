@@ -2,12 +2,11 @@ package action
 
 import "../error"
 import "../native"
+import "../raylib"
 
 import "core:fmt"
 import "core:strings"
 import "core:time"
-
-import "vendor:raylib"
 
 Crop :: struct {
 	texture: raylib.Texture2D,
@@ -62,6 +61,7 @@ Save :: struct {
 	texture: raylib.Texture2D,
 	home:    string,
 	path:    string,
+	format:  string,
 }
 
 Action :: union {
@@ -91,7 +91,7 @@ crop :: proc(act: Crop) -> (Result, error.Error) {
 	raylib.ImageCrop(&image, act.area)
 
 	modified := raylib.LoadTextureFromImage(image)
-	raylib.SetTextureFilter(modified, .BILINEAR)
+	raylib.SetTextureFilter(modified, .BiLinear)
 
 	return {width = modified.width, height = modified.height, texture = modified}, .None
 }
@@ -102,13 +102,13 @@ rectangle :: proc(act: Rectangle) -> (Result, error.Error) {
 	defer raylib.UnloadImage(image)
 
 	if act.empty {
-		raylib.ImageDrawRectangleLines(&image, act.area, act.width, act.color)
+		raylib.ImageDrawRectangleLinesEx(&image, act.area, act.width, act.color)
 	} else {
 		raylib.ImageDrawRectangleRec(&image, act.area, act.color)
 	}
 
 	modified := raylib.LoadTextureFromImage(image)
-	raylib.SetTextureFilter(modified, .BILINEAR)
+	raylib.SetTextureFilter(modified, .BiLinear)
 
 	return {width = modified.width, height = modified.height, texture = modified}, .None
 }
@@ -118,12 +118,10 @@ line :: proc(act: Line) -> (Result, error.Error) {
 	image := raylib.LoadImageFromTexture(act.texture)
 	defer raylib.UnloadImage(image)
 
-	fmt.println(act)
-
 	raylib.ImageDrawLineEx(&image, act.start, act.end, act.width, act.color)
 
 	modified := raylib.LoadTextureFromImage(image)
-	raylib.SetTextureFilter(modified, .BILINEAR)
+	raylib.SetTextureFilter(modified, .BiLinear)
 
 	return {width = modified.width, height = modified.height, texture = modified}, .None
 }
@@ -136,7 +134,7 @@ triangle :: proc(act: Triangle) -> (Result, error.Error) {
 	raylib.ImageDrawTriangle(&image, act.point.x, act.point.y, act.point.z, act.color)
 
 	modified := raylib.LoadTextureFromImage(image)
-	raylib.SetTextureFilter(modified, .BILINEAR)
+	raylib.SetTextureFilter(modified, .BiLinear)
 
 	return {width = modified.width, height = modified.height, texture = modified}, .None
 }
@@ -198,7 +196,7 @@ rotate :: proc(act: Rotate) -> (Result, error.Error) {
 	raylib.ImageRotateCW(&image)
 
 	modified := raylib.LoadTextureFromImage(image)
-	raylib.SetTextureFilter(modified, .BILINEAR)
+	raylib.SetTextureFilter(modified, .BiLinear)
 
 	return {width = modified.width, height = modified.height, texture = modified}, .None
 }
@@ -273,7 +271,7 @@ save :: proc(act: Save, allocator := context.allocator) -> error.Error {
 	hour, minute, second := time.clock_from_time(current)
 
 	path := fmt.aprintf(
-		"%s/%s/SCR-%04d%02d%02d-%02d%02d%02d.png",
+		"%s/%s/SCR-%04d%02d%02d-%02d%02d%02d.%s",
 		act.home,
 		act.path,
 		year,
@@ -282,8 +280,11 @@ save :: proc(act: Save, allocator := context.allocator) -> error.Error {
 		hour,
 		minute,
 		second,
+		act.format,
 		allocator = allocator,
 	)
+
+	fmt.println(path)
 
 	defer delete(path, allocator = allocator)
 
