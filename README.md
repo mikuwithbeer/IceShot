@@ -12,6 +12,12 @@ Download the latest prebuilt binary from the [releases page](https://github.com/
 
 Alternatively, build it from source.
 
+## Screenshots
+
+![S1](.github/assets/1.jpg)
+![S2](.github/assets/2.jpg)
+![S3](.github/assets/3.jpg)
+
 ## Reason
 
 There are already lots of screenshot applications, and many of them are great. I built **IceShot** because none of them matched the way I take screenshots.
@@ -36,19 +42,13 @@ It's on the roadmap.
 1. The first upload target will probably be **Imgur**[^2].
 2. I'd also like to support **ShareX**[^3] custom uploaders.
 
-## Screenshots
-
-![S1](.github/assets/1.jpg)
-![S2](.github/assets/2.jpg)
-![S3](.github/assets/3.jpg)
-
 ## Configuration
 
 **IceShot** runs as two small processes:
 
 ### Daemon
 
-The daemon sits in your menu bar and listens for your shortcut. When you trigger it, it starts the worker.
+The daemon sits in your menu bar and listens for your shortcut. When you trigger, it starts the worker.
 
 Its configuration is stored inside `~/.iceshot/daemon.json`.
 
@@ -67,6 +67,48 @@ The first time you launch it, it creates a default configuration file inside `~/
 - BMP
 
 Screenshots are saved to the output directory configured inside `worker.json`, you must create that directory if it does not exist.
+
+## Shortcuts
+
+### Daemon
+
+> The daemon listens globally, so these shortcuts work from anywhere.
+
+| Shortcut                       | Action         |
+| ------------------------------ | -------------- |
+| `Command` + `Left Shift` + `3` | Capture Screen |
+
+### Worker
+
+#### General
+
+| Shortcut                       | Action     |
+| ------------------------------ | ---------- |
+| `Command` + `C`                | Copy Image |
+| `Command` + `S`                | Save Image |
+| `Command` + `Z`                | Undo       |
+| `Command` + `Left Shift` + `Z` | Redo       |
+
+#### Tools
+
+Press the key again to enable or disable a tool.
+
+| Shortcut | Tool                 |
+| -------- | -------------------- |
+| `C`      | Crop                 |
+| `R`      | Rectangle            |
+| `L`      | Line                 |
+| `T`      | Triangle             |
+| `I`      | Color Picker         |
+| `M`      | Measurement          |
+| `O`      | Rotate 90° Clockwise |
+
+#### Navigation
+
+| Shortcut      | Action |
+| ------------- | ------ |
+| Mouse Wheel   | Zoom   |
+| WASD / Arrows | Pan    |
 
 ## Appendix
 

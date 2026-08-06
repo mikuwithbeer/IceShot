@@ -1,0 +1,34 @@
+name: Release IceShot
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release Application
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Odin
+        uses: laytan/setup-odin@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Application
+        run: ./bundle.sh release
+
+      - name: Archive Application
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent IceShot.app IceShot-${{ github.ref_name }}.zip
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: IceShot-${{ github.ref_name }}.zip

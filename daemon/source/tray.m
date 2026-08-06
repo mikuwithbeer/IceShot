@@ -56,7 +56,7 @@
 
   self.capture_item = [menu addItemWithTitle:@"Capture Screen"
                                       action:@selector(menu_screenshot_action:)
-                               keyEquivalent:@"3"];
+                               keyEquivalent:@""];
 
   [menu addItem:[NSMenuItem separatorItem]];
 
