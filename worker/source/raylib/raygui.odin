@@ -8,11 +8,13 @@ Gui_State :: enum c.int {
 }
 
 Gui_Icon_Name :: enum c.int {
+	File_Open      = 5,
 	File_Save      = 6,
 	File_Copy      = 16,
 	Cursor_Pointer = 20,
 	Color_Picker   = 27,
 	Crop           = 36,
+	Eye_On         = 44,
 	Target_Point   = 48,
 	Undo           = 56,
 	Redo           = 57,

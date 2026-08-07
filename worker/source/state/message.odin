@@ -51,7 +51,7 @@ show_measure_distance_message :: proc(message: ^Message) {
 	message.updated = time.now()
 }
 
-show_ocr_failed_message :: proc(message: ^Message) {
+show_vision_text_failed_message :: proc(message: ^Message) {
 	message.content = "Could not spot any text!"
 	message.updated = time.now()
 }

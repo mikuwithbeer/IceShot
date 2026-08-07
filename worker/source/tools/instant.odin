@@ -40,22 +40,15 @@ redo :: proc(global: ^state.State) -> error.Error {
 }
 
 @(require_results)
-read :: proc(global: ^state.State) -> error.Error {
+share :: proc(global: ^state.State) -> error.Error {
 	global.process = {}
 
-	act := action.Read{global.frame.current}
+	act := action.Share{global.frame.current}
 
-	err := action.read(act)
-	if err == .No_Text_Found {
-		state.show_ocr_failed_message(&global.message)
+	action.share(act) or_return
 
-		// Not found is expected sometimes, keep things moving.
-		return .None
-	} else if err == .None {
-		state.show_copied_message(&global.message)
-	}
-
-	return err
+	state.show_redo_message(&global.message) // todo actual message
+	return .None
 }
 
 @(require_results)

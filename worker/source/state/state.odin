@@ -11,6 +11,7 @@ Tool :: enum {
 	Triangle,
 	Picker,
 	Measure,
+	Vision,
 }
 
 Crop :: struct {
@@ -19,10 +20,11 @@ Crop :: struct {
 }
 
 Rectangle :: struct {
-	using _: Crop,
-	empty:   bool,
-	width:   f32,
-	color:   raylib.Color,
+	dragging:   bool,
+	start, end: [2]f32,
+	empty:      bool,
+	width:      f32,
+	color:      raylib.Color,
 }
 
 Line :: struct {
@@ -55,6 +57,11 @@ Measure :: struct {
 	pixels: [^]raylib.Color,
 }
 
+Vision :: struct {
+	dragging:   bool,
+	start, end: [2]f32,
+}
+
 Frame :: struct {
 	camera:                                       raylib.Camera2D,
 	initial, current:                             raylib.Texture2D,
@@ -65,7 +72,19 @@ Frame :: struct {
 }
 
 Process :: struct {
-	crop, rectangle, line, triangle, picker, rotate, measure, undo, redo, read, copy, save: bool,
+	crop,
+	rectangle,
+	line,
+	triangle,
+	picker,
+	rotate,
+	measure,
+	vision,
+	undo,
+	redo,
+	share,
+	copy,
+	save: bool,
 }
 
 State :: struct {
@@ -76,6 +95,7 @@ State :: struct {
 	triangle:  Triangle,
 	picker:    Picker,
 	measure:   Measure,
+	vision:    Vision,
 	frame:     Frame,
 	process:   Process,
 	config:    Config,

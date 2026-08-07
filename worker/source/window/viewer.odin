@@ -88,6 +88,7 @@ draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> error.Error {
 	tools.triangle(global) or_return
 	tools.picker(global, allocator = view._allocator) or_return
 	tools.measure(global, color_first, allocator = view._allocator) or_return
+	tools.vision(global, color_first, color_second) or_return
 
 	return .None
 }

@@ -17,9 +17,10 @@ Header :: struct {
 	picker:         raylib.Rectangle,
 	rotate:         raylib.Rectangle,
 	measure:        raylib.Rectangle,
+	vision:         raylib.Rectangle,
 	undo:           raylib.Rectangle,
 	redo:           raylib.Rectangle,
-	read:           raylib.Rectangle,
+	share:          raylib.Rectangle,
 	copy:           raylib.Rectangle,
 	save:           raylib.Rectangle,
 	picker_format:  raylib.Rectangle,
@@ -64,10 +65,11 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 	head.picker = {168, 32, 32, 32}
 	head.rotate = {208, 32, 32, 32}
 	head.measure = {248, 32, 32, 32}
+	head.vision = {288, 32, 32, 32}
 
 	head.undo = {global.frame.screen.x - 200, 32, 32, 32}
 	head.redo = {global.frame.screen.x - 160, 32, 32, 32}
-	head.read = {global.frame.screen.x - 120, 32, 32, 32}
+	head.share = {global.frame.screen.x - 120, 32, 32, 32}
 	head.copy = {global.frame.screen.x - 80, 32, 32, 32}
 	head.save = {global.frame.screen.x - 40, 32, 32, 32}
 
@@ -128,7 +130,9 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 		raylib.GuiSetState(cast(i32)(raylib.Gui_State.Normal)) // Change back to normal
 	}
 
-	global.process.read = raylib.GuiButton(head.read, raylib.GuiIconText(.Zoom_Big, ""))
+	raylib.GuiToggle(head.vision, raylib.GuiIconText(.Eye_On, ""), &global.process.vision)
+
+	global.process.share = raylib.GuiButton(head.share, raylib.GuiIconText(.File_Open, ""))
 
 	global.process.copy = raylib.GuiButton(head.copy, raylib.GuiIconText(.File_Copy, ""))
 
@@ -204,6 +208,10 @@ draw_header_extra :: proc(head: ^Header, global: ^state.State) {
 		) {
 			global.measure.active = !global.measure.active
 		}
+	case .Vision:
+		global.process = {
+			vision = global.process.vision,
+		}
 	}
 }
 
@@ -227,12 +235,14 @@ draw_header_hints :: proc(head: ^Header, global: ^state.State) {
 			raylib.DrawTextEx(global.frame.font, "Rotate Clockwise", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.measure) {
 			raylib.DrawTextEx(global.frame.font, "Measure Distance", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.vision) {
+			raylib.DrawTextEx(global.frame.font, "Vision Framework", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.undo) {
 			raylib.DrawTextEx(global.frame.font, "Undo Action", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.redo) {
 			raylib.DrawTextEx(global.frame.font, "Redo Action", text_point, 16, 0, text_color)
-		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.read) {
-			raylib.DrawTextEx(global.frame.font, "Copy OCR", text_point, 16, 0, text_color)
+		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.share) {
+			raylib.DrawTextEx(global.frame.font, "Share Image", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.copy) {
 			text_point.x -= 80
 			raylib.DrawTextEx(global.frame.font, "Copy Image", text_point, 16, 0, text_color)
@@ -299,10 +309,10 @@ process_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 		tools.undo(global) or_return
 	} else if global.process.redo {
 		tools.redo(global) or_return
+	} else if global.process.share {
+		tools.share(global) or_return
 	} else if global.process.copy {
 		tools.copy(global) or_return
-	} else if global.process.read {
-		tools.read(global) or_return
 	} else if global.process.save {
 		tools.save(global, head._allocator) or_return
 	}
@@ -327,6 +337,9 @@ process_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 		} else if global.process.measure {
 			global.tool = .Measure
 			state.show_measure_distance_message(&global.message)
+		} else if global.process.vision {
+			global.tool = .Vision
+			state.show_select_area_message(&global.message)
 		}
 	case .Crop:
 		if !global.process.crop {
@@ -361,6 +374,12 @@ process_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 	case .Measure:
 		if !global.process.measure {
 			global.measure = {}
+			global.tool = .None
+			state.show_idle_message(&global.message)
+		}
+	case .Vision:
+		if !global.process.vision {
+			global.vision = {}
 			global.tool = .None
 			state.show_idle_message(&global.message)
 		}

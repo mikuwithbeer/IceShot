@@ -49,8 +49,15 @@ Measure :: struct {
 	size: [2]i32,
 }
 
-Read :: struct {
+Vision :: struct {
 	texture: raylib.Texture2D,
+	area:    raylib.Rectangle,
+	mode:    i32,
+}
+
+Share :: struct {
+	texture: raylib.Texture2D,
+	// TODO
 }
 
 Copy :: struct {
@@ -73,7 +80,8 @@ Action :: union {
 	Picker,
 	Rotate,
 	Measure,
-	Read,
+	Vision,
+	Share,
 	Copy,
 	Save,
 }
@@ -241,9 +249,11 @@ measure :: proc(act: Measure, allocator := context.allocator) -> error.Error {
 }
 
 @(require_results)
-read :: proc(act: Read) -> error.Error {
+vision :: proc(act: Vision) -> error.Error {
 	image := raylib.LoadImageFromTexture(act.texture)
 	defer raylib.UnloadImage(image)
+
+	raylib.ImageCrop(&image, act.area)
 
 	unsafe := native.Unsafe_Image{image.data, uint(image.width), uint(image.height)}
 
@@ -253,6 +263,12 @@ read :: proc(act: Read) -> error.Error {
 	} else {
 		return .None
 	}
+}
+
+@(require_results)
+share :: proc(act: Share) -> error.Error {
+	fmt.println(act)
+	return .None
 }
 
 @(require_results)
