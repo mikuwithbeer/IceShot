@@ -54,13 +54,14 @@ end :: proc(global: ^state.State, area: raylib.Rectangle) -> error.Error {
 	act := action.Vision {
 		texture = global.frame.current,
 		area    = area,
+		mode    = global.vision.select,
 	}
 
 	global.process, global.vision, global.tool = {}, {}, .None
 
 	err := action.vision(act)
 	if err == .No_Text_Found {
-		state.show_vision_text_failed_message(&global.message)
+		state.show_vision_failed_message(&global.message)
 		return .None
 	}
 

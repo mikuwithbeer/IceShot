@@ -59,7 +59,9 @@ Measure :: struct {
 
 Vision :: struct {
 	dragging:   bool,
+	active:     bool,
 	start, end: [2]f32,
+	select:     i32,
 }
 
 Frame :: struct {

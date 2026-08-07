@@ -51,8 +51,8 @@ show_measure_distance_message :: proc(message: ^Message) {
 	message.updated = time.now()
 }
 
-show_vision_text_failed_message :: proc(message: ^Message) {
-	message.content = "Could not spot any text!"
+show_vision_failed_message :: proc(message: ^Message) {
+	message.content = "Could not spot any data!"
 	message.updated = time.now()
 }
 

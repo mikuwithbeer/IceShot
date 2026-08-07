@@ -224,7 +224,7 @@ bool copy_image(Image image) {
   }
 }
 
-bool copy_ocr(Image image) {
+bool copy_vision(Image image, bool is_barcode) {
   @autoreleasepool {
     __auto_type representation = [[NSBitmapImageRep alloc]
         initWithBitmapDataPlanes:NULL
@@ -251,30 +251,54 @@ bool copy_ocr(Image image) {
     }
 
     __block __auto_type recognized = [NSMutableString string];
+    __auto_type requests = [NSMutableArray array];
+
+    if (!is_barcode) {
+      __auto_type text_request = [[VNRecognizeTextRequest alloc]
+          initWithCompletionHandler:^(VNRequest *request, NSError *error) {
+            if (error) {
+              return;
+            }
+
+            for (VNRecognizedTextObservation *observation in request.results) {
+              VNRecognizedText *top_candidate =
+                  [[observation topCandidates:1] firstObject];
+              if (top_candidate) {
+                [recognized appendFormat:@"%@\n", top_candidate.string];
+              }
+            }
+          }];
+
+      text_request.recognitionLevel = VNRequestTextRecognitionLevelAccurate;
+      text_request.usesLanguageCorrection = YES;
+      [requests addObject:text_request];
+    } else {
+      __auto_type barcode_request = [[VNDetectBarcodesRequest alloc]
+          initWithCompletionHandler:^(VNRequest *request, NSError *error) {
+            if (error) {
+              return;
+            }
+
+            for (VNBarcodeObservation *observation in request.results) {
+              if (observation.payloadStringValue) {
+                [recognized
+                    appendFormat:@"%@\n", observation.payloadStringValue];
+              }
+            }
+          }];
+
+      [requests addObject:barcode_request];
+    }
+
+    if (requests.count == 0) {
+      return false;
+    }
 
     __auto_type request_handler =
         [[VNImageRequestHandler alloc] initWithCGImage:cg_image options:@{}];
 
-    __auto_type request = [[VNRecognizeTextRequest alloc]
-        initWithCompletionHandler:^(VNRequest *request, NSError *error) {
-          if (error) {
-            return;
-          }
-
-          for (VNRecognizedTextObservation *observation in request.results) {
-            VNRecognizedText *top_candidate =
-                [[observation topCandidates:1] firstObject];
-            if (top_candidate) {
-              [recognized appendFormat:@"%@\n", top_candidate.string];
-            }
-          }
-        }];
-
-    request.recognitionLevel = VNRequestTextRecognitionLevelAccurate;
-    request.usesLanguageCorrection = YES;
-
     NSError *error = nil;
-    if (![request_handler performRequests:@[ request ] error:&error]) {
+    if (![request_handler performRequests:requests error:&error]) {
       return false;
     }
 

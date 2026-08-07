@@ -255,9 +255,10 @@ vision :: proc(act: Vision) -> error.Error {
 
 	raylib.ImageCrop(&image, act.area)
 
-	unsafe := native.Unsafe_Image{image.data, uint(image.width), uint(image.height)}
+	unsafe_image := native.Unsafe_Image{image.data, uint(image.width), uint(image.height)}
+	is_barcode := act.mode == 1
 
-	ok := native.unsafe_copy_ocr(unsafe)
+	ok := native.unsafe_copy_vision(unsafe_image, is_barcode)
 	if !ok {
 		return .No_Text_Found
 	} else {
@@ -276,9 +277,9 @@ copy :: proc(act: Copy) -> error.Error {
 	image := raylib.LoadImageFromTexture(act.texture)
 	defer raylib.UnloadImage(image)
 
-	unsafe := native.Unsafe_Image{image.data, uint(image.width), uint(image.height)}
+	unsafe_image := native.Unsafe_Image{image.data, uint(image.width), uint(image.height)}
 
-	ok := native.unsafe_copy_image(unsafe)
+	ok := native.unsafe_copy_image(unsafe_image)
 	if !ok {
 		return .Not_Permitted
 	} else {

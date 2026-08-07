@@ -29,6 +29,7 @@ Header :: struct {
 	rectangle_size: raylib.Rectangle,
 	line_size:      raylib.Rectangle,
 	measure_type:   raylib.Rectangle,
+	vision_type:    raylib.Rectangle,
 	_allocator:     runtime.Allocator,
 }
 
@@ -82,6 +83,8 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 	head.line_size = {global.frame.screen.x - 280, 32, 72, 32}
 
 	head.measure_type = {global.frame.screen.x - 280, 32, 72, 32}
+
+	head.vision_type = {global.frame.screen.x - 300, 32, 92, 32}
 }
 
 @(private = "file")
@@ -212,6 +215,15 @@ draw_header_extra :: proc(head: ^Header, global: ^state.State) {
 		global.process = {
 			vision = global.process.vision,
 		}
+
+		if raylib.GuiDropdownBox(
+			head.vision_type,
+			"Text;Barcode",
+			&global.vision.select,
+			global.vision.active,
+		) {
+			global.vision.active = !global.vision.active
+		}
 	}
 }
 
@@ -236,7 +248,7 @@ draw_header_hints :: proc(head: ^Header, global: ^state.State) {
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.measure) {
 			raylib.DrawTextEx(global.frame.font, "Measure Distance", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.vision) {
-			raylib.DrawTextEx(global.frame.font, "Vision Framework", text_point, 16, 0, text_color)
+			raylib.DrawTextEx(global.frame.font, "Use Vision", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.undo) {
 			raylib.DrawTextEx(global.frame.font, "Undo Action", text_point, 16, 0, text_color)
 		} else if raylib.CheckCollisionPointRec(global.frame.cursor, head.redo) {

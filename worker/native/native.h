@@ -45,7 +45,7 @@ bool copy_value(const char *content);
 
 bool copy_image(Image image);
 
-bool copy_ocr(Image image);
+bool copy_vision(Image image, bool is_barcode);
 
 void error_box(const char *content);
 
