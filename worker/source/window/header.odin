@@ -309,6 +309,8 @@ process_raw_shortcut :: proc(global: ^state.State) {
 		global.process.rotate = true
 	} else if raylib.IsKeyPressed(.M) {
 		global.process.measure = !global.process.measure
+	} else if raylib.IsKeyPressed(.V) {
+		global.process.vision = !global.process.vision
 	}
 }
 

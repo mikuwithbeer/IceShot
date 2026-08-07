@@ -38,6 +38,7 @@ Keyboard_Key :: enum c.int {
 	S          = 83,
 	T          = 84,
 	U          = 85,
+	V          = 86,
 	W          = 87,
 	Z          = 90,
 	Right      = 262,
