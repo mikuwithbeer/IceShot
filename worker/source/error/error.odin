@@ -32,17 +32,17 @@ to_string :: proc(error: Error) -> cstring {
 	case .Not_Permitted:
 		return "Please enable screen recording permission in System Settings and try again."
 	case .Nothing_To_Undo:
-		return "There's nothing to undo." // This message is unreachable
+		return "There is nothing to undo." // This message is unreachable
 	case .Nothing_To_Redo:
-		return "There's nothing to redo." // This message is unreachable
+		return "There is nothing to redo." // This message is unreachable
 	case .No_Text_Found:
 		return "No text was found." // This message is unreachable
 	case .Failed_To_Open_File:
-		return "Could not open the configuration file."
+		return "Could not open the file."
 	case .Failed_To_Read_File:
-		return "Could not read the configuration file. It may be invalid."
+		return "Could not read the file. It may be invalid."
 	case .Failed_To_Write_File:
-		return "Could not save the configuration file. Check whether the path is valid."
+		return "Could not save the file. Check whether the path is valid."
 	case .Invalid_Image_Format:
 		return "The configured image format is not supported."
 	}
