@@ -38,7 +38,7 @@ cp daemon/output/IceShotDaemon "${BUNDLE_EXECUTABLES}/"
 cp daemon/assets/tray.pdf "${BUNDLE_RESOURCES}/"
 cp daemon/assets/icon.icns "${BUNDLE_RESOURCES}/"
 
-info "5. copy informations"
+info "5. write bundle information"
 cp LICENSE "${BUNDLE_RESOURCES}/"
 cp README.md "${BUNDLE_RESOURCES}/"
 cat <<EOF > "${BUNDLE_CONTENTS}/Info.plist"
@@ -78,5 +78,8 @@ cat <<EOF > "${BUNDLE_CONTENTS}/Info.plist"
 </dict>
 </plist>
 EOF
+
+info "6. sign the application"
+codesign --force --deep --sign - "${BUNDLE_FILE}"
 
 info "${BUNDLE_FILE} (${BUNDLE_MODE}) has been built successfully!"
