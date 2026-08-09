@@ -1,6 +1,7 @@
 package error
 
 import "../native"
+
 import "core:fmt"
 
 Error :: enum {

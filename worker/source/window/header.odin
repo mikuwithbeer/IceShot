@@ -289,7 +289,11 @@ process_super_shortcut :: proc(global: ^state.State) {
 	} else if raylib.IsKeyPressed(.C) {
 		global.process.copy = true
 	} else if raylib.IsKeyPressed(.S) {
-		global.process.save = true
+		if shift {
+			global.process.share = true
+		} else {
+			global.process.save = true
+		}
 	}
 }
 

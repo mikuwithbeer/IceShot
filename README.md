@@ -35,13 +35,6 @@ I rarely used text, arrows, stickers, counters, or any of the other annotation t
 
 **IceShot** is built around that simple workflow. If yours is similar, you'll probably enjoy using it.
 
-### Uploading
-
-It's on the roadmap.
-
-1. The first upload target will probably be **Imgur**[^2].
-2. I'd also like to support **ShareX**[^3] custom uploaders.
-
 ## Configuration
 
 **IceShot** runs as two small processes:
@@ -82,12 +75,13 @@ Screenshots are saved to the output directory configured inside `worker.json`, y
 
 #### General
 
-| Shortcut                       | Action     |
-| ------------------------------ | ---------- |
-| `Command` + `C`                | Copy Image |
-| `Command` + `S`                | Save Image |
-| `Command` + `Z`                | Undo       |
-| `Command` + `Left Shift` + `Z` | Redo       |
+| Shortcut                       | Action      |
+| ------------------------------ | ----------- |
+| `Command` + `Z`                | Undo        |
+| `Command` + `Left Shift` + `Z` | Redo        |
+| `Command` + `Left Shift` + `S` | Share Image |
+| `Command` + `C`                | Copy Image  |
+| `Command` + `S`                | Save Image  |
 
 #### Tools
 
@@ -102,6 +96,7 @@ Press the key again to enable or disable a tool.
 | `I`      | Color Picker         |
 | `M`      | Measurement          |
 | `O`      | Rotate 90° Clockwise |
+| `V`      | Use Vision (OCR)     |
 
 #### Navigation
 

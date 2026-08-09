@@ -145,7 +145,6 @@ init_config :: proc(allocator := context.allocator) -> (config: Config, err: err
 		return
 	}
 
-	fmt.println(config)
 	switch config.appearance.theme {
 	case "dark", "light", "system":
 		break
