@@ -23,6 +23,8 @@ static CGFloat capture_factor = 1.0;
 static bool image_to_rgba(CGImageRef image, void **out_pixels, u64 *out_length,
                           u64 *out_width, u64 *out_height, u64 *out_stride);
 
+static NSBitmapImageRep *image_to_bitmap(Image image);
+
 // [--------------------------------------------------------------] //
 // > Function Implementations                                     < //
 // [--------------------------------------------------------------] //
@@ -194,24 +196,10 @@ bool copy_value(const char *content) {
 
 bool copy_image(Image image) {
   @autoreleasepool {
-    __auto_type representation = [[NSBitmapImageRep alloc]
-        initWithBitmapDataPlanes:NULL
-                      pixelsWide:(NSInteger)image.width
-                      pixelsHigh:(NSInteger)image.height
-                   bitsPerSample:8
-                 samplesPerPixel:4
-                        hasAlpha:YES
-                        isPlanar:NO
-                  colorSpaceName:NSDeviceRGBColorSpace
-                     bytesPerRow:(NSInteger)(image.width * 4)
-                    bitsPerPixel:32];
-
+    __auto_type representation = image_to_bitmap(image);
     if (!representation) {
       return false;
     }
-
-    memcpy([representation bitmapData], image.data,
-           image.width * image.height * 4);
 
     __auto_type ns_image =
         [[NSImage alloc] initWithSize:NSMakeSize(image.width, image.height)];
@@ -226,24 +214,10 @@ bool copy_image(Image image) {
 
 bool copy_vision(Image image, bool is_barcode) {
   @autoreleasepool {
-    __auto_type representation = [[NSBitmapImageRep alloc]
-        initWithBitmapDataPlanes:NULL
-                      pixelsWide:(NSInteger)image.width
-                      pixelsHigh:(NSInteger)image.height
-                   bitsPerSample:8
-                 samplesPerPixel:4
-                        hasAlpha:YES
-                        isPlanar:NO
-                  colorSpaceName:NSDeviceRGBColorSpace
-                     bytesPerRow:(NSInteger)(image.width * 4)
-                    bitsPerPixel:32];
-
+    __auto_type representation = image_to_bitmap(image);
     if (!representation) {
       return false;
     }
-
-    memcpy([representation bitmapData], image.data,
-           image.width * image.height * 4);
 
     __auto_type cg_image = [representation CGImage];
     if (!cg_image) {
@@ -317,6 +291,107 @@ bool copy_vision(Image image, bool is_barcode) {
   }
 }
 
+bool share_image(Image image, const char *token) {
+  @autoreleasepool {
+    if (!token) {
+      return false;
+    }
+
+    __auto_type representation = image_to_bitmap(image);
+    if (!representation) {
+      return false;
+    }
+
+    __auto_type png_data =
+        [representation representationUsingType:NSBitmapImageFileTypePNG
+                                     properties:@{}];
+    if (!png_data) {
+      return false;
+    }
+
+    __auto_type url = [NSURL
+        URLWithString:
+            [NSString stringWithFormat:@"https://api.imgbb.com/1/upload?key=%s",
+                                       token]];
+
+    __auto_type request = [NSMutableURLRequest requestWithURL:url];
+    request.HTTPMethod = @"POST";
+    request.timeoutInterval = 10;
+
+    __auto_type boundary =
+        [NSString stringWithFormat:@"Boundary-%@", [[NSUUID UUID] UUIDString]];
+
+    [request setValue:[NSString
+                          stringWithFormat:@"multipart/form-data; boundary=%@",
+                                           boundary]
+        forHTTPHeaderField:@"Content-Type"];
+
+    __auto_type body = [NSMutableData data];
+    [body appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary]
+                         dataUsingEncoding:NSUTF8StringEncoding]];
+    [body appendData:[@"Content-Disposition: form-data; name=\"image\"; "
+                      @"filename=\"image.png\"\r\n"
+                         dataUsingEncoding:NSUTF8StringEncoding]];
+    [body appendData:[@"Content-Type: image/png\r\n\r\n"
+                         dataUsingEncoding:NSUTF8StringEncoding]];
+
+    [body appendData:png_data];
+    [body appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+    [body appendData:[[NSString stringWithFormat:@"--%@--\r\n", boundary]
+                         dataUsingEncoding:NSUTF8StringEncoding]];
+
+    request.HTTPBody = body;
+
+    __auto_type semaphore = dispatch_semaphore_create(0);
+
+    __block bool success = false;
+    __block NSString *result = nil;
+
+    __auto_type session = [NSURLSession sharedSession];
+    __auto_type task = [session
+        dataTaskWithRequest:request
+          completionHandler:^(NSData *data, NSURLResponse *response,
+                              NSError *error) {
+            if (error || !data) {
+              dispatch_semaphore_signal(semaphore);
+              return;
+            }
+
+            NSError *parse_error = nil;
+            id json = [NSJSONSerialization JSONObjectWithData:data
+                                                      options:0
+                                                        error:&parse_error];
+            if (parse_error || ![json isKindOfClass:[NSDictionary class]]) {
+              dispatch_semaphore_signal(semaphore);
+              return;
+            }
+
+            NSNumber *ok = json[@"success"];
+            NSDictionary *payload = json[@"data"];
+
+            if (ok.boolValue && [payload isKindOfClass:[NSDictionary class]] &&
+                payload[@"url"]) {
+              result = payload[@"url"];
+              success = true;
+            }
+
+            dispatch_semaphore_signal(semaphore);
+          }];
+
+    [task resume];
+
+    u64 timeout = dispatch_semaphore_wait(semaphore, CAPTURE_TIMEOUT);
+    if (timeout != 0 || !success || !result) {
+      return false;
+    }
+
+    __auto_type pasteboard = [NSPasteboard generalPasteboard];
+
+    [pasteboard clearContents];
+    return [pasteboard setString:result forType:NSPasteboardTypeString];
+  }
+}
+
 void error_box(const char *content) {
   @autoreleasepool {
     [NSApplication sharedApplication];
@@ -359,6 +434,27 @@ void navigate_box(const char *path) {
 // [--------------------------------------------------------------] //
 // > Internal Functions                                           < //
 // [--------------------------------------------------------------] //
+
+static NSBitmapImageRep *image_to_bitmap(Image image) {
+  __auto_type representation = [[NSBitmapImageRep alloc]
+      initWithBitmapDataPlanes:NULL
+                    pixelsWide:(NSInteger)image.width
+                    pixelsHigh:(NSInteger)image.height
+                 bitsPerSample:8
+               samplesPerPixel:4
+                      hasAlpha:YES
+                      isPlanar:NO
+                colorSpaceName:NSDeviceRGBColorSpace
+                   bytesPerRow:(NSInteger)(image.width * 4)
+                  bitsPerPixel:32];
+
+  if (representation) {
+    memcpy([representation bitmapData], image.data,
+           image.width * image.height * 4);
+  }
+
+  return representation;
+}
 
 static bool image_to_rgba(CGImageRef image, void **out_pixels, u64 *out_length,
                           u64 *out_width, u64 *out_height, u64 *out_stride) {

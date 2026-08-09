@@ -46,6 +46,9 @@ foreign native {
 	@(link_name = "copy_vision")
 	unsafe_copy_vision :: proc(image: Unsafe_Image, is_barcode: c.bool) -> c.bool ---
 
+	@(link_name = "share_image")
+	unsafe_share_image :: proc(image: Unsafe_Image, token: cstring) -> c.bool ---
+
 	@(link_name = "error_box")
 	unsafe_error_box :: proc(content: cstring) ---
 

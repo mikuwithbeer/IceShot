@@ -57,7 +57,7 @@ Vision :: struct {
 
 Share :: struct {
 	texture: raylib.Texture2D,
-	// TODO
+	token:   string,
 }
 
 Copy :: struct {
@@ -267,9 +267,25 @@ vision :: proc(act: Vision) -> error.Error {
 }
 
 @(require_results)
-share :: proc(act: Share) -> error.Error {
-	fmt.println(act)
-	return .None
+share :: proc(act: Share, allocator := context.allocator) -> error.Error {
+	image := raylib.LoadImageFromTexture(act.texture)
+	defer raylib.UnloadImage(image)
+
+	unsafe_image := native.Unsafe_Image{image.data, uint(image.width), uint(image.height)}
+
+	c_token, err := strings.clone_to_cstring(act.token, allocator = allocator)
+	if err != .None {
+		return .Out_Of_Memory
+	}
+
+	defer delete(c_token, allocator = allocator)
+
+	ok := native.unsafe_share_image(unsafe_image, c_token) // This blocks application for a long time!
+	if !ok {
+		return .Failed_To_Upload
+	} else {
+		return .None
+	}
 }
 
 @(require_results)

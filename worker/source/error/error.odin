@@ -13,6 +13,7 @@ Error :: enum {
 	Failed_To_Read_File,
 	Failed_To_Write_File,
 	Invalid_Image_Format,
+	Failed_To_Upload,
 }
 
 message_box :: proc(error: Error) {

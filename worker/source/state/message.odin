@@ -51,6 +51,16 @@ show_measure_distance_message :: proc(message: ^Message) {
 	message.updated = time.now()
 }
 
+show_unknown_token_message :: proc(message: ^Message) {
+	message.content = "Please configure your ImgBB token before uploading."
+	message.updated = time.now()
+}
+
+show_upload_failed_message :: proc(message: ^Message) {
+	message.content = "Failed to upload the image to ImgBB."
+	message.updated = time.now()
+}
+
 show_vision_failed_message :: proc(message: ^Message) {
 	message.content = "Could not spot any data!"
 	message.updated = time.now()

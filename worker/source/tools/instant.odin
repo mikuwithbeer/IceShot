@@ -43,12 +43,25 @@ redo :: proc(global: ^state.State) -> error.Error {
 share :: proc(global: ^state.State) -> error.Error {
 	global.process = {}
 
-	act := action.Share{global.frame.current}
+	switch token in global.config.imgbb_token {
+	case string:
+		act := action.Share {
+			texture = global.frame.current,
+			token   = token,
+		}
 
-	action.share(act) or_return
+		err := action.share(act)
+		if err == .Failed_To_Upload {
+			state.show_upload_failed_message(&global.message)
+			return .None
+		}
 
-	state.show_redo_message(&global.message) // todo actual message
-	return .None
+		state.show_copied_message(&global.message)
+		return err
+	case:
+		state.show_unknown_token_message(&global.message)
+		return .None
+	}
 }
 
 @(require_results)

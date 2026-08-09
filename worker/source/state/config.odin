@@ -18,6 +18,7 @@ CONFIG_FILE :: "worker.json"
 CONFIG_DEFAULT :: `{
   "save_path": "Documents/Screenshots",
   "save_format": "PNG",
+  "imgbb_token": null,
   "save_reveal": true,
   "dark_mode": true
 }
@@ -26,6 +27,7 @@ CONFIG_DEFAULT :: `{
 Config :: struct {
 	save_path:   string,
 	save_format: string,
+	imgbb_token: Maybe(string),
 	save_reveal: bool,
 	dark_mode:   bool,
 	_home_path:  string `json:"-"`,

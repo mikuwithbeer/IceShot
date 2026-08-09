@@ -47,6 +47,8 @@ bool copy_image(Image image);
 
 bool copy_vision(Image image, bool is_barcode);
 
+bool share_image(Image image, const char *token);
+
 void error_box(const char *content);
 
 void navigate_box(const char *path);
