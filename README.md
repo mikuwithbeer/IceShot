@@ -106,10 +106,8 @@ Press the key again to enable or disable a tool.
 
 ## Appendix
 
-This project is licensed under the **BSD-2-Clause Plus Patent License**.
+This project is licensed under the **BSD-2-Clause Plus Patent License**[^2].
 
 [^1]: <https://shottr.cc>
 
-[^2]: <https://imgur.com>
-
-[^3]: <https://getsharex.com>
+[^2]: <https://spdx.org/licenses/BSD-2-Clause-Patent.html>
