@@ -14,8 +14,8 @@ Alternatively, build it from source.
 
 ## Screenshots
 
-![S1](.github/assets/1.JPG)
-![S2](.github/assets/2.JPG)
+![S1](.github/assets/1.jpg)
+![S2](.github/assets/2.jpg)
 
 ## Reason
 

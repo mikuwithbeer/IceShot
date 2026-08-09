@@ -70,8 +70,12 @@
 
   [menu addItem:[NSMenuItem separatorItem]];
 
-  [menu addItemWithTitle:@"Source Code"
+  [menu addItemWithTitle:@"GitHub"
                   action:@selector(redirect_github:)
+           keyEquivalent:@""];
+
+  [menu addItemWithTitle:@"About"
+                  action:@selector(show_about:)
            keyEquivalent:@""];
 
   [menu addItemWithTitle:@"Quit"
@@ -123,6 +127,11 @@
   __auto_type url =
       [NSURL URLWithString:@"https://github.com/mikuwithbeer/IceShot"];
   [[NSWorkspace sharedWorkspace] openURL:url];
+}
+
+- (void)show_about:(id)sender {
+  [NSApp orderFrontStandardAboutPanel:nil];
+  [NSApp activateIgnoringOtherApps:YES];
 }
 
 - (void)quit_app:(id)sender {
