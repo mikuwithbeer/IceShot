@@ -60,9 +60,9 @@ cat <<EOF > "${BUNDLE_CONTENTS}/Info.plist"
     <string>6.0</string>
 
     <key>CFBundleShortVersionString</key>
-    <string>2026.08.06</string>
+    <string>2026.08.09</string>
     <key>CFBundleVersion</key>
-    <string>2026080601</string>
+    <string>2026080900</string>
 
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
