@@ -49,6 +49,9 @@ foreign native {
 	@(link_name = "share_image")
 	unsafe_share_image :: proc(image: Unsafe_Image, token: cstring) -> c.bool ---
 
+	@(link_name = "dark_mode")
+	unsafe_dark_mode :: proc() -> c.bool ---
+
 	@(link_name = "error_box")
 	unsafe_error_box :: proc(content: cstring) ---
 

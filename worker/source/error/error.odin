@@ -1,6 +1,7 @@
 package error
 
 import "../native"
+import "core:fmt"
 
 Error :: enum {
 	None,
@@ -13,6 +14,7 @@ Error :: enum {
 	Failed_To_Read_File,
 	Failed_To_Write_File,
 	Invalid_Image_Format,
+	Invalid_Theme,
 	Failed_To_Upload,
 }
 
@@ -27,6 +29,8 @@ message_box :: proc(error: Error) {
 
 @(private)
 to_string :: proc(error: Error) -> cstring {
+	fmt.println(error)
+
 	#partial switch error {
 	case .Out_Of_Memory:
 		return "Application ran out of memory."
@@ -46,6 +50,10 @@ to_string :: proc(error: Error) -> cstring {
 		return "Could not save the file. Check whether the path is valid."
 	case .Invalid_Image_Format:
 		return "The configured image format is not supported."
+	case .Failed_To_Upload:
+		return "Could not upload the image." // This message is unreachable
+	case .Invalid_Theme:
+		return "The configured theme is not supported."
 	}
 
 	return "Something went wrong." // This message is unreachable

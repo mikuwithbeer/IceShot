@@ -1,6 +1,7 @@
 package state
 
 import "../error"
+import "../native"
 
 import "base:runtime"
 
@@ -16,22 +17,43 @@ CONFIG_FILE :: "worker.json"
 
 @(private = "file")
 CONFIG_DEFAULT :: `{
-  "save_path": "Documents/Screenshots",
-  "save_format": "PNG",
-  "imgbb_token": null,
-  "save_reveal": true,
-  "dark_mode": true
+  "save": {
+    "path": "Documents/Screenshots",
+    "format": "PNG",
+    "reveal": true
+  },
+  "upload": {
+    "imgbb": null
+  },
+  "appearance": {
+    "theme": "system"
+  }
 }
 `
 
+@(private)
+Save :: struct {
+	path:   string,
+	format: string,
+	reveal: bool,
+}
+
+@(private)
+Upload :: struct {
+	imgbb: Maybe(string),
+}
+
+@(private)
+Appearance :: struct {
+	theme: string,
+}
+
 Config :: struct {
-	save_path:   string,
-	save_format: string,
-	imgbb_token: Maybe(string),
-	save_reveal: bool,
-	dark_mode:   bool,
-	_home_path:  string `json:"-"`,
-	_allocator:  runtime.Allocator `json:"-"`,
+	save:       Save,
+	upload:     Upload,
+	appearance: Appearance,
+	_home:      string `json:"-"`,
+	_allocator: runtime.Allocator `json:"-"`,
 }
 
 @(private, require_results)
@@ -115,7 +137,7 @@ init_config :: proc(allocator := context.allocator) -> (config: Config, err: err
 		return
 	}
 
-	switch config.save_format {
+	switch config.save.format {
 	case "png", "PNG", "jpg", "JPG", "jpeg", "JPEG", "bmp", "BMP":
 		break
 	case:
@@ -123,19 +145,48 @@ init_config :: proc(allocator := context.allocator) -> (config: Config, err: err
 		return
 	}
 
-	config._home_path = home_directory
+	fmt.println(config)
+	switch config.appearance.theme {
+	case "dark", "light", "system":
+		break
+	case:
+		err = .Invalid_Theme
+		return
+	}
+
+	config._home = home_directory
 	config._allocator = allocator
 
 	return
 }
 
 @(require_results)
-home_config :: proc(config: ^Config) -> string {
-	return config._home_path
+get_home_path :: proc(config: ^Config) -> string {
+	return config._home
+}
+
+@(require_results)
+is_dark_mode :: proc(config: ^Config) -> bool {
+	switch config.appearance.theme {
+	case "dark":
+		return true
+	case "light":
+		return false
+	case:
+		return native.unsafe_dark_mode()
+	}
 }
 
 @(private)
 free_config :: proc(config: ^Config) {
-	delete(config.save_path, allocator = config._allocator)
-	delete(config._home_path, allocator = config._allocator)
+	delete(config.save.path, allocator = config._allocator)
+	delete(config.save.format, allocator = config._allocator)
+
+	if imgbb, ok := config.upload.imgbb.?; ok {
+		delete(imgbb, allocator = config._allocator)
+	}
+
+	delete(config.appearance.theme, allocator = config._allocator)
+
+	delete(config._home, allocator = config._allocator)
 }

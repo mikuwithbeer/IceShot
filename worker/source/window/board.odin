@@ -1,6 +1,7 @@
 package window
 
 import "../raylib"
+import "../state"
 
 @(private = "file")
 BOARD_CELL_SIZE :: 8
@@ -34,7 +35,12 @@ draw_board :: proc(gui: ^Window) {
 		columns := render.x / BOARD_CELL_SIZE + 1
 		rows := render.y / BOARD_CELL_SIZE + 1
 
-		colors := BOARD_COLORS_DARK if gui.state.config.dark_mode else BOARD_COLORS_LIGHT
+		colors: [2]raylib.Color
+		if state.is_dark_mode(&gui.state.config) {
+			colors = BOARD_COLORS_DARK
+		} else {
+			colors = BOARD_COLORS_LIGHT
+		}
 
 		for column in 0 ..< columns {
 			for row in 0 ..< rows {

@@ -79,7 +79,7 @@ draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> error.Error {
 
 	raylib.DrawTexture(global.frame.current, 0, 0, {255, 255, 255, 255})
 
-	color_first, color_second := get_brand_color(global.config.dark_mode)
+	color_first, color_second := get_brand_color(state.is_dark_mode(&global.config))
 
 	// Every tool that do not run instantly are handled here.
 	tools.crop(global, color_first, color_second) or_return

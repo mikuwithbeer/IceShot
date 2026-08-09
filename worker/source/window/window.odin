@@ -41,7 +41,7 @@ init_window :: proc(
 
 	gui.state = state.init_state(allocator = allocator) or_return
 
-	if gui.state.config.dark_mode {
+	if state.is_dark_mode(&gui.state.config) {
 		init_dark_mode(&gui.state.frame)
 	} else {
 		init_light_mode(&gui.state.frame)

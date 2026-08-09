@@ -40,28 +40,27 @@ redo :: proc(global: ^state.State) -> error.Error {
 }
 
 @(require_results)
-share :: proc(global: ^state.State) -> error.Error {
+share :: proc(global: ^state.State) -> (err: error.Error) {
 	global.process = {}
 
-	switch token in global.config.imgbb_token {
-	case string:
+	if imgbb, ok := global.config.upload.imgbb.?; ok {
 		act := action.Share {
 			texture = global.frame.current,
-			token   = token,
+			token   = imgbb,
 		}
 
-		err := action.share(act)
+		err = action.share(act)
 		if err == .Failed_To_Upload {
 			state.show_upload_failed_message(&global.message)
-			return .None
+			err = .None
+		} else {
+			state.show_copied_message(&global.message)
 		}
-
-		state.show_copied_message(&global.message)
-		return err
-	case:
+	} else {
 		state.show_unknown_token_message(&global.message)
-		return .None
 	}
+
+	return err
 }
 
 @(require_results)
@@ -84,10 +83,10 @@ save :: proc(global: ^state.State, allocator := context.allocator) -> error.Erro
 
 	act := action.Save {
 		texture = global.frame.current,
-		home    = state.home_config(&global.config),
-		path    = global.config.save_path,
-		format  = global.config.save_format,
-		reveal  = global.config.save_reveal,
+		home    = state.get_home_path(&global.config),
+		path    = global.config.save.path,
+		format  = global.config.save.format,
+		reveal  = global.config.save.reveal,
 	}
 
 	action.save(act, allocator) or_return

@@ -431,6 +431,15 @@ void navigate_box(const char *path) {
   }
 }
 
+bool dark_mode() {
+  __auto_type appearance = [NSApp effectiveAppearance];
+  __auto_type match = [appearance bestMatchFromAppearancesWithNames:@[
+    NSAppearanceNameAqua, NSAppearanceNameDarkAqua
+  ]];
+
+  return [match isEqualToString:NSAppearanceNameDarkAqua];
+}
+
 // [--------------------------------------------------------------] //
 // > Internal Functions                                           < //
 // [--------------------------------------------------------------] //
