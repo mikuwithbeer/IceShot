@@ -6,7 +6,7 @@ import "../raylib"
 import "../state"
 
 @(require_results)
-line :: proc(global: ^state.State) -> error.Error {
+make_line :: proc(global: ^state.State) -> error.Error {
 	if global.tool != .Line {
 		return .None
 	}
@@ -19,6 +19,13 @@ line :: proc(global: ^state.State) -> error.Error {
 	}
 
 	return .None
+}
+
+free_line :: proc(global: ^state.State) {
+	global.line = {}
+
+	global.tool = .None
+	global.process.line = false
 }
 
 @(private = "file", require_results)
@@ -47,6 +54,8 @@ start :: proc(global: ^state.State) -> (color: raylib.Color, ready: bool) {
 
 @(private = "file", require_results)
 end :: proc(global: ^state.State, color: raylib.Color) -> error.Error {
+	defer free_line(global)
+
 	act := action.Line {
 		texture = global.frame.current,
 		start   = global.line.start,
@@ -61,7 +70,6 @@ end :: proc(global: ^state.State, color: raylib.Color) -> error.Error {
 	state.push_history(&global.history, act) or_return
 	state.show_idle_message(&global.message)
 
-	global.process, global.line, global.tool = {}, {}, .None
 	return .None
 }
 

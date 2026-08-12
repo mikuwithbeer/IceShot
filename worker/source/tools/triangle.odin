@@ -6,7 +6,7 @@ import "../raylib"
 import "../state"
 
 @(require_results)
-triangle :: proc(global: ^state.State) -> error.Error {
+make_triangle :: proc(global: ^state.State) -> error.Error {
 	if global.tool != .Triangle {
 		return .None
 	}
@@ -19,6 +19,13 @@ triangle :: proc(global: ^state.State) -> error.Error {
 	}
 
 	return .None
+}
+
+free_triangle :: proc(global: ^state.State) {
+	global.triangle = {}
+
+	global.tool = .None
+	global.process.triangle = false
 }
 
 @(private = "file", require_results)
@@ -40,6 +47,8 @@ start :: proc(global: ^state.State) -> (color: raylib.Color, ready: bool) {
 
 @(private = "file", require_results)
 end :: proc(global: ^state.State, color: raylib.Color) -> error.Error {
+	defer free_triangle(global)
+
 	act := action.Triangle {
 		texture = global.frame.current,
 		point   = global.triangle.point,
@@ -52,7 +61,6 @@ end :: proc(global: ^state.State, color: raylib.Color) -> error.Error {
 	state.push_history(&global.history, act) or_return
 	state.show_idle_message(&global.message)
 
-	global.process, global.triangle, global.tool = {}, {}, .None
 	return .None
 }
 

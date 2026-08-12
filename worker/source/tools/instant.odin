@@ -5,44 +5,42 @@ import "../error"
 import "../state"
 
 @(require_results)
-rotate :: proc(global: ^state.State) -> error.Error {
-	global.process = {}
-
+make_rotate :: proc(global: ^state.State) -> error.Error {
 	act := action.Rotate{global.frame.current}
 
 	result := action.rotate(act) or_return
 	replace_current_texture(global, result.texture)
 
 	state.push_history(&global.history, act) or_return
+	free_rotate(global)
+
 	return .None
 }
 
 @(require_results)
-undo :: proc(global: ^state.State) -> error.Error {
-	global.process = {}
-
+make_undo :: proc(global: ^state.State) -> error.Error {
 	state.undo_history(&global.history) or_return
 	rebuild_from_history(global) or_return
 
 	state.show_undo_message(&global.message)
+	free_undo(global)
+
 	return .None
 }
 
 @(require_results)
-redo :: proc(global: ^state.State) -> error.Error {
-	global.process = {}
-
+make_redo :: proc(global: ^state.State) -> error.Error {
 	state.redo_history(&global.history) or_return
 	rebuild_from_history(global) or_return
 
 	state.show_redo_message(&global.message)
+	free_redo(global)
+
 	return .None
 }
 
 @(require_results)
-share :: proc(global: ^state.State) -> (err: error.Error) {
-	global.process = {}
-
+make_share :: proc(global: ^state.State) -> (err: error.Error) {
 	if imgbb, ok := global.config.upload.imgbb.?; ok {
 		act := action.Share {
 			texture = global.frame.current,
@@ -60,13 +58,12 @@ share :: proc(global: ^state.State) -> (err: error.Error) {
 		state.show_unknown_token_message(&global.message)
 	}
 
+	free_share(global)
 	return err
 }
 
 @(require_results)
-copy :: proc(global: ^state.State) -> error.Error {
-	global.process = {}
-
+make_copy :: proc(global: ^state.State) -> error.Error {
 	act := action.Copy {
 		texture = global.frame.current,
 	}
@@ -74,13 +71,12 @@ copy :: proc(global: ^state.State) -> error.Error {
 	action.copy(act) or_return
 	state.show_copied_message(&global.message)
 
+	free_copy(global)
 	return .None
 }
 
 @(require_results)
-save :: proc(global: ^state.State, allocator := context.allocator) -> error.Error {
-	global.process = {}
-
+make_save :: proc(global: ^state.State, allocator := context.allocator) -> error.Error {
 	act := action.Save {
 		texture = global.frame.current,
 		home    = state.get_home_path(&global.config),
@@ -92,7 +88,38 @@ save :: proc(global: ^state.State, allocator := context.allocator) -> error.Erro
 	action.save(act, allocator) or_return
 	state.show_saved_message(&global.message)
 
+	free_save(global)
 	return .None
+}
+
+@(private = "file")
+free_rotate :: proc(global: ^state.State) {
+	global.process.rotate = false
+}
+
+@(private = "file")
+free_undo :: proc(global: ^state.State) {
+	global.process.undo = false
+}
+
+@(private = "file")
+free_redo :: proc(global: ^state.State) {
+	global.process.redo = false
+}
+
+@(private = "file")
+free_share :: proc(global: ^state.State) {
+	global.process.share = false
+}
+
+@(private = "file")
+free_copy :: proc(global: ^state.State) {
+	global.process.copy = false
+}
+
+@(private = "file")
+free_save :: proc(global: ^state.State) {
+	global.process.save = false
 }
 
 @(private = "file", require_results)

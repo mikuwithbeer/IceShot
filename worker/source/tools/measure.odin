@@ -6,7 +6,7 @@ import "../raylib"
 import "../state"
 
 @(require_results)
-measure :: proc(
+make_measure :: proc(
 	global: ^state.State,
 	color: raylib.Color,
 	allocator := context.allocator,
@@ -30,6 +30,15 @@ measure :: proc(
 	}
 
 	return .None
+}
+
+free_measure :: proc(global: ^state.State) {
+	raylib.UnloadImageColors(global.measure.pixels)
+	raylib.UnloadImage(global.measure.image)
+	global.measure = {}
+
+	global.tool = .None
+	global.process.measure = false
 }
 
 @(private = "file", require_results)
@@ -86,8 +95,7 @@ start :: proc(global: ^state.State) -> bool {
 
 @(private = "file", require_results)
 end :: proc(global: ^state.State, allocator := context.allocator) -> error.Error {
-	raylib.UnloadImageColors(global.measure.pixels)
-	raylib.UnloadImage(global.measure.image)
+	defer free_measure(global)
 
 	act := action.Measure {
 		dpi  = global.frame.dpi,
@@ -101,7 +109,6 @@ end :: proc(global: ^state.State, allocator := context.allocator) -> error.Error
 	action.measure(act, allocator = allocator) or_return
 	state.show_copied_message(&global.message)
 
-	global.process, global.measure, global.tool = {}, {}, .None
 	return .None
 }
 

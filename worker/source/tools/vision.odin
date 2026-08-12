@@ -6,7 +6,7 @@ import "../raylib"
 import "../state"
 
 @(require_results)
-vision :: proc(global: ^state.State, color_first, color_second: raylib.Color) -> error.Error {
+make_vision :: proc(global: ^state.State, color_first, color_second: raylib.Color) -> error.Error {
 	if global.tool != .Vision {
 		return .None
 	}
@@ -19,6 +19,13 @@ vision :: proc(global: ^state.State, color_first, color_second: raylib.Color) ->
 	}
 
 	return .None
+}
+
+free_vision :: proc(global: ^state.State) {
+	global.vision = {}
+
+	global.tool = .None
+	global.process.vision = false
 }
 
 @(private = "file", require_results)
@@ -51,13 +58,13 @@ start :: proc(global: ^state.State) -> (area: raylib.Rectangle, ready: bool) {
 
 @(private = "file", require_results)
 end :: proc(global: ^state.State, area: raylib.Rectangle) -> error.Error {
+	defer free_vision(global)
+
 	act := action.Vision {
 		texture = global.frame.current,
 		area    = area,
 		mode    = global.vision.select,
 	}
-
-	global.process, global.vision, global.tool = {}, {}, .None
 
 	err := action.vision(act)
 	if err == .No_Text_Found {
@@ -66,6 +73,7 @@ end :: proc(global: ^state.State, area: raylib.Rectangle) -> error.Error {
 	}
 
 	state.show_copied_message(&global.message)
+
 	return err
 }
 

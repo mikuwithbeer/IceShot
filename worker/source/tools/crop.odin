@@ -6,7 +6,7 @@ import "../raylib"
 import "../state"
 
 @(require_results)
-crop :: proc(global: ^state.State, color_first, color_second: raylib.Color) -> error.Error {
+make_crop :: proc(global: ^state.State, color_first, color_second: raylib.Color) -> error.Error {
 	if global.tool != .Crop {
 		return .None
 	}
@@ -22,6 +22,13 @@ crop :: proc(global: ^state.State, color_first, color_second: raylib.Color) -> e
 	}
 
 	return .None
+}
+
+free_crop :: proc(global: ^state.State) {
+	global.crop = {}
+
+	global.tool = .None
+	global.process.crop = false
 }
 
 @(private = "file", require_results)
@@ -60,6 +67,8 @@ end :: proc(
 	result: action.Result,
 	err: error.Error,
 ) {
+	defer free_crop(global)
+
 	act := action.Crop {
 		texture = global.frame.current,
 		area    = area,
@@ -71,7 +80,6 @@ end :: proc(
 	state.push_history(&global.history, act) or_return
 	state.show_idle_message(&global.message)
 
-	global.process, global.crop, global.tool = {}, {}, .None
 	return
 }
 

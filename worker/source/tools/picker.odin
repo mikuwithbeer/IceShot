@@ -6,7 +6,7 @@ import "../raylib"
 import "../state"
 
 @(require_results)
-picker :: proc(global: ^state.State, allocator := context.allocator) -> error.Error {
+make_picker :: proc(global: ^state.State, allocator := context.allocator) -> error.Error {
 	// Also avoid accidental actions while using dropdown.
 	if global.tool != .Picker || global.picker.active {
 		return .None
@@ -26,6 +26,15 @@ picker :: proc(global: ^state.State, allocator := context.allocator) -> error.Er
 	return .None
 }
 
+free_picker :: proc(global: ^state.State) {
+	raylib.UnloadImageColors(global.picker.pixels)
+	raylib.UnloadImage(global.picker.image)
+	global.picker = {}
+
+	global.tool = .None
+	global.process.picker = false
+}
+
 @(private = "file", require_results)
 start :: proc(global: ^state.State) -> bool {
 	world: [2]i32 = {i32(global.frame.world.x), i32(global.frame.world.y)}
@@ -40,8 +49,7 @@ start :: proc(global: ^state.State) -> bool {
 
 @(private = "file", require_results)
 end :: proc(global: ^state.State, allocator := context.allocator) -> error.Error {
-	raylib.UnloadImageColors(global.picker.pixels)
-	raylib.UnloadImage(global.picker.image)
+	defer free_picker(global)
 
 	act := action.Picker {
 		mode  = global.picker.select,
@@ -51,6 +59,5 @@ end :: proc(global: ^state.State, allocator := context.allocator) -> error.Error
 	action.picker(act, allocator = allocator) or_return
 	state.show_copied_message(&global.message)
 
-	global.process, global.picker, global.tool = {}, {}, .None
 	return .None
 }

@@ -82,13 +82,13 @@ draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> error.Error {
 	color_first, color_second := get_brand_color(state.is_dark_mode(&global.config))
 
 	// Every tool that do not run instantly are handled here.
-	tools.crop(global, color_first, color_second) or_return
-	tools.rectangle(global) or_return
-	tools.line(global) or_return
-	tools.triangle(global) or_return
-	tools.picker(global, allocator = view._allocator) or_return
-	tools.measure(global, color_first, allocator = view._allocator) or_return
-	tools.vision(global, color_first, color_second) or_return
+	tools.make_crop(global, color_first, color_second) or_return
+	tools.make_rectangle(global) or_return
+	tools.make_line(global) or_return
+	tools.make_triangle(global) or_return
+	tools.make_picker(global, allocator = view._allocator) or_return
+	tools.make_measure(global, color_first, allocator = view._allocator) or_return
+	tools.make_vision(global, color_first, color_second) or_return
 
 	return .None
 }

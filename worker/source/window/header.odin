@@ -322,17 +322,17 @@ process_raw_shortcut :: proc(global: ^state.State) {
 process_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 	// Process actions straight away if possible.
 	if global.process.rotate {
-		tools.rotate(global) or_return
+		tools.make_rotate(global) or_return
 	} else if global.process.undo {
-		tools.undo(global) or_return
+		tools.make_undo(global) or_return
 	} else if global.process.redo {
-		tools.redo(global) or_return
+		tools.make_redo(global) or_return
 	} else if global.process.share {
-		tools.share(global) or_return
+		tools.make_share(global) or_return
 	} else if global.process.copy {
-		tools.copy(global) or_return
+		tools.make_copy(global) or_return
 	} else if global.process.save {
-		tools.save(global, head._allocator) or_return
+		tools.make_save(global, head._allocator) or_return
 	}
 
 	switch global.tool {
@@ -361,44 +361,37 @@ process_header :: proc(head: ^Header, global: ^state.State) -> error.Error {
 		}
 	case .Crop:
 		if !global.process.crop {
-			global.crop = {}
-			global.tool = .None
+			tools.free_crop(global)
 			state.show_idle_message(&global.message)
 		}
 	case .Rectangle:
 		if !global.process.rectangle {
-			global.rectangle = {}
-			global.tool = .None
+			tools.free_rectangle(global)
 			state.show_idle_message(&global.message)
 		}
 	case .Line:
 		if !global.process.line {
-			global.line = {}
-			global.tool = .None
+			tools.free_line(global)
 			state.show_idle_message(&global.message)
 		}
 	case .Triangle:
 		if !global.process.triangle {
-			global.triangle = {}
-			global.tool = .None
+			tools.free_triangle(global)
 			state.show_idle_message(&global.message)
 		}
 	case .Picker:
 		if !global.process.picker {
-			global.picker = {}
-			global.tool = .None
+			tools.free_picker(global)
 			state.show_idle_message(&global.message)
 		}
 	case .Measure:
 		if !global.process.measure {
-			global.measure = {}
-			global.tool = .None
+			tools.free_measure(global)
 			state.show_idle_message(&global.message)
 		}
 	case .Vision:
 		if !global.process.vision {
-			global.vision = {}
-			global.tool = .None
+			tools.free_vision(global)
 			state.show_idle_message(&global.message)
 		}
 	}

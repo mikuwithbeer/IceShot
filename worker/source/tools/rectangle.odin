@@ -6,7 +6,7 @@ import "../raylib"
 import "../state"
 
 @(require_results)
-rectangle :: proc(global: ^state.State) -> error.Error {
+make_rectangle :: proc(global: ^state.State) -> error.Error {
 	if global.tool != .Rectangle {
 		return .None
 	}
@@ -19,6 +19,13 @@ rectangle :: proc(global: ^state.State) -> error.Error {
 	}
 
 	return .None
+}
+
+free_rectangle :: proc(global: ^state.State) {
+	global.rectangle = {}
+
+	global.tool = .None
+	global.process.rectangle = false
 }
 
 @(private = "file", require_results)
@@ -53,6 +60,8 @@ start :: proc(global: ^state.State) -> (area: raylib.Rectangle, color: raylib.Co
 
 @(private = "file", require_results)
 end :: proc(global: ^state.State, area: raylib.Rectangle, color: raylib.Color) -> error.Error {
+	defer free_rectangle(global)
+
 	act := action.Rectangle {
 		texture = global.frame.current,
 		area    = area,
@@ -67,7 +76,6 @@ end :: proc(global: ^state.State, area: raylib.Rectangle, color: raylib.Color) -
 	state.push_history(&global.history, act) or_return
 	state.show_idle_message(&global.message)
 
-	global.process, global.rectangle, global.tool = {}, {}, .None
 	return .None
 }
 
