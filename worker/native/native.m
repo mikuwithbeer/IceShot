@@ -80,10 +80,14 @@ bool init_capture(void) {
           dispatch_semaphore_signal(semaphore);
         }];
 
-    dispatch_semaphore_wait(semaphore, CAPTURE_TIMEOUT);
+    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
 
-    capture_ready = success;
-    return success;
+    if (!success || !capture_display) {
+      return false;
+    }
+
+    capture_ready = true;
+    return true;
   }
 }
 
@@ -153,8 +157,9 @@ bool load_capture(Point2D position, Point2D size, Capture *capture) {
                dispatch_semaphore_signal(semaphore);
              }];
 
-    u64 timeout = dispatch_semaphore_wait(semaphore, CAPTURE_TIMEOUT);
-    if (timeout != 0) {
+    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+
+    if (!pixels || width == 0 || height == 0 || length == 0) {
       return false;
     }
 
@@ -380,8 +385,9 @@ bool share_image(Image image, const char *token) {
 
     [task resume];
 
-    u64 timeout = dispatch_semaphore_wait(semaphore, CAPTURE_TIMEOUT);
-    if (timeout != 0 || !success || !result) {
+    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+
+    if (!success || !result) {
       return false;
     }
 
