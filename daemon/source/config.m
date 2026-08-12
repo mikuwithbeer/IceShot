@@ -21,6 +21,12 @@ static __auto_type default_config = @"{\n"
                                     @"}\n";
 
 // [--------------------------------------------------------------] //
+// > Forward Declarations                                         < //
+// [--------------------------------------------------------------] //
+
+static BOOL set_auto_launch(BOOL enabled, NSError **error);
+
+// [--------------------------------------------------------------] //
 // > Function Implementations                                     < //
 // [--------------------------------------------------------------] //
 
@@ -49,25 +55,30 @@ BOOL load_config(void) {
     return NO;
   }
 
-  NSError *error = nil;
+  NSError *parser_error = nil;
   id json = [NSJSONSerialization JSONObjectWithData:data
                                             options:0
-                                              error:&error];
+                                              error:&parser_error];
 
   if (![json isKindOfClass:[NSDictionary class]]) {
-    NSLog(@"expected data to be a dictionary");
+    id reason = parser_error ? parser_error
+                             : @"expected the root value to be an object";
+    NSLog(@"failed to parse config '%@': %@", path, reason);
     return NO;
   }
 
-  daemon_config.auto_launch = [json[@"auto_launch"] boolValue];
-  if (daemon_config.auto_launch) {
-    [SMAppService.mainAppService registerAndReturnError:&error];
-  } else {
-    [SMAppService.mainAppService unregisterAndReturnError:&error];
+  id auto_launch = json[@"auto_launch"];
+  if (![auto_launch isKindOfClass:[NSNumber class]] ||
+      CFGetTypeID((__bridge CFTypeRef)auto_launch) != CFBooleanGetTypeID()) {
+    NSLog(@"invalid config '%@': 'auto_launch' must be a boolean", path);
+    return NO;
   }
 
-  if (error) {
-    NSLog(@"failed to change startup property: %@", error);
+  daemon_config.auto_launch = [auto_launch boolValue];
+
+  NSError *service_error = nil;
+  if (!set_auto_launch(daemon_config.auto_launch, &service_error)) {
+    NSLog(@"failed to apply startup property: %@", service_error);
     return NO;
   }
 
@@ -108,4 +119,23 @@ BOOL save_config(void) {
   }
 
   return YES;
+}
+
+static BOOL set_auto_launch(BOOL enabled, NSError **error) {
+  __auto_type service = SMAppService.mainAppService;
+
+  if (enabled) {
+    if (service.status == SMAppServiceStatusEnabled ||
+        service.status == SMAppServiceStatusRequiresApproval) {
+      return YES;
+    }
+
+    return [service registerAndReturnError:error];
+  }
+
+  if (service.status == SMAppServiceStatusNotRegistered) {
+    return YES;
+  }
+
+  return [service unregisterAndReturnError:error];
 }

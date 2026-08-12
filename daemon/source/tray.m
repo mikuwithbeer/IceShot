@@ -31,10 +31,14 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   [self setup_status_bar];
 
-  __block __typeof__(self) block_self = self;
+  __weak __typeof__(self) weak_self = self;
   register_screenshot_hotkey(^{
-    [block_self take_screenshot];
+    [weak_self take_screenshot];
   });
+}
+
+- (void)applicationWillTerminate:(NSNotification *)notification {
+  unregister_screenshot_hotkey();
 }
 
 - (void)setup_status_bar {
@@ -58,11 +62,15 @@
                                       action:@selector(menu_screenshot_action:)
                                keyEquivalent:@""];
 
+  [self.capture_item setTarget:self];
+
   [menu addItem:[NSMenuItem separatorItem]];
 
   self.launch_at_login = [menu addItemWithTitle:@"Launch at Login"
                                          action:@selector(toggle_auto_launch:)
                                   keyEquivalent:@""];
+
+  [self.launch_at_login setTarget:self];
 
   self.launch_at_login.state = daemon_config.auto_launch
                                    ? NSControlStateValueOn
@@ -70,19 +78,25 @@
 
   [menu addItem:[NSMenuItem separatorItem]];
 
-  [menu addItemWithTitle:@"GitHub"
-                  action:@selector(redirect_github:)
-           keyEquivalent:@""];
+  NSMenuItem *github_item = [menu addItemWithTitle:@"GitHub"
+                                            action:@selector(redirect_github:)
+                                     keyEquivalent:@""];
 
-  [menu addItemWithTitle:@"About"
-                  action:@selector(show_about:)
-           keyEquivalent:@""];
+  [github_item setTarget:self];
 
-  [menu addItemWithTitle:@"Quit"
-                  action:@selector(quit_app:)
-           keyEquivalent:@"q"];
+  NSMenuItem *about_item = [menu addItemWithTitle:@"About"
+                                           action:@selector(show_about:)
+                                    keyEquivalent:@""];
 
-  self.status_item.menu = menu;
+  [about_item setTarget:self];
+
+  NSMenuItem *quit_item = [menu addItemWithTitle:@"Quit"
+                                          action:@selector(quit_app:)
+                                   keyEquivalent:@"q"];
+
+  [quit_item setTarget:self];
+
+  [self.status_item setMenu:menu];
 }
 
 - (void)menu_screenshot_action:(id)sender {
@@ -103,24 +117,21 @@
 }
 
 - (void)toggle_auto_launch:(id)sender {
-  daemon_config.auto_launch = !daemon_config.auto_launch;
+  BOOL requested_state = !daemon_config.auto_launch;
 
   NSError *error = nil;
-  if (daemon_config.auto_launch) {
-    [SMAppService.mainAppService registerAndReturnError:&error];
-  } else {
-    [SMAppService.mainAppService unregisterAndReturnError:&error];
-  }
-
-  if (error) {
+  if (!set_auto_launch(requested_state, &error)) {
     NSLog(@"failed to change startup property: %@", error);
+    return;
   }
 
-  self.launch_at_login.state = daemon_config.auto_launch
-                                   ? NSControlStateValueOn
-                                   : NSControlStateValueOff;
+  daemon_config.auto_launch = requested_state;
+  self.launch_at_login.state =
+      requested_state ? NSControlStateValueOn : NSControlStateValueOff;
 
-  save_config();
+  if (!save_config()) {
+    NSLog(@"startup property changed, but the preference could not be saved");
+  }
 }
 
 - (void)redirect_github:(id)sender {

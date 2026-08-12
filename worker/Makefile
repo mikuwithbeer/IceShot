@@ -15,7 +15,7 @@ FLAGS_NATIVE_RELEASE = -O3
 FLAGS_NATIVE_DEFAULT = -c -fobjc-arc -mmacosx-version-min=14.0
 
 FLAGS_DEBUG   = -debug
-FLAGS_RELEASE = -o:speed -no-bounds-check
+FLAGS_RELEASE = -o:speed
 FLAGS_LINKING = -framework Cocoa -framework IOKit -framework CoreFoundation -framework CoreGraphics -framework ScreenCaptureKit -framework Vision
 FLAGS_DEFAULT = -define:VERSION="$(VERSION)" -vet -strict-style -extra-linker-flags:"$(FLAGS_LINKING)"
 
