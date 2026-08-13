@@ -12,6 +12,33 @@ Download the latest prebuilt binary from the [releases page](https://github.com/
 
 Alternatively, build it from source.
 
+## Build from Source
+
+### Prerequisites
+
+To compile from source, make sure your environment meets the following requirements:
+
+- [`Odin`](https://odin-lang.org) (programming language)
+- `clang` (c and objective-c compiler)
+- `make` (build tool)
+
+### Steps
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/mikuwithbeer/IceShot.git
+   cd IceShot
+   ```
+
+2. Run the bundler script:
+
+   ```bash
+   ./bundle.sh release
+   ```
+
+The compiled application will be available as `IceShot.app` in the repository root.
+
 ## Screenshots
 
 ![S1](.github/assets/1.jpg)
