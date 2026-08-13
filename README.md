@@ -58,7 +58,7 @@ The first time you launch it, it creates a default configuration file inside `~/
 - JPG / JPEG
 - BMP
 
-Screenshots are saved to the output directory configured inside `worker.json`, you must create that directory if it does not exist.
+Screenshots are saved to the output directory configured inside `worker.json`.
 
 ## Shortcuts
 

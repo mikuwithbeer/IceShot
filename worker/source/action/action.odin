@@ -5,6 +5,7 @@ import "../native"
 import "../raylib"
 
 import "core:fmt"
+import "core:os"
 import "core:strings"
 import "core:time"
 
@@ -308,15 +309,19 @@ save :: proc(act: Save, allocator := context.allocator) -> error.Error {
 	image := raylib.LoadImageFromTexture(act.texture)
 	defer raylib.UnloadImage(image)
 
+	directory := fmt.aprintf("%s/%s", act.home, act.path, allocator = allocator)
+	defer delete(directory, allocator = allocator)
+
+	os.make_directory_all(directory) // Need to handle this properly
+
 	current := time.now()
 
 	year, month, day := time.year(current), time.month(current), time.day(current)
 	hour, minute, second := time.clock_from_time(current)
 
 	path := fmt.aprintf(
-		"%s/%s/SCR-%04d%02d%02d-%02d%02d%02d.%s",
-		act.home,
-		act.path,
+		"%s/SCR-%04d%02d%02d-%02d%02d%02d.%s",
+		directory,
 		year,
 		month,
 		day,
