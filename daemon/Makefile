@@ -10,10 +10,12 @@ OUTPUT_NAME = $(OUTPUT_PATH)/$(NAME)
 
 FLAGS_DEBUG   = -Og -g
 FLAGS_RELEASE = -O3 -flto
-FLAGS_LINKING = -framework Foundation -framework Cocoa -framework Carbon -framework ServiceManagement
+FLAGS_LINKING = -framework Foundation \
+		        -framework Cocoa \
+				-framework Carbon \
+				-framework ServiceManagement
 FLAGS_DEFAULT = -mmacosx-version-min=14.0 -fobjc-arc -DVERSION=\"$(VERSION)\" \
-                -Wall -Wextra -Wpedantic -Wshadow -Wconversion \
-                -Wno-gnu-auto-type
+                -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wno-gnu-auto-type
 
 .PHONY: all debug release run clean
 

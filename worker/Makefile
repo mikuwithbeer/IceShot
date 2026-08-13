@@ -16,7 +16,13 @@ FLAGS_NATIVE_DEFAULT = -c -fobjc-arc -mmacosx-version-min=14.0
 
 FLAGS_DEBUG   = -debug
 FLAGS_RELEASE = -o:speed
-FLAGS_LINKING = -framework Cocoa -framework IOKit -framework CoreFoundation -framework CoreGraphics -framework ScreenCaptureKit -framework Vision
+FLAGS_LINKING = -framework Cocoa \
+                -framework IOKit \
+                -framework QuartzCore \
+                -framework CoreFoundation \
+                -framework CoreGraphics \
+                -framework ScreenCaptureKit \
+                -framework Vision
 FLAGS_DEFAULT = -define:VERSION="$(VERSION)" -vet -strict-style -extra-linker-flags:"$(FLAGS_LINKING)"
 
 .PHONY: all debug release run clean
