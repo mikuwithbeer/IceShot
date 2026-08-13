@@ -66,21 +66,21 @@ Screenshots are saved to the output directory configured inside `worker.json`.
 
 > The daemon listens globally, so these shortcuts work from anywhere.
 
-| Shortcut                       | Action         |
-| ------------------------------ | -------------- |
-| `Command` + `Left Shift` + `3` | Capture Screen |
+| Shortcut                  | Action         |
+| ------------------------- | -------------- |
+| `Command` + `Shift` + `3` | Capture Screen |
 
 ### Worker
 
 #### General
 
-| Shortcut                       | Action      |
-| ------------------------------ | ----------- |
-| `Command` + `Z`                | Undo        |
-| `Command` + `Left Shift` + `Z` | Redo        |
-| `Command` + `Left Shift` + `S` | Share Image |
-| `Command` + `C`                | Copy Image  |
-| `Command` + `S`                | Save Image  |
+| Shortcut                  | Action      |
+| ------------------------- | ----------- |
+| `Command` + `Z`           | Undo        |
+| `Command` + `Shift` + `Z` | Redo        |
+| `Command` + `Shift` + `S` | Share Image |
+| `Command` + `C`           | Copy Image  |
+| `Command` + `S`           | Save Image  |
 
 #### Tools
 

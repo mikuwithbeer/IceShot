@@ -57,6 +57,7 @@ Gui_Property :: enum c.int {
 
 foreign import raygui "../../assets/raylib/libraygui.a"
 
+@(default_calling_convention = "c", require_results)
 foreign raygui {
 	GuiSetFont :: proc(font: Font) ---
 	GuiSetState :: proc(state: c.int) ---

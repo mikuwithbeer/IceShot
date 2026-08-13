@@ -91,25 +91,33 @@ layout_header :: proc(head: ^Header, global: ^state.State) {
 draw_header :: proc(head: ^Header, global: ^state.State) {
 	state.try_reset_message(&global.message)
 
-	raylib.GuiPanel(head.panel, global.message.content)
+	_ = raylib.GuiPanel(head.panel, global.message.content)
 
-	raylib.GuiToggle(head.crop, raylib.GuiIconText(.Crop, ""), &global.process.crop)
+	_ = raylib.GuiToggle(head.crop, raylib.GuiIconText(.Crop, ""), &global.process.crop)
 
-	raylib.GuiToggle(head.rectangle, raylib.GuiIconText(.Box, ""), &global.process.rectangle)
+	_ = raylib.GuiToggle(head.rectangle, raylib.GuiIconText(.Box, ""), &global.process.rectangle)
 
-	raylib.GuiToggle(head.line, raylib.GuiIconText(.Crossline, ""), &global.process.line)
+	_ = raylib.GuiToggle(head.line, raylib.GuiIconText(.Crossline, ""), &global.process.line)
 
-	raylib.GuiToggle(
+	_ = raylib.GuiToggle(
 		head.triangle,
 		raylib.GuiIconText(.Cursor_Pointer, ""),
 		&global.process.triangle,
 	)
 
-	raylib.GuiToggle(head.picker, raylib.GuiIconText(.Color_Picker, ""), &global.process.picker)
+	_ = raylib.GuiToggle(
+		head.picker,
+		raylib.GuiIconText(.Color_Picker, ""),
+		&global.process.picker,
+	)
 
 	global.process.rotate = raylib.GuiButton(head.rotate, raylib.GuiIconText(.Rotate, ""))
 
-	raylib.GuiToggle(head.measure, raylib.GuiIconText(.Target_Point, ""), &global.process.measure)
+	_ = raylib.GuiToggle(
+		head.measure,
+		raylib.GuiIconText(.Target_Point, ""),
+		&global.process.measure,
+	)
 
 	{
 		// Keep it disabled if nothing to undo.
@@ -133,7 +141,7 @@ draw_header :: proc(head: ^Header, global: ^state.State) {
 		raylib.GuiSetState(cast(i32)(raylib.Gui_State.Normal)) // Change back to normal
 	}
 
-	raylib.GuiToggle(head.vision, raylib.GuiIconText(.Eye_On, ""), &global.process.vision)
+	_ = raylib.GuiToggle(head.vision, raylib.GuiIconText(.Eye_On, ""), &global.process.vision)
 
 	global.process.share = raylib.GuiButton(head.share, raylib.GuiIconText(.File_Open, ""))
 
@@ -162,27 +170,27 @@ draw_header_extra :: proc(head: ^Header, global: ^state.State) {
 			rectangle = global.process.rectangle,
 		}
 
-		raylib.GuiColorPicker(head.color, "Color", &global.rectangle.color)
+		_ = raylib.GuiColorPicker(head.color, "Color", &global.rectangle.color)
 
-		raylib.GuiToggle(head.rectangle_type, "No Fill", &global.rectangle.empty)
+		_ = raylib.GuiToggle(head.rectangle_type, "No Fill", &global.rectangle.empty)
 
 		if global.rectangle.empty {
-			raylib.GuiSlider(head.rectangle_size, "", "", &global.rectangle.width, 2, 32)
+			_ = raylib.GuiSlider(head.rectangle_size, "", "", &global.rectangle.width, 2, 32)
 		}
 	case .Line:
 		global.process = {
 			line = global.process.line,
 		}
 
-		raylib.GuiColorPicker(head.color, "Color", &global.line.color)
+		_ = raylib.GuiColorPicker(head.color, "Color", &global.line.color)
 
-		raylib.GuiSlider(head.line_size, "", "", &global.line.width, 2, 32)
+		_ = raylib.GuiSlider(head.line_size, "", "", &global.line.width, 2, 32)
 	case .Triangle:
 		global.process = {
 			triangle = global.process.triangle,
 		}
 
-		raylib.GuiColorPicker(head.color, "Color", &global.triangle.color)
+		_ = raylib.GuiColorPicker(head.color, "Color", &global.triangle.color)
 	case .Picker:
 		global.process = {
 			picker = global.process.picker,
@@ -267,7 +275,9 @@ draw_header_hints :: proc(head: ^Header, global: ^state.State) {
 
 @(private = "file")
 process_shortcut :: proc(global: ^state.State) {
-	if raylib.IsKeyDown(.Left_Super) {
+	super := raylib.IsKeyDown(.Left_Super) || raylib.IsKeyDown(.Right_Super)
+
+	if super {
 		process_super_shortcut(global)
 	} else {
 		process_raw_shortcut(global)
@@ -276,7 +286,7 @@ process_shortcut :: proc(global: ^state.State) {
 
 @(private = "file")
 process_super_shortcut :: proc(global: ^state.State) {
-	shift := raylib.IsKeyDown(.Left_Shift)
+	shift := raylib.IsKeyDown(.Left_Shift) || raylib.IsKeyDown(.Right_Shift)
 
 	if raylib.IsKeyPressed(.Z) {
 		if shift {

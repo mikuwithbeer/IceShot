@@ -126,10 +126,8 @@ process_camera_drag :: proc(view: ^Viewer, global: ^state.State) {
 
 @(private = "file")
 process_camera_move :: proc(global: ^state.State) {
-	// Avoid moving while using shortcuts.
-	if raylib.IsKeyDown(.Left_Super) {
-		return
-	}
+	super := raylib.IsKeyDown(.Left_Super) || raylib.IsKeyDown(.Right_Super)
+	if super do return // No movement during shortcut usage
 
 	speed := 2000.0 * raylib.GetFrameTime() / global.frame.camera.zoom // Keep movement the same
 
