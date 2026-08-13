@@ -9,6 +9,8 @@ import "../tools"
 import "base:runtime"
 
 Viewer :: struct {
+	panning:    bool,
+	cursor:     [2]f32,
 	_allocator: runtime.Allocator,
 }
 
@@ -68,6 +70,7 @@ update_viewer :: proc(view: ^Viewer, global: ^state.State) {
 		clamp(global.frame.world.y, 0, f32(global.frame.current.height) - 1),
 	}
 
+	process_camera_drag(view, global)
 	process_camera_move(global)
 	process_camera_zoom(global)
 }
@@ -91,6 +94,34 @@ draw_viewer :: proc(view: ^Viewer, global: ^state.State) -> error.Error {
 	tools.make_vision(global, color_first, color_second) or_return
 
 	return .None
+}
+
+@(private = "file")
+process_camera_drag :: proc(view: ^Viewer, global: ^state.State) {
+	if !view.panning &&
+	   global.frame.fly &&
+	   raylib.IsKeyDown(.Space) &&
+	   raylib.IsMouseButtonPressed(.Left) {
+		view.panning = true
+		view.cursor = global.frame.absolute
+	}
+
+	if !view.panning {
+		return
+	}
+
+	global.frame.fly = false
+
+	if raylib.IsMouseButtonDown(.Left) {
+		delta := global.frame.absolute - view.cursor
+		global.frame.camera.target -= delta / global.frame.camera.zoom
+
+		view.cursor = global.frame.absolute
+	}
+
+	if raylib.IsMouseButtonReleased(.Left) {
+		view.panning = false
+	}
 }
 
 @(private = "file")

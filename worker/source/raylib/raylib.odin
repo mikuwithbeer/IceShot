@@ -27,6 +27,7 @@ Mouse_Button :: enum c.int {
 
 Keyboard_Key :: enum c.int {
 	None       = 0,
+	Space      = 32,
 	A          = 65,
 	C          = 67,
 	D          = 68,

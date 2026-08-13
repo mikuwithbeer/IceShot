@@ -99,10 +99,11 @@ Press the key again to enable or disable a tool.
 
 #### Navigation
 
-| Shortcut      | Action |
-| ------------- | ------ |
-| Mouse Wheel   | Zoom   |
-| WASD / Arrows | Pan    |
+| Shortcut           | Action |
+| ------------------ | ------ |
+| Mouse Wheel        | Zoom   |
+| WASD / Arrow Keys  | Pan    |
+| Space + Mouse Drag | Pan    |
 
 ## Appendix
 
