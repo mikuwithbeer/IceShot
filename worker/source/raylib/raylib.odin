@@ -62,6 +62,11 @@ Texture_Filter :: enum c.int {
 	BiLinear,
 }
 
+Texture_Wrap :: enum c.int {
+	Repeat = 0,
+	Clamp,
+}
+
 Image :: struct {
 	data:          rawptr,
 	width, height: c.int,
@@ -131,13 +136,12 @@ foreign raylib {
 	UnloadFont :: proc(font: Font) ---
 
 	ExportImage :: proc(image: Image, file_name: cstring) -> c.bool ---
-	LoadImageColors :: proc(image: Image) -> [^]Color ---
 	LoadImageFromTexture :: proc(texture: Texture2D) -> Image ---
 	LoadRenderTexture :: proc(width, height: c.int) -> Render_Texture2D ---
 	LoadTextureFromImage :: proc(image: Image) -> Texture2D ---
 	SetTextureFilter :: proc(texture: Texture2D, filter: Texture_Filter) ---
+	SetTextureWrap :: proc(texture: Texture2D, wrap: Texture_Wrap) ---
 	UnloadImage :: proc(image: Image) ---
-	UnloadImageColors :: proc(colors: [^]Color) ---
 	UnloadRenderTexture :: proc(target: Render_Texture2D) ---
 	UnloadTexture :: proc(texture: Texture2D) ---
 

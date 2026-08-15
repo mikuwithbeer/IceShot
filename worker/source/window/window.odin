@@ -41,7 +41,8 @@ init_window :: proc(
 
 	gui.state = state.init_state(allocator = allocator) or_return
 
-	if state.is_dark_mode(&gui.state.config) {
+	gui.state.frame.dark = state.is_dark_mode(&gui.state.config)
+	if gui.state.frame.dark {
 		init_dark_mode(&gui.state.frame)
 	} else {
 		init_light_mode(&gui.state.frame)
@@ -49,7 +50,6 @@ init_window :: proc(
 
 	gui.state.frame.screen = {f32(raylib.GetScreenWidth()), f32(raylib.GetScreenHeight())}
 	gui.state.frame.render = {f32(raylib.GetRenderWidth()), f32(raylib.GetRenderHeight())}
-	gui.state.frame.board = true
 
 	gui.viewer = init_viewer(&gui.state, capture, allocator = allocator) or_return
 	gui.header = init_header(&gui.state, allocator = allocator) or_return
@@ -80,8 +80,8 @@ update_frame :: proc(gui: ^Window) {
 
 	// Update the view when the window size changes.
 	if screen != gui.state.frame.screen || render != gui.state.frame.render {
-		gui.state.frame.screen, gui.state.frame.render = screen, render
-		gui.state.frame.board = true
+		gui.state.frame.screen = screen
+		gui.state.frame.render = render
 	}
 
 	gui.state.frame.cursor, gui.state.frame.dpi =
@@ -134,7 +134,7 @@ free_frame :: proc(gui: ^Window) {
 	}
 
 	if gui.state.frame.tiles.id != 0 {
-		raylib.UnloadRenderTexture(gui.state.frame.tiles)
+		raylib.UnloadTexture(gui.state.frame.tiles)
 	}
 
 	if gui.state.frame.font.texture.id != 0 {

@@ -15,7 +15,7 @@ make_picker :: proc(global: ^state.State, allocator := context.allocator) -> err
 	// Avoid loading the same image data more than once.
 	if global.picker.image.data == nil {
 		global.picker.image = raylib.LoadImageFromTexture(global.frame.current)
-		global.picker.pixels = raylib.LoadImageColors(global.picker.image)
+		global.picker.pixels = cast([^]raylib.Color)global.picker.image.data
 	}
 
 	ready := start(global)
@@ -27,7 +27,6 @@ make_picker :: proc(global: ^state.State, allocator := context.allocator) -> err
 }
 
 free_picker :: proc(global: ^state.State) {
-	raylib.UnloadImageColors(global.picker.pixels)
 	raylib.UnloadImage(global.picker.image)
 	global.picker = {}
 

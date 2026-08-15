@@ -19,7 +19,7 @@ make_measure :: proc(
 	// Avoid loading the same image data more than once.
 	if global.measure.image.data == nil {
 		global.measure.image = raylib.LoadImageFromTexture(global.frame.current)
-		global.measure.pixels = raylib.LoadImageColors(global.measure.image)
+		global.measure.pixels = cast([^]raylib.Color)global.measure.image.data
 	}
 
 	ready := start(global)
@@ -33,7 +33,6 @@ make_measure :: proc(
 }
 
 free_measure :: proc(global: ^state.State) {
-	raylib.UnloadImageColors(global.measure.pixels)
 	raylib.UnloadImage(global.measure.image)
 	global.measure = {}
 

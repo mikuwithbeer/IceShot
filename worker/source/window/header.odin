@@ -238,7 +238,7 @@ draw_header_extra :: proc(head: ^Header, global: ^state.State) {
 @(private = "file")
 draw_header_hints :: proc(head: ^Header, global: ^state.State) {
 	text_point := global.frame.cursor + {8, 8}
-	text_color := get_tip_color(state.is_dark_mode(&global.config))
+	text_color := get_tip_color(global.frame.dark)
 
 	if !global.frame.fly {
 		if raylib.CheckCollisionPointRec(global.frame.cursor, head.crop) {

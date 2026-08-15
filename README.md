@@ -1,7 +1,7 @@
 <table cellpadding="0" cellspacing="0">
   <tr>
     <td rowspan="2"><img src=".github/assets/logo.png" alt="Logo"></td>
-    <td valign="bottom"><h3>IceShot</h3></td>
+    <td valign="bottom"><h3>🧊 IceShot 🥃</h3></td>
   </tr>
   <tr>
     <td valign="top">An opinionated screenshot app for macOS.</td>

@@ -67,10 +67,10 @@ Vision :: struct {
 Frame :: struct {
 	camera:                                       raylib.Camera2D,
 	initial, current:                             raylib.Texture2D,
-	tiles:                                        raylib.Render_Texture2D,
+	tiles:                                        raylib.Texture2D,
 	font:                                         raylib.Font,
 	dpi, cursor, absolute, render, screen, world: [2]f32,
-	fly, style, board:                            bool,
+	fly, style, dark:                             bool,
 }
 
 Process :: struct {

@@ -179,7 +179,7 @@ void free_capture(Capture *capture) {
   }
 
   if (capture->data) {
-    free(capture->data);
+    munmap(capture->data, capture->length);
   }
 
   capture->data = NULL;
@@ -479,14 +479,15 @@ static bool image_to_rgba(CGImageRef image, void **out_pixels, u64 *out_length,
   const u64 stride = width * per_pixel;
   const u64 length = stride * height;
 
-  void *pixels = malloc(length);
-  if (!pixels) {
+  void *pixels =
+      mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
+  if (pixels == MAP_FAILED) {
     return false;
   }
 
   __auto_type color_space = CGColorSpaceCreateDeviceRGB();
   if (!color_space) {
-    free(pixels);
+    munmap(pixels, length);
     return false;
   }
 
@@ -497,7 +498,7 @@ static bool image_to_rgba(CGImageRef image, void **out_pixels, u64 *out_length,
   CGColorSpaceRelease(color_space);
 
   if (!context) {
-    free(pixels);
+    munmap(pixels, length);
     return false;
   }
 
