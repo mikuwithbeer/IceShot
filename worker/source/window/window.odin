@@ -7,9 +7,13 @@ import "../state"
 
 import "base:runtime"
 
-WINDOW_WIDTH :: 960
-WINDOW_HEIGHT :: 720
+WINDOW_WIDTH_DEFAULT :: 960
+WINDOW_WIDTH_MINIMUM :: 720
+WINDOW_HEIGHT_DEFAULT :: 720
+WINDOW_HEIGHT_MINIMUM :: 480
+
 WINDOW_TITLE :: "IceShot"
+WINDOW_FPS :: 60
 
 Window :: struct {
 	state:      state.State,
@@ -35,9 +39,10 @@ init_window :: proc(
 	}
 
 	raylib.SetConfigFlags({.HighDPI, .Resizable, .VSync_Hint})
-	raylib.SetTargetFPS(60)
+	raylib.SetTargetFPS(WINDOW_FPS)
 
-	raylib.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
+	raylib.InitWindow(WINDOW_WIDTH_DEFAULT, WINDOW_HEIGHT_DEFAULT, WINDOW_TITLE)
+	raylib.SetWindowMinSize(WINDOW_WIDTH_MINIMUM, WINDOW_HEIGHT_MINIMUM)
 
 	gui.state = state.init_state(allocator = allocator) or_return
 

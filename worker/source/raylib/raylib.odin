@@ -183,5 +183,6 @@ foreign raylib {
 	SetConfigFlags :: proc(flags: Config_Flags) ---
 	SetTargetFPS :: proc(fps: c.int) ---
 	SetTraceLogLevel :: proc(log_level: Trace_Log_Level) ---
+	SetWindowMinSize :: proc(width, height: c.int) ---
 	WindowShouldClose :: proc() -> c.bool ---
 }
