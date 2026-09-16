@@ -249,7 +249,6 @@ bool copy_vision(Image image, bool is_barcode) {
           }];
 
       text_request.recognitionLevel = VNRequestTextRecognitionLevelAccurate;
-      text_request.usesLanguageCorrection = YES;
       [requests addObject:text_request];
     } else {
       __auto_type barcode_request = [[VNDetectBarcodesRequest alloc]
