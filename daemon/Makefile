@@ -2,7 +2,7 @@ CC = clang
 
 ARGS    =
 NAME    = IceShotDaemon
-VERSION = 2026.08.13
+VERSION = 2026.10.01
 
 SOURCE_PATH = source
 OUTPUT_PATH = output
