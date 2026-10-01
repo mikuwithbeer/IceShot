@@ -20,8 +20,9 @@ static CGFloat capture_factor = 1.0;
 // > Forward Declarations                                         < //
 // [--------------------------------------------------------------] //
 
-static bool image_to_rgba(CGImageRef image, void **out_pixels, u64 *out_length,
-                          u64 *out_width, u64 *out_height, u64 *out_stride);
+static bool alloc_capture(Capture *capture, u64 width, u64 height);
+
+static bool image_to_capture(CGImageRef image, Capture *out);
 
 static NSBitmapImageRep *image_to_bitmap(Image image);
 
@@ -109,20 +110,13 @@ bool load_capture(Point2D position, Point2D size, Capture *capture) {
     }
 
     __auto_type semaphore = dispatch_semaphore_create(0);
-
-    __block void *pixels = NULL;
-
-    __block u64 length = 0;
-    __block u64 width = 0;
-    __block u64 height = 0;
-    __block u64 stride = 0;
+    __block Capture result = {0};
 
     __auto_type filter =
         [[SCContentFilter alloc] initWithDisplay:capture_display
                                 excludingWindows:@[]];
 
     __auto_type config = [[SCStreamConfiguration alloc] init];
-
     config.sourceRect = CGRectMake(position.x, position.y, size.x, size.y);
     config.width = (NSInteger)lround(size.x * capture_factor);
     config.height = (NSInteger)lround(size.y * capture_factor);
@@ -132,43 +126,19 @@ bool load_capture(Point2D position, Point2D size, Capture *capture) {
         captureImageWithFilter:filter
                  configuration:config
              completionHandler:^(CGImageRef image, NSError *error) {
-               if (error || !image) {
-                 dispatch_semaphore_signal(semaphore);
-                 return;
+               if (!error && image) {
+                 image_to_capture(image, &result);
                }
-
-               void *temporary_pixels = NULL;
-
-               u64 temporary_length = 0;
-               u64 temporary_width = 0;
-               u64 temporary_height = 0;
-               u64 temporary_stride = 0;
-
-               if (image_to_rgba(image, &temporary_pixels, &temporary_length,
-                                 &temporary_width, &temporary_height,
-                                 &temporary_stride)) {
-                 pixels = temporary_pixels;
-                 length = temporary_length;
-                 width = temporary_width;
-                 height = temporary_height;
-                 stride = temporary_stride;
-               }
-
                dispatch_semaphore_signal(semaphore);
              }];
 
     dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
 
-    if (!pixels || width == 0 || height == 0 || length == 0) {
+    if (!result.data) {
       return false;
     }
 
-    capture->data = pixels;
-    capture->length = length;
-    capture->width = width;
-    capture->height = height;
-    capture->stride = stride;
-
+    *capture = result;
     return true;
   }
 }
@@ -187,6 +157,44 @@ void free_capture(Capture *capture) {
   capture->width = 0;
   capture->height = 0;
   capture->stride = 0;
+}
+
+bool crop_image(Image image, Area2D area, Capture *capture) {
+  @autoreleasepool {
+    if (!capture || !image.data || image.width == 0 || image.height == 0) {
+      return false;
+    }
+
+    if (!isfinite(area.x) || !isfinite(area.y) || !isfinite(area.width) ||
+        !isfinite(area.height)) {
+      return false;
+    }
+
+    const double max_x = (double)image.width;
+    const double max_y = (double)image.height;
+
+    const double x0 =
+        fmin(fmax(floor(fmin(area.x, area.x + area.width)), 0), max_x);
+    const double y0 =
+        fmin(fmax(floor(fmin(area.y, area.y + area.height)), 0), max_y);
+    const double x1 =
+        fmin(fmax(ceil(fmax(area.x, area.x + area.width)), 0), max_x);
+    const double y1 =
+        fmin(fmax(ceil(fmax(area.y, area.y + area.height)), 0), max_y);
+
+    Capture cropped = {0};
+    if (!alloc_capture(&cropped, (u64)(x1 - x0), (u64)(y1 - y0))) {
+      return false;
+    }
+
+    for (u64 row = 0; row < cropped.height; row++) {
+      memcpy(capture_row(&cropped, row),
+             image_pixel(image, (u64)x0, (u64)y0 + row), cropped.stride);
+    }
+
+    *capture = cropped;
+    return true;
+  }
 }
 
 bool copy_value(const char *content) {
@@ -449,6 +457,61 @@ bool dark_mode() {
 // > Internal Functions                                           < //
 // [--------------------------------------------------------------] //
 
+static bool alloc_capture(Capture *capture, u64 width, u64 height) {
+  if (!capture || width == 0 || height == 0) {
+    return false;
+  }
+
+  const u64 length = pixel_length(width, height);
+
+  void *data =
+      mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
+  if (data == MAP_FAILED) {
+    return false;
+  }
+
+  capture->data = data;
+  capture->length = length;
+  capture->width = width;
+  capture->height = height;
+  capture->stride = pixel_stride(width);
+
+  return true;
+}
+
+static bool image_to_capture(CGImageRef image, Capture *out) {
+  Capture capture = {0};
+  if (!alloc_capture(&capture, CGImageGetWidth(image),
+                     CGImageGetHeight(image))) {
+    return false;
+  }
+
+  __auto_type color_space = CGColorSpaceCreateDeviceRGB();
+  if (!color_space) {
+    free_capture(&capture);
+    return false;
+  }
+
+  __auto_type context = CGBitmapContextCreate(
+      capture.data, capture.width, capture.height, 8, capture.stride,
+      color_space, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+
+  CGColorSpaceRelease(color_space);
+
+  if (!context) {
+    free_capture(&capture);
+    return false;
+  }
+
+  CGContextDrawImage(context, CGRectMake(0, 0, capture.width, capture.height),
+                     image);
+
+  CGContextRelease(context);
+
+  *out = capture;
+  return true;
+}
+
 static NSBitmapImageRep *image_to_bitmap(Image image) {
   __auto_type representation = [[NSBitmapImageRep alloc]
       initWithBitmapDataPlanes:NULL
@@ -459,57 +522,13 @@ static NSBitmapImageRep *image_to_bitmap(Image image) {
                       hasAlpha:YES
                       isPlanar:NO
                 colorSpaceName:NSDeviceRGBColorSpace
-                   bytesPerRow:(NSInteger)(image.width * 4)
+                   bytesPerRow:(NSInteger)pixel_stride(image.width)
                   bitsPerPixel:32];
 
   if (representation) {
     memcpy([representation bitmapData], image.data,
-           image.width * image.height * 4);
+           pixel_length(image.width, image.height));
   }
 
   return representation;
-}
-
-static bool image_to_rgba(CGImageRef image, void **out_pixels, u64 *out_length,
-                          u64 *out_width, u64 *out_height, u64 *out_stride) {
-  const u64 width = CGImageGetWidth(image);
-  const u64 height = CGImageGetHeight(image);
-  const u64 per_pixel = 4;
-  const u64 stride = width * per_pixel;
-  const u64 length = stride * height;
-
-  void *pixels =
-      mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
-  if (pixels == MAP_FAILED) {
-    return false;
-  }
-
-  __auto_type color_space = CGColorSpaceCreateDeviceRGB();
-  if (!color_space) {
-    munmap(pixels, length);
-    return false;
-  }
-
-  __auto_type context = CGBitmapContextCreate(
-      pixels, width, height, 8, stride, color_space,
-      kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
-
-  CGColorSpaceRelease(color_space);
-
-  if (!context) {
-    munmap(pixels, length);
-    return false;
-  }
-
-  CGContextDrawImage(context, CGRectMake(0, 0, width, height), image);
-
-  CGContextRelease(context);
-
-  *out_pixels = pixels;
-  *out_length = length;
-  *out_width = width;
-  *out_height = height;
-  *out_stride = stride;
-
-  return true;
 }

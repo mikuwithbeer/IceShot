@@ -22,8 +22,11 @@ typedef float f32;
 typedef double f64;
 
 typedef struct {
-  f64 x;
-  f64 y;
+  f64 x, y;
 } Point2D;
+
+typedef struct {
+  f64 x, y, width, height;
+} Area2D;
 
 #endif // TYPES_H

@@ -7,6 +7,13 @@ Unsafe_Point2D :: struct {
 	y: c.double,
 }
 
+Unsafe_Area2D :: struct {
+	x:      c.double,
+	y:      c.double,
+	width:  c.double,
+	height: c.double,
+}
+
 Unsafe_Capture :: struct {
 	data:   rawptr,
 	length: c.size_t,
@@ -36,6 +43,9 @@ foreign native {
 
 	@(link_name = "free_capture")
 	unsafe_free_capture :: proc(result: ^Unsafe_Capture) ---
+
+	@(link_name = "crop_image")
+	unsafe_crop_image :: proc(image: Unsafe_Image, area: Unsafe_Area2D, capture: ^Unsafe_Capture) -> c.bool ---
 
 	@(link_name = "copy_value")
 	unsafe_copy_value :: proc(content: cstring) -> c.bool ---

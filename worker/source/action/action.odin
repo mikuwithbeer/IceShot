@@ -98,9 +98,30 @@ crop :: proc(act: Crop) -> (Result, error.Error) {
 	image := raylib.LoadImageFromTexture(act.texture)
 	defer raylib.UnloadImage(image)
 
-	raylib.ImageCrop(&image, act.area)
+	unsafe_image := native.Unsafe_Image{image.data, uint(image.width), uint(image.height)}
+	area := native.Unsafe_Area2D {
+		f64(act.area.x),
+		f64(act.area.y),
+		f64(act.area.width),
+		f64(act.area.height),
+	}
 
-	modified := raylib.LoadTextureFromImage(image)
+	cropped: native.Unsafe_Capture
+	if !native.unsafe_crop_image(unsafe_image, area, &cropped) {
+		return {}, .Invalid_Area
+	}
+
+	defer native.unsafe_free_capture(&cropped)
+
+	view := raylib.Image {
+		data    = cropped.data,
+		width   = i32(cropped.width),
+		height  = i32(cropped.height),
+		mipmaps = 1,
+		format  = .Uncompressed_RGBA8888,
+	}
+
+	modified := raylib.LoadTextureFromImage(view)
 	raylib.SetTextureFilter(modified, .BiLinear)
 
 	return {width = modified.width, height = modified.height, texture = modified}, .None
@@ -254,13 +275,25 @@ vision :: proc(act: Vision) -> error.Error {
 	image := raylib.LoadImageFromTexture(act.texture)
 	defer raylib.UnloadImage(image)
 
-	raylib.ImageCrop(&image, act.area)
-
 	unsafe_image := native.Unsafe_Image{image.data, uint(image.width), uint(image.height)}
+	area := native.Unsafe_Area2D {
+		f64(act.area.x),
+		f64(act.area.y),
+		f64(act.area.width),
+		f64(act.area.height),
+	}
+
+	cropped: native.Unsafe_Capture
+	if !native.unsafe_crop_image(unsafe_image, area, &cropped) {
+		return .Invalid_Area
+	}
+
+	defer native.unsafe_free_capture(&cropped)
+
+	region := native.Unsafe_Image{cropped.data, uint(cropped.width), uint(cropped.height)}
 	is_barcode := act.mode == 1
 
-	ok := native.unsafe_copy_vision(unsafe_image, is_barcode)
-	if !ok {
+	if !native.unsafe_copy_vision(region, is_barcode) {
 		return .No_Text_Found
 	} else {
 		return .None

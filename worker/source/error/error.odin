@@ -2,8 +2,6 @@ package error
 
 import "../native"
 
-import "core:fmt"
-
 Error :: enum {
 	None,
 	Out_Of_Memory,
@@ -17,6 +15,7 @@ Error :: enum {
 	Invalid_Image_Format,
 	Invalid_Theme,
 	Failed_To_Upload,
+	Invalid_Area,
 }
 
 message_box :: proc(error: Error) {
@@ -30,8 +29,6 @@ message_box :: proc(error: Error) {
 
 @(private)
 to_string :: proc(error: Error) -> cstring {
-	fmt.println(error)
-
 	#partial switch error {
 	case .Out_Of_Memory:
 		return "Application ran out of memory."
@@ -55,6 +52,8 @@ to_string :: proc(error: Error) -> cstring {
 		return "Could not upload the image." // This message is unreachable
 	case .Invalid_Theme:
 		return "The configured theme is not supported."
+	case .Invalid_Area:
+		return "The selected area is empty or outside the image." // This message is unreachable
 	}
 
 	return "Something went wrong." // This message is unreachable
